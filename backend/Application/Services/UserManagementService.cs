@@ -1,0 +1,302 @@
+using Backend.Application.DTOs.Common;
+using Backend.Application.DTOs.UserManagement;
+using Backend.Application.Exceptions;
+using Backend.Application.Interfaces;
+using Backend.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace Backend.Application.Services;
+
+/// <summary>
+/// Service implementation for user management operations (admin functionality)
+/// </summary>
+public class UserManagementService : IUserManagementService
+{
+    private readonly IUserRepository _userRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+    private readonly ILogger<UserManagementService> _logger;
+
+    public UserManagementService(
+        IUserRepository userRepository,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole<Guid>> roleManager,
+        ILogger<UserManagementService> logger)
+    {
+        _userRepository = userRepository;
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Gets paginated list of users
+    /// Validates: Requirements 12.1
+    /// </summary>
+    public async Task<PagedResult<UserManagementDto>> GetUsersAsync(
+        int page = 1,
+        int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Getting paginated users list - Page: {Page}, PageSize: {PageSize}", page, pageSize);
+
+        // Validate pagination parameters
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > 100) pageSize = 100; // Limit max page size
+
+        // Get paginated users
+        var pagedUsers = await _userRepository.GetPagedAsync(
+            page,
+            pageSize,
+            filter: null, // No filter for now, could be extended
+            orderBy: query => query.OrderBy(u => u.CreatedAt),
+            cancellationToken);
+
+        // Convert to DTOs
+        var userDtos = new List<UserManagementDto>();
+        foreach (var user in pagedUsers.Data)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var userDto = new UserManagementDto(
+                Id: user.Id,
+                Email: user.Email ?? string.Empty,
+                FirstName: user.FirstName,
+                LastName: user.LastName,
+                PhoneNumber: user.PhoneNumber,
+                EmailConfirmed: user.EmailConfirmed,
+                PhoneNumberConfirmed: user.PhoneNumberConfirmed,
+                Status: user.Status,
+                Roles: roles.ToList(),
+                CreatedAt: user.CreatedAt,
+                UpdatedAt: user.UpdatedAt
+            );
+            userDtos.Add(userDto);
+        }
+
+        var result = new PagedResult<UserManagementDto>(
+            Data: userDtos,
+            Page: pagedUsers.Page,
+            PageSize: pagedUsers.PageSize,
+            TotalCount: pagedUsers.TotalCount,
+            TotalPages: pagedUsers.TotalPages
+        );
+
+        _logger.LogInformation(
+            "Successfully retrieved {Count} users from page {Page} of {TotalPages}",
+            userDtos.Count,
+            page,
+            result.TotalPages);
+
+        return result;
+    }
+
+    /// <summary>
+    /// Gets a specific user by ID
+    /// Validates: Requirements 12.2
+    /// </summary>
+    public async Task<UserManagementDto?> GetUserByIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Getting user by ID: {UserId}", userId);
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null)
+        {
+            _logger.LogWarning("User {UserId} not found", userId);
+            return null;
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var userDto = new UserManagementDto(
+            Id: user.Id,
+            Email: user.Email ?? string.Empty,
+            FirstName: user.FirstName,
+            LastName: user.LastName,
+            PhoneNumber: user.PhoneNumber,
+            EmailConfirmed: user.EmailConfirmed,
+            PhoneNumberConfirmed: user.PhoneNumberConfirmed,
+            Status: user.Status,
+            Roles: roles.ToList(),
+            CreatedAt: user.CreatedAt,
+            UpdatedAt: user.UpdatedAt
+        );
+
+        _logger.LogInformation("Successfully retrieved user {UserId}", userId);
+        return userDto;
+    }
+
+    /// <summary>
+    /// Creates a new user account
+    /// Validates: Requirements 12.3
+    /// </summary>
+    public async Task<UserManagementResponse> CreateUserAsync(
+        CreateUserRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating new user with email: {Email}", request.Email);
+
+        // Check if email already exists
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("Attempt to create user with existing email: {Email}", request.Email);
+            throw new ConflictException("A user with this email address already exists");
+        }
+
+        // Create new user
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = request.Email,
+            Email = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PhoneNumber = request.PhoneNumber,
+            Status = request.Status ?? "Active",
+            EmailConfirmed = true, // Admin-created users are pre-confirmed
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // Create user with password
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.ToDictionary(
+                e => e.Code,
+                e => new[] { e.Description });
+            _logger.LogError("Failed to create user {Email}: {Errors}", request.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new ValidationException(errors);
+        }
+
+        // Assign roles if specified
+        if (request.Roles != null && request.Roles.Any())
+        {
+            foreach (var roleName in request.Roles)
+            {
+                // Verify role exists
+                var roleExists = await _roleManager.RoleExistsAsync(roleName);
+                if (!roleExists)
+                {
+                    _logger.LogWarning("Role {RoleName} does not exist, skipping assignment", roleName);
+                    continue;
+                }
+
+                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogWarning("Failed to assign role {RoleName} to user {UserId}", roleName, user.Id);
+                }
+            }
+        }
+
+        _logger.LogInformation("Successfully created user {UserId} with email {Email}", user.Id, request.Email);
+
+        return new UserManagementResponse(
+            Success: true,
+            Message: "User created successfully",
+            UserId: user.Id
+        );
+    }
+
+    /// <summary>
+    /// Updates an existing user account
+    /// Validates: Requirements 12.4
+    /// </summary>
+    public async Task<UserManagementResponse> UpdateUserAsync(
+        Guid userId,
+        UpdateUserRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Updating user {UserId}", userId);
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null)
+        {
+            _logger.LogWarning("User {UserId} not found for update", userId);
+            throw new NotFoundException($"User with ID {userId} not found");
+        }
+
+        // Update basic properties
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.Status = request.Status;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        // Update phone number if changed
+        if (user.PhoneNumber != request.PhoneNumber)
+        {
+            // Check if phone number is already in use by another user
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                var phoneExists = await _userManager.Users
+                    .AnyAsync(u => u.PhoneNumber == request.PhoneNumber && u.Id != userId, cancellationToken);
+
+                if (phoneExists)
+                {
+                    throw new ConflictException("Phone number is already in use by another user");
+                }
+            }
+
+            user.PhoneNumber = request.PhoneNumber;
+            user.PhoneNumberConfirmed = false; // Reset confirmation when phone changes
+        }
+
+        // Update user
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            var errors = updateResult.Errors.ToDictionary(
+                e => e.Code,
+                e => new[] { e.Description });
+            _logger.LogError("Failed to update user {UserId}: {Errors}", userId, string.Join(", ", updateResult.Errors.Select(e => e.Description)));
+            throw new ValidationException(errors);
+        }
+
+        // Update roles if specified
+        if (request.Roles != null)
+        {
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            
+            // Remove current roles
+            if (currentRoles.Any())
+            {
+                var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                if (!removeResult.Succeeded)
+                {
+                    _logger.LogWarning("Failed to remove existing roles from user {UserId}", userId);
+                }
+            }
+
+            // Add new roles
+            foreach (var roleName in request.Roles)
+            {
+                var roleExists = await _roleManager.RoleExistsAsync(roleName);
+                if (!roleExists)
+                {
+                    _logger.LogWarning("Role {RoleName} does not exist, skipping assignment", roleName);
+                    continue;
+                }
+
+                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogWarning("Failed to assign role {RoleName} to user {UserId}", roleName, userId);
+                }
+            }
+        }
+
+        _logger.LogInformation("Successfully updated user {UserId}", userId);
+
+        return new UserManagementResponse(
+            Success: true,
+            Message: "User updated successfully",
+            UserId: userId
+        );
+    }
+}

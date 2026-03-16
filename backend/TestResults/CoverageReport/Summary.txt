@@ -1,0 +1,194 @@
+Summary
+  Generated on: 03/13/2026 - 16:14:20
+  Coverage date: 03/13/2026 - 16:08:13
+  Parser: Cobertura
+  Assemblies: 4
+  Classes: 166
+  Files: 159
+  Line coverage: 31.4%
+  Covered lines: 2755
+  Uncovered lines: 6003
+  Coverable lines: 8758
+  Total lines: 13297
+  Branch coverage: 54.9% (488 of 888)
+  Covered branches: 488
+  Total branches: 888
+  Method coverage: 69.3% (637 of 918)
+  Full method coverage: 67.3% (618 of 918)
+  Covered methods: 637
+  Fully covered methods: 618
+  Total methods: 918
+
+Api                                                                                0%
+  Backend.Api.Controllers.AdminSuppliersController                                 0%
+  Backend.Api.Controllers.AdminUsersController                                     0%
+  Backend.Api.Controllers.AuthController                                           0%
+  Backend.Api.Controllers.BookingController                                        0%
+  Backend.Api.Controllers.BookingsController                                       0%
+  Backend.Api.Controllers.LocationsController                                      0%
+  Backend.Api.Controllers.NotificationsController                                  0%
+  Backend.Api.Controllers.PaymentCreationController                                0%
+  Backend.Api.Controllers.PaymentsController                                       0%
+  Backend.Api.Controllers.ReviewsController                                        0%
+  Backend.Api.Controllers.SuppliersController                                      0%
+  Backend.Api.Controllers.UsersController                                          0%
+  Backend.Api.Controllers.VehiclesController                                       0%
+  Backend.Api.Middleware.GlobalExceptionHandlerMiddleware                          0%
+  Backend.Api.Middleware.RateLimitingMiddleware                                    0%
+  Program                                                                          0%
+
+Application                                                                     70.3%
+  Backend.Application.DTOs.Auth.AuthResponse                                     100%
+  Backend.Application.DTOs.Auth.ForgotPasswordRequest                            100%
+  Backend.Application.DTOs.Auth.LoginRequest                                     100%
+  Backend.Application.DTOs.Auth.LoginResponse                                    100%
+  Backend.Application.DTOs.Auth.RegisterRequest                                   75%
+  Backend.Application.DTOs.Auth.ResetPasswordRequest                             100%
+  Backend.Application.DTOs.Auth.UserDto                                          100%
+  Backend.Application.DTOs.Booking.BookingDetailsDto                             100%
+  Backend.Application.DTOs.Booking.BookingFilters                                100%
+  Backend.Application.DTOs.Booking.BookingListDto                                 70%
+  Backend.Application.DTOs.Booking.BookingListRequest                           88.8%
+  Backend.Application.DTOs.Booking.BookingResponse                               100%
+  Backend.Application.DTOs.Booking.CreateBookingRequest                           75%
+  Backend.Application.DTOs.Booking.DriverDto                                     100%
+  Backend.Application.DTOs.Booking.LocationDto                                  66.6%
+  Backend.Application.DTOs.Booking.SupplierDto                                   100%
+  Backend.Application.DTOs.Booking.VehicleBasicDto                               100%
+  Backend.Application.DTOs.Booking.VehicleWithSupplierDto                        100%
+  Backend.Application.DTOs.Common.PagedResult<T>                                 100%
+  Backend.Application.DTOs.ErrorResponse                                           0%
+  Backend.Application.DTOs.Location.CreateLocationRequest                        100%
+  Backend.Application.DTOs.Location.LocationDto                                 91.6%
+  Backend.Application.DTOs.Location.LocationSuggestionDto                        100%
+  Backend.Application.DTOs.Location.UpdateLocationRequest                        100%
+  Backend.Application.DTOs.Notification.NotificationDto                         85.7%
+  Backend.Application.DTOs.Payment.PaymentDto                                   66.6%
+  Backend.Application.DTOs.Payment.PaymentHistoryRequest                         100%
+  Backend.Application.DTOs.Payment.PaymentRequest                               83.3%
+  Backend.Application.DTOs.Payment.PaymentResponse                               100%
+  Backend.Application.DTOs.Review.CreateReviewRequest                            100%
+  Backend.Application.DTOs.Review.ReviewDto                                     66.6%
+  Backend.Application.DTOs.Review.ReviewResponse                                 100%
+  Backend.Application.DTOs.Supplier.CompanyProfileDto                            100%
+  Backend.Application.DTOs.Supplier.CreateSupplierRequest                        100%
+  Backend.Application.DTOs.Supplier.SupplierManagementDto                       57.1%
+  Backend.Application.DTOs.Supplier.SupplierManagementResponse                   100%
+  Backend.Application.DTOs.Supplier.UpdateSupplierRequest                        100%
+  Backend.Application.DTOs.UserManagement.CreateUserRequest                      100%
+  Backend.Application.DTOs.UserManagement.UpdateUserRequest                      100%
+  Backend.Application.DTOs.UserManagement.UserManagementDto                     53.8%
+  Backend.Application.DTOs.UserManagement.UserManagementResponse                 100%
+  Backend.Application.DTOs.UserProfile.AddressDto                                100%
+  Backend.Application.DTOs.UserProfile.EmergencyContactDto                        75%
+  Backend.Application.DTOs.UserProfile.UpdateProfileRequest                     66.6%
+  Backend.Application.DTOs.UserProfile.UpdateProfileResponse                     100%
+  Backend.Application.DTOs.UserProfile.UserProfileDto                           93.7%
+  Backend.Application.DTOs.UserProfile.VerificationRequiredDto                   100%
+  Backend.Application.DTOs.UserProfile.VerificationStatusDto                      80%
+  Backend.Application.DTOs.ValidationError                                         0%
+  Backend.Application.DTOs.Vehicle.CreateVehicleRequest                          100%
+  Backend.Application.DTOs.Vehicle.DateRange                                     100%
+  Backend.Application.DTOs.Vehicle.PricingRequest                                100%
+  Backend.Application.DTOs.Vehicle.SupplierDto                                   100%
+  Backend.Application.DTOs.Vehicle.UpdateVehicleRequest                          100%
+  Backend.Application.DTOs.Vehicle.VehicleAvailabilityDto                        100%
+  Backend.Application.DTOs.Vehicle.VehicleDetailsDto                             100%
+  Backend.Application.DTOs.Vehicle.VehicleFeatureDto                              50%
+  Backend.Application.DTOs.Vehicle.VehicleImageDto                               100%
+  Backend.Application.DTOs.Vehicle.VehicleListDto                               66.6%
+  Backend.Application.DTOs.Vehicle.VehiclePricingDto                             100%
+  Backend.Application.DTOs.Vehicle.VehicleResponse                               100%
+  Backend.Application.DTOs.Vehicle.VehicleSearchRequest                          100%
+  Backend.Application.Exceptions.ConflictException                               100%
+  Backend.Application.Exceptions.ForbiddenException                              100%
+  Backend.Application.Exceptions.NotFoundException                                50%
+  Backend.Application.Exceptions.UnauthorizedException                           100%
+  Backend.Application.Exceptions.ValidationException                             100%
+  Backend.Application.Mappings.AuthMappingProfile                                  0%
+  Backend.Application.Mappings.BookingMappingProfile                               0%
+  Backend.Application.Mappings.NotificationMappingProfile                          0%
+  Backend.Application.Mappings.PaymentMappingProfile                               0%
+  Backend.Application.Mappings.ReviewMappingProfile                                0%
+  Backend.Application.Mappings.SupplierMappingProfile                              0%
+  Backend.Application.Mappings.UserProfileMappingProfile                           0%
+  Backend.Application.Mappings.VehicleMappingProfile                               0%
+  Backend.Application.Services.AuthService                                       100%
+  Backend.Application.Services.BookingService                                    100%
+  Backend.Application.Services.JwtTokenService                                     0%
+  Backend.Application.Services.LocationService                                  99.2%
+  Backend.Application.Services.NotificationService                               100%
+  Backend.Application.Services.PaymentService                                   98.3%
+  Backend.Application.Services.ReviewService                                    97.9%
+  Backend.Application.Services.SupplierService                                   100%
+  Backend.Application.Services.UserManagementService                            93.2%
+  Backend.Application.Services.UserProfileService                               98.4%
+  Backend.Application.Services.VehicleService                                   85.8%
+  Backend.Application.Validators.AddressDtoValidator                               0%
+  Backend.Application.Validators.CreateBookingRequestValidator                     0%
+  Backend.Application.Validators.CreateLocationRequestValidator                    0%
+  Backend.Application.Validators.CreateReviewRequestValidator                      0%
+  Backend.Application.Validators.CreateSupplierRequestValidator                    0%
+  Backend.Application.Validators.CreateUserRequestValidator                        0%
+  Backend.Application.Validators.CreateVehicleRequestValidator                     0%
+  Backend.Application.Validators.EmergencyContactDtoValidator                      0%
+  Backend.Application.Validators.LoginRequestValidator                             0%
+  Backend.Application.Validators.PaymentRequestValidator                           0%
+  Backend.Application.Validators.PricingRequestValidator                           0%
+  Backend.Application.Validators.RegisterRequestValidator                          0%
+  Backend.Application.Validators.UpdateLocationRequestValidator                    0%
+  Backend.Application.Validators.UpdateProfileRequestValidator                     0%
+  Backend.Application.Validators.UpdateSupplierRequestValidator                    0%
+  Backend.Application.Validators.UpdateUserRequestValidator                        0%
+  Backend.Application.Validators.UpdateVehicleRequestValidator                     0%
+  Backend.Application.Validators.VehicleSearchRequestValidator                     0%
+
+Domain                                                                          52.1%
+  Backend.Domain.Entities.ApplicationUser                                       85.7%
+  Backend.Domain.Entities.AuditableEntity                                         75%
+  Backend.Domain.Entities.Booking                                               86.6%
+  Backend.Domain.Entities.BookingCancellation                                   66.6%
+  Backend.Domain.Entities.BookingPayment                                        90.9%
+  Backend.Domain.Entities.CompanyProfile                                         100%
+  Backend.Domain.Entities.Driver                                                78.5%
+  Backend.Domain.Entities.DriverApplication                                        0%
+  Backend.Domain.Entities.Favorite                                                 0%
+  Backend.Domain.Entities.InspectionPhoto                                          0%
+  Backend.Domain.Entities.Inspector                                                0%
+  Backend.Domain.Entities.InspectorApplication                                     0%
+  Backend.Domain.Entities.Notification                                          85.7%
+  Backend.Domain.Entities.PaymentMethod                                            0%
+  Backend.Domain.Entities.Review                                                77.7%
+  Backend.Domain.Entities.UserAddress                                             90%
+  Backend.Domain.Entities.Vehicle                                                100%
+  Backend.Domain.Entities.VehicleFeature                                          80%
+  Backend.Domain.Entities.VehicleImage                                          83.3%
+  Backend.Domain.Entities.VehicleInspection                                        0%
+  Backend.Domain.Entities.Verification                                            25%
+
+Infrastructure                                                                   8.7%
+  Backend.Infrastructure.Data.ApplicationDbContext                              89.5%
+  Backend.Infrastructure.Data.Configurations.BookingCancellationConfiguration    100%
+  Backend.Infrastructure.Data.Configurations.BookingConfiguration                100%
+  Backend.Infrastructure.Data.Configurations.BookingPaymentConfiguration         100%
+  Backend.Infrastructure.Data.Configurations.FavoriteConfiguration               100%
+  Backend.Infrastructure.Data.Configurations.InspectionPhotoConfiguration        100%
+  Backend.Infrastructure.Data.Configurations.PaymentMethodConfiguration          100%
+  Backend.Infrastructure.Data.Configurations.ReviewConfiguration                 100%
+  Backend.Infrastructure.Data.Configurations.UserAddressConfiguration            100%
+  Backend.Infrastructure.Data.Configurations.VehicleConfiguration                100%
+  Backend.Infrastructure.Data.Configurations.VehicleInspectionConfiguration      100%
+  Backend.Infrastructure.Data.DbInitializer                                        0%
+  Backend.Infrastructure.Data.Interceptors.AuditableEntityInterceptor            100%
+  Backend.Infrastructure.Repositories.BookingRepository                         66.6%
+  Backend.Infrastructure.Repositories.LocationRepository                        88.2%
+  Backend.Infrastructure.Repositories.NotificationRepository                       0%
+  Backend.Infrastructure.Repositories.PaginatedRepository<T>                    77.7%
+  Backend.Infrastructure.Repositories.PaymentRepository                         84.2%
+  Backend.Infrastructure.Repositories.Repository<T>                             63.3%
+  Backend.Infrastructure.Repositories.ReviewRepository                          10.3%
+  Backend.Infrastructure.Repositories.SupplierRepository                           0%
+  Backend.Infrastructure.Repositories.UserRepository                            27.2%
+  Backend.Infrastructure.Repositories.VehicleRepository                          100%
+  Infrastructure.Migrations.ApplicationDbContextModelSnapshot                      0%
+  Infrastructure.Migrations.InitialCreate                                          0%

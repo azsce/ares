@@ -6,7 +6,7 @@ namespace Backend.Domain.Entities
     public class Inspector : AuditableEntity
     {
         [Key]
-        public Guid Id { get; set; }
+        public new Guid Id { get; set; }
         
         [Required]
         [MaxLength(100)]
@@ -34,8 +34,8 @@ namespace Backend.Domain.Entities
         
         public bool IsActive { get; set; } = true;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public new DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        public DateTime? UpdatedAt { get; set; }
+        public new DateTime? UpdatedAt { get; set; }
     }
 }

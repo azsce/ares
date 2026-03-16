@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System;
 using Backend.Domain.Entities.Enums;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Domain.Entities
 {

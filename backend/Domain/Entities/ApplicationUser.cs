@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Backend.Domain.Entities.Enums;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Domain.Entities
 {
