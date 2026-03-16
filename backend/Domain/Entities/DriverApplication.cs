@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Domain.Entities
 {
     public class DriverApplication : AuditableEntity
     {
         [Key]
-        public Guid Id { get; set; }
+        public new Guid Id { get; set; }
         
         [Required]
         [MaxLength(200)]
@@ -39,6 +38,6 @@ namespace Backend.Domain.Entities
         
         public string? RejectionReason { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public new DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

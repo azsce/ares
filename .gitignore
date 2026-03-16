@@ -37,3 +37,5 @@ obj/
 
 # Misc
 *.pid
+logs
+TestResults

@@ -1,0 +1,8 @@
+namespace Backend.Application.DTOs.Common;
+
+/// <summary>
+/// DTO for supplier information
+/// </summary>
+public record SupplierDto(
+    Guid Id,
+    string FullName);

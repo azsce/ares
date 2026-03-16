@@ -1,0 +1,12 @@
+using Backend.Application.DTOs.Auth;
+
+namespace Backend.Application.Services;
+
+public interface IAuthService
+{
+    Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+    Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task<bool> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default);
+    Task<bool> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+    Task<bool> VerifyEmailAsync(string userId, string token, CancellationToken cancellationToken = default);
+}
