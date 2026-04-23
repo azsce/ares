@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+
 namespace Backend.Application.Services;
 
 public class AuthService : IAuthService
@@ -88,15 +89,14 @@ public class AuthService : IAuthService
 
         // Send email verification email
         var subject = "Verify your email - Ares Car Rental";
-        var message = $@"Hello {user.FirstName},
-
-Please confirm your email address by clicking the link below:
-{verificationUrl}
-
-If you did not request this account, please ignore this email.
-
-Best regards,
-Ares Car Rental Team";
+        var message = $@"<h3>Hello {user.FirstName},</h3>
+<p>Please confirm your email address by clicking the link below:</p>
+<p><a href='{verificationUrl}' style='display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Verify Email Address</a></p>
+<p>Or copy and paste this link into your browser:</p>
+<p>{verificationUrl}</p>
+<p>If you did not request this account, please ignore this email.</p>
+<br/>
+<p>Best regards,<br/>Ares Car Rental Team</p>";
 
         await _emailService.SendEmailAsync(user.Email, subject, message);
 
@@ -217,15 +217,14 @@ Ares Car Rental Team";
 
         // Send password reset email
         var subject = "Reset your password - Ares Car Rental";
-        var message = $@"Hello {user.FirstName},
-
-We received a request to reset your password. Please click the link below to set a new password:
-{resetUrl}
-
-If you did not request this, please ignore this email.
-
-Best regards,
-Ares Car Rental Team";
+        var message = $@"<h3>Hello {user.FirstName},</h3>
+<p>We received a request to reset your password. Please click the link below to set a new password:</p>
+<p><a href='{resetUrl}' style='display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;'>Reset Password</a></p>
+<p>Or copy and paste this link into your browser:</p>
+<p>{resetUrl}</p>
+<p>If you did not request this, please ignore this email.</p>
+<br/>
+<p>Best regards,<br/>Ares Car Rental Team</p>";
 
         await _emailService.SendEmailAsync(user.Email!, subject, message);
 

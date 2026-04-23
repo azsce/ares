@@ -83,6 +83,7 @@ builder.Services.AddAuthentication(options =>
 // Register JWT Token Service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+
 // Register Generic Repositories
 builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IPaginatedRepository<>), typeof(PaginatedRepository<>));
@@ -97,8 +98,13 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
+
+
+
 // Register Application Services
-builder.Services.AddScoped<IEmailService, DevelopmentEmailService>();
+//builder.Services.AddScoped<IEmailService, DevelopmentEmailService>();
+// Add Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
