@@ -132,12 +132,18 @@ public class BookingService : IBookingService
                 b.Vehicle?.User?.Id ?? Guid.Empty,
                 $"{b.Vehicle?.User?.FirstName} {b.Vehicle?.User?.LastName}".Trim()
             ),
+            b.Driver != null ? new DriverDto(
+                b.Driver.Id,
+                $"{b.Driver.User?.FirstName} {b.Driver.User?.LastName}".Trim(),
+                b.Driver.User?.Email ?? string.Empty
+            ) : null,
             new LocationDto(Guid.Empty, b.PickupLocation ?? "Pickup Location"),
             new LocationDto(Guid.Empty, b.DropoffLocation ?? "Drop-off Location"),
             b.PickupDate ?? DateTime.MinValue,
             b.ReturnDate ?? DateTime.MinValue,
             b.TotalPrice ?? 0,
-            b.Status ?? "Unknown"
+            b.Status ?? "Unknown",
+            false // PayLater flag - placeholder until field is added to entity
         )).ToList();
 
         return new PagedResult<BookingListDto>(
@@ -274,6 +280,159 @@ public class BookingService : IBookingService
         return await _bookingRepository.HasUserBookingsAsync(userId, cancellationToken);
     }
 
+    public async Task<PagedResult<BookingListDto>> GetAdminBookingsAsync(
+        int page,
+        int size,
+        BookingListRequest request,
+        Guid currentUserId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        // If user is a supplier (and not admin), only show their own bookings
+        Guid? supplierId = !isAdmin ? currentUserId : request.Suppliers?.FirstOrDefault();
+
+        var bookings = await _bookingRepository.GetAdminBookingsAsync(
+            supplierId,
+            request.Statuses,
+            request.CarId,
+            request.Filter?.From,
+            request.Filter?.To,
+            request.Filter?.Keyword,
+            cancellationToken);
+
+        var bookingList = bookings.ToList();
+        var totalCount = bookingList.Count;
+        var totalPages = (int)Math.Ceiling(totalCount / (double)size);
+        var skip = (page - 1) * size;
+        var pagedBookings = bookingList.Skip(skip).Take(size).ToList();
+
+        var bookingDtos = pagedBookings.Select(b => new BookingListDto(
+            b.Id,
+            new VehicleBasicDto(
+                b.Vehicle?.Id ?? Guid.Empty,
+                $"{b.Vehicle?.Make} {b.Vehicle?.Model}".Trim(),
+                b.Vehicle?.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                    ?? b.Vehicle?.Images.FirstOrDefault()?.ImageUrl
+                    ?? string.Empty
+            ),
+            new SupplierDto(
+                b.Vehicle?.User?.Id ?? Guid.Empty,
+                $"{b.Vehicle?.User?.FirstName} {b.Vehicle?.User?.LastName}".Trim()
+            ),
+            b.Driver != null ? new DriverDto(
+                b.Driver.Id,
+                $"{b.Driver.User?.FirstName} {b.Driver.User?.LastName}".Trim(),
+                b.Driver.User?.Email ?? string.Empty
+            ) : null,
+            new LocationDto(Guid.Empty, b.PickupLocation ?? "Pickup Location"),
+            new LocationDto(Guid.Empty, b.DropoffLocation ?? "Drop-off Location"),
+            b.PickupDate ?? DateTime.MinValue,
+            b.ReturnDate ?? DateTime.MinValue,
+            b.TotalPrice ?? 0,
+            b.Status ?? "Unknown",
+            false // PayLater flag - placeholder until field is added to entity
+        )).ToList();
+
+        return new PagedResult<BookingListDto>(
+            bookingDtos,
+            page,
+            size,
+            totalCount,
+            totalPages
+        );
+    }
+
+    public async Task<BookingDetailsDto> GetAdminBookingByIdAsync(
+        Guid bookingId,
+        Guid currentUserId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        var booking = await _bookingRepository.GetBookingWithDetailsAsync(bookingId, cancellationToken);
+
+        if (booking == null)
+        {
+            throw new NotFoundException($"Booking with ID {bookingId} not found");
+        }
+
+        // Verify permission: Admin can see all, Supplier can see their own vehicles' bookings
+        if (!isAdmin && booking.Vehicle?.UserId != currentUserId)
+        {
+            throw new ForbiddenException("You do not have permission to view this booking");
+        }
+
+        var vehicleDto = new VehicleWithSupplierDto(
+            booking.Vehicle?.Id ?? Guid.Empty,
+            $"{booking.Vehicle?.Make} {booking.Vehicle?.Model}".Trim(),
+            booking.Vehicle?.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                ?? booking.Vehicle?.Images.FirstOrDefault()?.ImageUrl
+                ?? string.Empty,
+            new SupplierDto(
+                booking.Vehicle?.User?.Id ?? Guid.Empty,
+                $"{booking.Vehicle?.User?.FirstName} {booking.Vehicle?.User?.LastName}".Trim()
+            )
+        );
+
+        DriverDto? driverDto = null;
+        if (booking.Driver != null)
+        {
+            var driverFullName = booking.Driver.User != null ? $"{booking.Driver.User.FirstName} {booking.Driver.User.LastName}".Trim() : string.Empty;
+            driverDto = new DriverDto(
+                booking.Driver.Id,
+                driverFullName,
+                booking.Driver.User?.PhoneNumber ?? string.Empty
+            );
+        }
+
+        return new BookingDetailsDto(
+            booking.Id,
+            vehicleDto,
+            driverDto,
+            new LocationDto(Guid.Empty, booking.PickupLocation ?? "Pickup Location"),
+            new LocationDto(Guid.Empty, booking.DropoffLocation ?? "Drop-off Location"),
+            booking.PickupDate ?? DateTime.MinValue,
+            booking.ReturnDate ?? DateTime.MinValue,
+            booking.TotalPrice ?? 0,
+            booking.Status ?? "Unknown",
+            false
+        );
+    }
+
+    public async Task<bool> UpdateBookingStatusAsync(
+        Guid bookingId,
+        string newStatus,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        var booking = await _bookingRepository.GetBookingWithDetailsAsync(bookingId, cancellationToken);
+
+        if (booking == null)
+        {
+            throw new NotFoundException($"Booking with ID {bookingId} not found");
+        }
+
+        // Verify permission: Admin can update all, Supplier can update their own vehicles' bookings
+        if (!isAdmin && booking.Vehicle?.UserId != userId)
+        {
+            throw new ForbiddenException("You do not have permission to update this booking");
+        }
+
+        // Validate status transition
+        if (booking.Status == "Cancelled" || booking.Status == "Completed")
+        {
+            throw new ValidationException("Status", $"Cannot update status from {booking.Status}");
+        }
+
+        booking.Status = newStatus;
+        booking.UpdatedAt = DateTime.UtcNow;
+
+        await _bookingRepository.UpdateAsync(booking, cancellationToken);
+        await _bookingRepository.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
     /// <summary>
     /// Generates a unique booking number in format BK-YYYYMMDD-XXXXX
     /// Requirement 4.5: Generate unique booking number
@@ -308,5 +467,36 @@ public class BookingService : IBookingService
         // Note: This requires adding Notifications DbSet to IApplicationDbContext
         // For now, we'll skip this until the context is updated
         await Task.CompletedTask;
+    }
+
+    public async Task<bool> DeleteBookingsAsync(
+        List<Guid> bookingIds,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        if (bookingIds == null || !bookingIds.Any())
+            return true;
+
+        var bookings = await _context.Bookings
+            .Include(b => b.Vehicle)
+            .Where(b => bookingIds.Contains(b.Id))
+            .ToListAsync(cancellationToken);
+
+        if (!bookings.Any())
+            return true;
+
+        foreach (var booking in bookings)
+        {
+            if (!isAdmin && booking.Vehicle?.UserId != userId)
+            {
+                throw new ForbiddenException("You do not have permission to delete one or more of these bookings");
+            }
+        }
+
+        _context.Bookings.RemoveRange(bookings);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 }

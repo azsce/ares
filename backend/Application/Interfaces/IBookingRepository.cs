@@ -53,13 +53,28 @@ public interface IBookingRepository : IPaginatedRepository<Booking>
         Guid userId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Gets a booking with all related details (vehicle, driver, user, locations)
-    /// </summary>
-    /// <param name="bookingId">Booking ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Booking with all related data if found, null otherwise</returns>
     Task<Booking?> GetBookingWithDetailsAsync(
         Guid bookingId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all bookings with optional filters (Admin/Supplier view)
+    /// </summary>
+    /// <param name="supplierId">Optional supplier ID to filter by</param>
+    /// <param name="statuses">Optional list of statuses</param>
+    /// <param name="carId">Optional vehicle ID</param>
+    /// <param name="fromDate">Optional start date</param>
+    /// <param name="toDate">Optional end date</param>
+    /// <param name="keyword">Optional keyword</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Collection of bookings</returns>
+    Task<IEnumerable<Booking>> GetAdminBookingsAsync(
+        Guid? supplierId = null,
+        List<string>? statuses = null,
+        Guid? carId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        string? keyword = null,
         CancellationToken cancellationToken = default);
 }

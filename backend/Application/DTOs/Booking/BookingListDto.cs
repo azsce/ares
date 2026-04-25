@@ -9,9 +9,11 @@ public record BookingListDto(
     Guid Id,
     VehicleBasicDto Car,
     SupplierDto Supplier,
+    DriverDto? Driver,
     LocationDto PickupLocation,
     LocationDto DropOffLocation,
     DateTime From,
     DateTime To,
     decimal Price,
-    string Status);
+    string Status,
+    bool PayLater);

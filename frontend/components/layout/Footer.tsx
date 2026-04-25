@@ -77,6 +77,7 @@ export default function Footer() {
             <Grid size={{ xs: 12, md: 6 }}>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
+                  id="newsletter-email-input"
                   fullWidth
                   placeholder="Enter your email"
                   variant="outlined"
