@@ -116,6 +116,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPublicDestinationService, PublicDestinationService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Register FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();

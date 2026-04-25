@@ -177,6 +177,7 @@ export default function SearchForm({
           }}
         >
           <Autocomplete
+            id="pickup-location-autocomplete"
             loading={loadingLocations}
             options={locationOptions}
             value={selectedLocation}
@@ -224,6 +225,7 @@ export default function SearchForm({
             }}
             slotProps={{
               textField: {
+                id: "pickup-date-input",
                 fullWidth: true,
                 sx: {
                   flex: { xs: "1 1 100%", md: "1 1 15%" },
@@ -252,6 +254,7 @@ export default function SearchForm({
             minDate={pickupDate ? pickupDate : undefined}
             slotProps={{
               textField: {
+                id: "return-date-input",
                 fullWidth: true,
                 sx: {
                   flex: { xs: "1 1 100%", md: "1 1 15%" },

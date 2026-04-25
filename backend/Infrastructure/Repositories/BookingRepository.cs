@@ -115,4 +115,68 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
             .Include(b => b.User)
             .FirstOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
     }
+
+    public async Task<IEnumerable<Booking>> GetAdminBookingsAsync(
+        Guid? supplierId = null,
+        List<string>? statuses = null,
+        Guid? carId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        string? keyword = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet
+            .Include(b => b.Vehicle)
+                .ThenInclude(v => v!.Images)
+            .Include(b => b.Vehicle)
+                .ThenInclude(v => v!.User)
+            .Include(b => b.Driver)
+            .Include(b => b.User)
+            .AsQueryable();
+
+        // Filter by supplier (vehicle owner)
+        if (supplierId.HasValue)
+        {
+            query = query.Where(b => b.Vehicle != null && b.Vehicle.UserId == supplierId.Value);
+        }
+
+        // Filter by statuses
+        if (statuses != null && statuses.Any())
+        {
+            query = query.Where(b => b.Status != null && statuses.Contains(b.Status));
+        }
+
+        // Filter by vehicle ID
+        if (carId.HasValue)
+        {
+            query = query.Where(b => b.VehicleId == carId.Value);
+        }
+
+        // Filter by date range
+        if (fromDate.HasValue)
+        {
+            query = query.Where(b => b.PickupDate >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(b => b.ReturnDate <= toDate.Value);
+        }
+
+        // Filter by keyword (search in booking number, vehicle name, customer name)
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var lowerKeyword = keyword.ToLower();
+            query = query.Where(b =>
+                (b.BookingNumber != null && b.BookingNumber.ToLower().Contains(lowerKeyword)) ||
+                (b.Vehicle != null && b.Vehicle.Make != null && b.Vehicle.Make.ToLower().Contains(lowerKeyword)) ||
+                (b.Vehicle != null && b.Vehicle.Model != null && b.Vehicle.Model.ToLower().Contains(lowerKeyword)) ||
+                (b.User != null && b.User.FirstName != null && b.User.FirstName.ToLower().Contains(lowerKeyword)) ||
+                (b.User != null && b.User.LastName != null && b.User.LastName.ToLower().Contains(lowerKeyword)));
+        }
+
+        return await query
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
 }

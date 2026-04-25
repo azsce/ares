@@ -65,4 +65,66 @@ public interface IBookingService
     Task<bool> HasUserBookingsAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a paginated list of bookings for the admin/supplier dashboard
+    /// </summary>
+    /// <param name="page">Page number</param>
+    /// <param name="size">Page size</param>
+    /// <param name="request">Filter request</param>
+    /// <param name="currentUserId">ID of the authenticated user</param>
+    /// <param name="isAdmin">Whether the authenticated user is an admin</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated list of bookings</returns>
+    Task<PagedResult<BookingListDto>> GetAdminBookingsAsync(
+        int page,
+        int size,
+        BookingListRequest request,
+        Guid currentUserId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets detailed information about a specific booking for admin/supplier
+    /// </summary>
+    /// <param name="bookingId">Booking ID</param>
+    /// <param name="currentUserId">ID of the authenticated user</param>
+    /// <param name="isAdmin">Whether the user is an admin</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Booking details</returns>
+    Task<BookingDetailsDto> GetAdminBookingByIdAsync(
+        Guid bookingId,
+        Guid currentUserId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the status of a booking
+    /// </summary>
+    /// <param name="bookingId">Booking ID</param>
+    /// <param name="newStatus">New status</param>
+    /// <param name="userId">ID of the user performing the update</param>
+    /// <param name="isAdmin">Whether the user is an admin</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if the update was successful</returns>
+    Task<bool> UpdateBookingStatusAsync(
+        Guid bookingId,
+        string newStatus,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes multiple bookings
+    /// </summary>
+    /// <param name="bookingIds">List of booking IDs to delete</param>
+    /// <param name="userId">ID of the user performing the deletion</param>
+    /// <param name="isAdmin">Whether the user is an admin</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if deletion was successful</returns>
+    Task<bool> DeleteBookingsAsync(
+        List<Guid> bookingIds,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
 }

@@ -2,6 +2,7 @@ using Backend.Application.DTOs.Notification;
 using Backend.Application.Interfaces;
 using Backend.Domain.Entities;
 
+
 namespace Backend.Application.Services;
 
 /// <summary>
@@ -66,4 +67,7 @@ public class NotificationService : INotificationService
     {
         return await _notificationRepository.GetUnreadCountAsync(userId, cancellationToken);
     }
+    
+    
+    
 }

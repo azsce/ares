@@ -268,3 +268,154 @@ public class BookingsController : ControllerBase
         return Ok(sortedResult);
     }
 }
+
+/// <summary>
+/// Controller for admin booking management operations
+/// </summary>
+[ApiController]
+[Route("api/admin/bookings")]
+[Authorize(Roles = "Admin,Supplier")]
+public class AdminBookingsController : ControllerBase
+{
+    private readonly IBookingService _bookingService;
+    private readonly ILogger<AdminBookingsController> _logger;
+
+    public AdminBookingsController(
+        IBookingService bookingService,
+        ILogger<AdminBookingsController> logger)
+    {
+        _bookingService = bookingService;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Search bookings for Admin/Supplier dashboard
+    /// </summary>
+    [HttpPost("search/{page}/{size}")]
+    [ProducesResponseType(typeof(PagedResult<BookingListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<PagedResult<BookingListDto>>> GetAdminBookings(
+        int page,
+        int size,
+        [FromBody] BookingListRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "User not authenticated" });
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+
+        _logger.LogInformation("Admin/Supplier {UserId} requesting bookings list - Page: {Page}, Size: {Size}", currentUserId, page, size);
+
+        var result = await _bookingService.GetAdminBookingsAsync(
+            page,
+            size,
+            request,
+            currentUserId,
+            isAdmin,
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get booking details for Admin/Supplier dashboard
+    /// </summary>
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(BookingDetailsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BookingDetailsDto>> GetBooking(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "User not authenticated" });
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+
+        _logger.LogInformation("Admin/Supplier {UserId} requesting details for booking {BookingId}", currentUserId, id);
+
+        var result = await _bookingService.GetAdminBookingByIdAsync(
+            id,
+            currentUserId,
+            isAdmin,
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Update booking status (Confirm, Pickup, Return, etc.)
+    /// </summary>
+    [HttpPut("{id}/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStatus(
+        Guid id,
+        [FromBody] UpdateBookingStatusRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "User not authenticated" });
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+
+        _logger.LogInformation("Admin/Supplier {UserId} updating status for booking {BookingId} to {Status}", currentUserId, id, request.Status);
+
+        await _bookingService.UpdateBookingStatusAsync(
+            id,
+            request.Status,
+            currentUserId,
+            isAdmin,
+            cancellationToken);
+
+        return Ok(new { Message = $"Booking status updated to {request.Status}" });
+    }
+
+    /// <summary>
+    /// Bulk delete selected bookings
+    /// </summary>
+    [HttpPost("delete-bookings")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> DeleteBookings(
+        [FromBody] DeleteBookingsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "User not authenticated" });
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+
+        _logger.LogInformation("Admin/Supplier {UserId} deleting {Count} bookings", currentUserId, request.Ids.Count);
+
+        await _bookingService.DeleteBookingsAsync(
+            request.Ids,
+            currentUserId,
+            isAdmin,
+            cancellationToken);
+
+        return Ok(new { Message = "Bookings deleted successfully" });
+    }
+}

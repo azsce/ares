@@ -4,7 +4,7 @@ namespace Backend.Application.DTOs.Booking;
 /// Request DTO for retrieving paginated booking list
 /// </summary>
 public record BookingListRequest(
-    Guid UserId,
+    Guid? UserId,
     List<Guid>? Suppliers,
     List<string>? Statuses,
     Guid? CarId,
