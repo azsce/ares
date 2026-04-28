@@ -64,7 +64,7 @@ export default function EditCarPage() {
           model: data.model || "",
           pricePerDay: data.pricePerDay || 0,
           year: data.year || new Date().getFullYear(),
-          supplier: data.supplier?.companyName || MOCK_SUPPLIERS[0],
+          supplier: data.supplier?.fullName || MOCK_SUPPLIERS[0],
           fuel: data.fuelType || "",
           available: data.availabilityStatus === "Available"
         });
