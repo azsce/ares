@@ -19,7 +19,7 @@ import {
 
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
-import { updateCar } from "@/app/api/cars/cars";
+import { updateCar, getCarById } from "@/app/api/cars/cars";
 import { createCarSchema } from "../../create/page";
 
 
@@ -55,7 +55,13 @@ export default function EditCarPage() {
     const fetchData = async () => {
       try {
         const data = await getCarById(session?.accessToken!, id as string);
-        setForm(data);
+        const carData = data?.data ?? data?.result ?? data;
+        
+        // Merge the retrieved data into the form structure so we don't lose default keys
+        setForm((prev) => ({
+          ...prev,
+          ...carData
+        }));
       } catch (err) {
         setApiError("Failed to load car data");
       } finally {

@@ -4,7 +4,7 @@ import { apiFetchJson } from "@/utils/api-client";
 
 
 export function useVehicles(accessToken: string | undefined, initialPage = 1) {
-  const [vehicles, setVehicles] = useState<VehicleListDto[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
@@ -14,7 +14,7 @@ export function useVehicles(accessToken: string | undefined, initialPage = 1) {
     if (!accessToken) return;
     try {
       setLoading(true);
-      const response = await apiFetchJson<PagedResult>(`api/vehicles/search/${currentPage}/${pageSize}`, {
+      const response = await apiFetchJson<any>(`api/vehicles/search/${currentPage}/${pageSize}`, {
         method: "POST",
         accessToken,
         body: JSON.stringify({})
@@ -137,7 +137,7 @@ export const updateCar = async (
 // get car by id
 
 export const getCarById = async (accessToken: string, id: string) => {
-  const res = await fetch(`${BASE_URL}/admin/cars/${id}`, {
+  const res = await fetch(`${BASE_URL}/vehicles/${id}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
