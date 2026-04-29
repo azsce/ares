@@ -36,7 +36,7 @@ public class PaymentsController : ControllerBase
         [FromQuery] PaymentHistoryRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
+        var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
         var result = await _paymentService.GetPaymentHistoryAsync(userId, request, cancellationToken);
         return Ok(result);
     }
@@ -53,7 +53,7 @@ public class PaymentsController : ControllerBase
         Guid transactionId,
         CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
+        var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
         
         // Get payment and verify ownership
         var payments = await _paymentService.GetPaymentHistoryAsync(
@@ -85,7 +85,7 @@ public class PaymentsController : ControllerBase
         [FromQuery] string format = "pdf",
         CancellationToken cancellationToken = default)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
+        var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
 
         // Verify user owns this transaction
         var payments = await _paymentService.GetPaymentHistoryAsync(
@@ -127,7 +127,7 @@ public class PaymentsController : ControllerBase
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetPendingPayments(
         CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
+        var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
         
         var request = new PaymentHistoryRequest
         {
@@ -152,7 +152,7 @@ public class PaymentsController : ControllerBase
         [FromQuery] int limit = 10,
         CancellationToken cancellationToken = default)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
+        var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
         
         var request = new PaymentHistoryRequest
         {
@@ -200,7 +200,7 @@ public class PaymentCreationController : ControllerBase
         [FromBody] PaymentRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
+        var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
         
         var result = await _paymentService.ProcessPaymentAsync(request, userId, cancellationToken);
         
