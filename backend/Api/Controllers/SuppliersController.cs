@@ -163,4 +163,28 @@ public class AdminSuppliersController : ControllerBase
 
         return Ok(response);
     }
+
+    /// <summary>
+    /// Delete a supplier account (Admin only)
+    /// </summary>
+    /// <param name="id">Supplier ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Supplier deletion response</returns>
+    [HttpDelete("{id}/delete")]
+    [ProducesResponseType(typeof(SupplierManagementResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<SupplierManagementResponse>> DeleteSupplier(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Admin deleting supplier {SupplierId}", id);
+
+        var response = await _supplierService.DeleteSupplierAsync(id, cancellationToken);
+
+        _logger.LogInformation("Successfully deleted supplier {SupplierId}", id);
+
+        return Ok(response);
+    }
 }

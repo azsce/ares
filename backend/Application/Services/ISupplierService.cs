@@ -73,4 +73,14 @@ public interface ISupplierService
         Guid supplierId,
         UpdateSupplierRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a supplier account
+    /// </summary>
+    /// <param name="supplierId">Supplier ID to delete</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Supplier deletion response</returns>
+    Task<SupplierManagementResponse> DeleteSupplierAsync(
+        Guid supplierId,
+        CancellationToken cancellationToken = default);
 }

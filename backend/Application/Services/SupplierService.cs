@@ -362,4 +362,43 @@ public class SupplierService : ISupplierService
             SupplierId: supplierId
         );
     }
+
+    /// <summary>
+    /// Deletes a supplier account
+    /// </summary>
+    public async Task<SupplierManagementResponse> DeleteSupplierAsync(
+        Guid supplierId,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Deleting supplier {SupplierId}", supplierId);
+
+        var supplier = await _supplierRepository.GetSupplierWithCompanyProfileAsync(supplierId, cancellationToken);
+        if (supplier == null)
+        {
+            _logger.LogWarning("Supplier {SupplierId} not found for deletion", supplierId);
+            throw new NotFoundException($"Supplier with ID {supplierId} not found");
+        }
+
+        // Soft delete by setting status to Deleted
+        supplier.Status = "Deleted";
+        supplier.UpdatedAt = DateTime.UtcNow;
+
+        var updateResult = await _userManager.UpdateAsync(supplier);
+        if (!updateResult.Succeeded)
+        {
+            var errors = updateResult.Errors.ToDictionary(
+                e => e.Code,
+                e => new[] { e.Description });
+            _logger.LogError("Failed to delete supplier {SupplierId}: {Errors}", supplierId, string.Join(", ", updateResult.Errors.Select(e => e.Description)));
+            throw new ValidationException(errors);
+        }
+
+        _logger.LogInformation("Successfully deleted supplier {SupplierId}", supplierId);
+
+        return new SupplierManagementResponse(
+            Success: true,
+            Message: "Supplier deleted successfully",
+            SupplierId: supplierId
+        );
+    }
 }
