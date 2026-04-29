@@ -237,6 +237,35 @@ export default function AdminCarsPage() {
   const handleCloseError = useCallback(() => setErrorMsg(null), []);
   const handleNavigate = useCallback((path: string) => router.push(path), [router]);
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this vehicle?")) return;
+    
+    try {
+      if (session?.accessToken) {
+        // First check if it has active bookings
+        const hasBookings = await apiFetchJson<bool>(`api/admin/cars/${id}/check-bookings`, {
+          accessToken: session.accessToken
+        });
+
+        if (hasBookings) {
+          alert("Cannot delete vehicle with active bookings.");
+          return;
+        }
+
+        await apiFetchJson(`api/admin/cars/${id}/delete`, {
+          method: "DELETE",
+          accessToken: session.accessToken
+        });
+        
+        alert("Vehicle deleted successfully");
+        fetchVehicles(page);
+      }
+    } catch (error: any) {
+      console.error("Delete failed:", error);
+      alert(error.message || "Failed to delete vehicle");
+    }
+  };
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
       {/* HEADER */}
