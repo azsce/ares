@@ -1,7 +1,10 @@
-export default function AdminCreateBookingPage() {
-  return (
-    <main>
-      <h1>Admin — Create Booking</h1>
-    </main>
-  );
+import CreateBookingClient from "./_components/CreateBookingClient";
+
+export const metadata = {
+  title: "Create Booking | Admin Dashboard",
+  description: "Manually create a new vehicle booking.",
+};
+
+export default function CreateBookingPage() {
+  return <CreateBookingClient />;
 }
