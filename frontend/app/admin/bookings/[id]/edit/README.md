@@ -10,94 +10,58 @@
 
 ## API Endpoints
 
-### `GET /api/booking/:id/:language`
+### `GET /api/admin/bookings/{id}`
 
-Load existing booking data to pre-populate the edit form.
+Load existing booking data to pre-populate the edit form for Admin/Supplier.
 
 **URL Params**
 
-| Param      | Description                        |
-| ---------- | ---------------------------------- |
-| `id`       | Booking `_id`                      |
-| `language` | Language code for localized fields |
+| Param | Description |
+| ----- | ----------- |
+| `id`  | Booking ID  |
 
 **Response — 200 OK**
 
 ```json
 {
-  "_id": "string",
-  "car": { "_id": "string", "name": "string", "price": "number" },
-  "supplier": { "_id": "string", "fullName": "string" },
-  "driver": { "_id": "string", "fullName": "string" },
-  "pickupLocation": { "_id": "string", "name": "string" },
-  "dropOffLocation": { "_id": "string", "name": "string" },
-  "from": "string (ISO 8601)",
-  "to": "string (ISO 8601)",
-  "price": "number",
+  "id": "string",
+  "bookingNumber": "string",
   "status": "string",
-  "payLater": "boolean"
+  "totalPrice": "number",
+  "fromDate": "string (ISO 8601)",
+  "toDate": "string (ISO 8601)",
+  "pickupLocation": { "id": "string", "name": "string" },
+  "dropOffLocation": { "id": "string", "name": "string" },
+  "vehicle": { "id": "string", "name": "string", "pricePerDay": "number" },
+  "driver": { "id": "string", "fullName": "string", "email": "string" },
+  "supplier": { "id": "string", "fullName": "string" },
+  "notes": "string"
 }
 ```
 
 ---
 
-### `PUT /api/update-booking`
+### `PUT /api/admin/bookings/{id}/status`
 
-Save changes to the booking.
-
-**Request Body**
-
-```json
-{
-  "_id": "string",
-  "car": "string (_id)",
-  "supplier": "string (_id)",
-  "driver": "string (_id)",
-  "pickupLocation": "string (_id)",
-  "dropOffLocation": "string (_id)",
-  "from": "string (ISO 8601)",
-  "to": "string (ISO 8601)",
-  "price": "number",
-  "status": "string",
-  "payLater": "boolean"
-}
-```
-
-**Response**
-
-| Status | Meaning           |
-| ------ | ----------------- |
-| 200    | Booking updated   |
-| 400    | Invalid fields    |
-| 404    | Booking not found |
-
----
-
-### `POST /api/update-booking-status`
-
-Update only the booking status (Pending / Deposit / Paid / Reserved / Cancelled).
-
-**Request Body**
-
-```json
-{ "_id": "string", "status": "string" }
-```
-
----
-
-### `POST /api/cancel-booking/:id`
-
-Cancel the booking.
+Update the booking status (Pending / Confirmed / Paid / Cancelled, etc.). Full updates to booking details are not supported in the admin panel yet.
 
 **URL Params**
 
-| Param | Description   |
-| ----- | ------------- |
-| `id`  | Booking `_id` |
+| Param | Description |
+| ----- | ----------- |
+| `id`  | Booking ID  |
+
+**Request Body**
+
+```json
+{ "status": "string" }
+```
 
 **Response**
 
-| Status | Meaning                                    |
-| ------ | ------------------------------------------ |
-| 200    | Booking cancelled                          |
-| 400    | Booking status does not allow cancellation |
+| Status | Meaning               |
+| ------ | --------------------- |
+| 200    | Booking status updated|
+| 400    | Invalid request       |
+| 401    | Unauthorized          |
+| 404    | Booking not found     |
