@@ -10,33 +10,35 @@
 
 ## API Endpoints
 
-### `POST /api/bookings/:page/:size/:language`
+### `POST /api/admin/bookings/search/{page}/{size}`
 
-Fetch a paginated, filtered list of bookings.
+Fetch a paginated, filtered list of bookings for Admin/Supplier dashboards.
 
 **URL Params**
 
-| Param      | Description                        |
-| ---------- | ---------------------------------- |
-| `page`     | 1-based page number                |
-| `size`     | Number of results per page         |
-| `language` | Language code for localized fields |
+| Param  | Description                |
+| ------ | -------------------------- |
+| `page` | 1-based page number        |
+| `size` | Number of results per page |
 
 **Request Body**
 
 ```json
 {
-  "suppliers": ["string (_id)"],
+  "suppliers": ["string (Guid)"],
   "statuses": ["Pending", "Deposit", "Paid", "Reserved", "Cancelled"],
-  "user": "string | null",
-  "carId": "string | null",
+  "user": "string (Guid) | null",
+  "carId": "string (Guid) | null",
   "filter": {
     "from": "string (ISO 8601) | null",
     "to": "string (ISO 8601) | null",
     "keyword": "string | null",
     "pickupLocation": "string | null",
     "dropOffLocation": "string | null"
-  }
+  },
+  "page": "number",
+  "size": "number",
+  "language": "string"
 }
 ```
 
@@ -44,13 +46,13 @@ Fetch a paginated, filtered list of bookings.
 
 ```json
 {
-  "resultData": [
+  "data": [
     {
-      "_id": "string",
-      "car": { "_id": "string", "name": "string", "supplier": { "fullName": "string" } },
-      "driver": { "_id": "string", "fullName": "string", "email": "string" },
-      "pickupLocation": { "_id": "string", "name": "string" },
-      "dropOffLocation": { "_id": "string", "name": "string" },
+      "id": "string",
+      "car": { "id": "string", "name": "string", "supplier": { "fullName": "string" } },
+      "driver": { "id": "string", "fullName": "string", "email": "string" },
+      "pickupLocation": { "id": "string", "name": "string" },
+      "dropOffLocation": { "id": "string", "name": "string" },
       "from": "string (ISO 8601)",
       "to": "string (ISO 8601)",
       "price": "number",
@@ -58,20 +60,23 @@ Fetch a paginated, filtered list of bookings.
       "payLater": "boolean"
     }
   ],
-  "pageInfo": [{ "totalRecords": "number" }]
+  "totalCount": "number",
+  "totalPages": "number",
+  "page": "number",
+  "pageSize": "number"
 }
 ```
 
 ---
 
-### `POST /api/delete-bookings`
+### `POST /api/admin/bookings/delete-bookings`
 
 Bulk delete selected bookings.
 
 **Request Body**
 
 ```json
-{ "ids": ["string"] }
+{ "ids": ["string (Guid)"] }
 ```
 
 **Response**
@@ -80,3 +85,5 @@ Bulk delete selected bookings.
 | ------ | ---------------- |
 | 200    | Bookings deleted |
 | 400    | Invalid request  |
+| 401    | Unauthorized     |
+| 403    | Forbidden        |
