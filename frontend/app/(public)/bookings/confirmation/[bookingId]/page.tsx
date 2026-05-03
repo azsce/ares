@@ -167,7 +167,7 @@ export default async function ConfirmationPage({ params }: PageProps) {
             <Button
               variant="outlined"
               size="large"
-              href="/account/bookings"
+              href="/bookings"
               sx={{ borderRadius: 3, py: 1.5, px: 4, fontWeight: 700 }}
             >
               My Bookings
