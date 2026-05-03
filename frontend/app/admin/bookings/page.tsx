@@ -1,12 +1,12 @@
+import React from "react";
 import BookingsClient from "./_components/BookingsClient";
 
 export const metadata = {
-  title: "Bookings Management | Admin Dashboard",
-  description: "Manage all vehicle bookings, view details, and perform bulk actions.",
+  title: "Bookings Management | ARES Admin",
+  description: "Manage all vehicle bookings in the ARES platform",
 };
 
-export default function AdminBookingsPage() {
-  // فصلنا الكلاينت عن السيرفر لضمان سرعة تحميل الصفحة الأساسية
-  // ولجعل الـ SEO أفضل إن لزم الأمر لاحقاً.
+export default function BookingsPage() {
+  // Server-side logic can go here (e.g., verifying roles via standard NextAuth server methods)
   return <BookingsClient />;
 }

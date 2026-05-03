@@ -2,148 +2,92 @@
 
 import React, { useState, useEffect } from "react";
 import { 
-  Box, Container, Typography, Paper, Button, TextField, 
-  MenuItem, CircularProgress, useTheme, InputAdornment, IconButton, Chip, Divider
+  Box, 
+  Typography, 
+  Paper, 
+  MenuItem, 
+  Select, 
+  Button, 
+  CircularProgress, 
+  TextField, 
+  Stack, 
+  Divider, 
+  Chip, 
+  Alert, 
+  Grid,
+  useTheme,
+  alpha
 } from "@mui/material";
-import { 
-  ArrowBack as ArrowBackIcon, 
-  Save as SaveIcon, 
-  Cancel as CancelIcon,
-  DirectionsCar as CarIcon,
-  Person as PersonIcon,
-  LocationOn as LocationIcon
-} from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetchJson } from "@/utils/api-client";
 
-// --- Types المطابقة للـ API الجديد ---
-interface BookingDetail {
-  id: string;
-  bookingNumber: string;
-  status: string;
-  totalPrice: number;
-  fromDate: string;
-  toDate: string;
-  pickupLocation: { id: string; name: string } | null;
-  dropOffLocation: { id: string; name: string } | null;
-  vehicle: { id: string; name: string; pricePerDay: number } | null;
-  driver: { id: string; fullName: string; email: string } | null;
-  supplier: { id: string; fullName: string } | null;
-  notes: string | null;
-}
-
-const STATUS_OPTIONS = ["Pending", "Confirmed", "Deposit", "Paid", "Reserved", "Cancelled"];
-
-// دالة لتحويل التاريخ لشكل مقروء في حقول القراءة
-const formatDisplayDate = (isoString?: string) => {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleString('en-US', { 
-    year: 'numeric', month: 'short', day: 'numeric', 
-    hour: '2-digit', minute: '2-digit' 
-  });
-};
-
-export default function EditBookingClient({ bookingId }: { bookingId: string }) {
-  const theme = useTheme();
+export default function EditBookingClient({ bookingId }: { readonly bookingId: string }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const theme = useTheme();
 
-  const [booking, setBooking] = useState<BookingDetail | null>(null);
-  const [currentStatus, setCurrentStatus] = useState<string>("");
+  // States
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [status, setStatus] = useState("");
+  const [remarks, setRemarks] = useState("");
   
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 1. جلب بيانات الحجز
+  // 1. Fetch Data
   useEffect(() => {
     const fetchBookingDetails = async () => {
+      if (!bookingId || bookingId === "undefined") {
+        setErrorMsg("Invalid Booking ID. Please go back to the table and select a valid booking.");
+        setIsFetching(false);
+        return;
+      }
+
       if (!session?.accessToken) return;
+      
       try {
-        const data = await apiFetchJson<BookingDetail>(`api/admin/bookings/${bookingId}`, {
-          accessToken: session.accessToken,
+        const data = await apiFetchJson<any>(`/api/admin/bookings/${bookingId}`, {
+          accessToken: session.accessToken as string,
         });
-        
-        // لو الداتا جاية جوه data (حسب إعدادات PagedResult في بعض الأحيان)
-        const bookingData = (data as any).data || data;
-        
-        setBooking(bookingData);
-        setCurrentStatus(bookingData.status || "Pending");
-      } catch (error: any) {
-        console.error("Failed to load booking details:", error);
-        alert("Failed to load booking details. It may not exist.");
-        router.push("/admin/bookings");
+        setBookingDetails(data);
+        setStatus(data.status || "");
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+        setErrorMsg("Failed to load booking details.");
       } finally {
-        setIsLoading(false);
+        setIsFetching(false);
       }
     };
-    
-    fetchBookingDetails();
-  }, [bookingId, session, router]);
 
-  // 2. تحديث الحالة
-  const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentStatus(e.target.value);
-  };
+    void fetchBookingDetails();
+  }, [bookingId, session?.accessToken]);
 
-  // 3. حفظ التعديلات (تحديث الحالة فقط حسب الـ API)
-  const handleSaveStatus = async () => {
-    if (!session?.accessToken) return;
+  // 2. Update Status
+  const handleUpdateStatus = async () => {
     setIsSaving(true);
+    setErrorMsg(null);
     try {
-      await apiFetchJson(`api/admin/bookings/${bookingId}/status`, {
-        method: "PUT",
-        accessToken: session.accessToken,
-        body: JSON.stringify({ status: currentStatus })
-      });
+      const payload = { status, remarks };
 
-      setBooking(prev => prev ? { ...prev, status: currentStatus } : null);
-      alert("Booking status updated successfully!");
-    } catch (error: any) {
-      console.error("Failed to update status:", error);
-      alert(error.message || "Failed to update booking status.");
+      await apiFetchJson(`/api/admin/bookings/${bookingId}/status`, {
+        method: "PUT",
+        accessToken: session?.accessToken as string,
+        body: JSON.stringify(payload)
+      });
+      
+      router.push("/admin/bookings");
+      router.refresh();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setErrorMsg("Failed to update booking status. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // 4. إلغاء الحجز
-  const handleCancelBooking = async () => {
-    if (!confirm("Are you sure you want to cancel this booking?")) return;
-    
-    setIsSaving(true);
-    try {
-      await apiFetchJson(`api/admin/bookings/${bookingId}/status`, {
-        method: "PUT",
-        accessToken: session.accessToken,
-        body: JSON.stringify({ status: "Cancelled" })
-      });
-
-      setBooking(prev => prev ? { ...prev, status: "Cancelled" } : null);
-      setCurrentStatus("Cancelled");
-      alert("Booking has been cancelled.");
-    } catch (error: any) {
-      alert(error.message || "Failed to cancel booking.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s === 'paid' || s === 'confirmed' || s === 'reserved') return "success";
-    if (s === 'pending' || s === 'deposit') return "warning";
-    if (s === 'cancelled') return "error";
-    return "default";
-  };
-
-  const paperSx = { 
-    p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 3, 
-    bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#fafafa' 
-  };
-
-  if (isLoading) {
+  if (isFetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <CircularProgress />
@@ -151,152 +95,150 @@ export default function EditBookingClient({ bookingId }: { bookingId: string }) 
     );
   }
 
-  if (!booking) return null;
+  if (!bookingDetails) {
+    return (
+      <Box p={3} maxWidth={900} mx="auto">
+        <Alert severity="error">{errorMsg || "Booking not found!"}</Alert>
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => router.push("/admin/bookings")}>
+          Go Back to Bookings
+        </Button>
+      </Box>
+    );
+  }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => router.push('/admin/bookings')} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Box>
-            <Typography variant="h4" fontWeight="800">
-              Booking #{booking.bookingNumber || "N/A"}
-            </Typography>
-            <Chip 
-              label={booking.status} 
-              color={getStatusColor(booking.status) as any} 
-              size="small" 
-              sx={{ mt: 1, fontWeight: 'bold' }} 
-            />
-          </Box>
-        </Box>
-        
-        {booking.status !== "Cancelled" && (
-          <Button 
-            variant="outlined" 
-            color="error" 
-            startIcon={isSaving ? <CircularProgress size={20} /> : <CancelIcon />} 
-            onClick={handleCancelBooking} 
-            disabled={isSaving} 
-            sx={{ borderRadius: 2, fontWeight: 'bold' }}
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, mx: "auto" }}>
+      <Typography variant="h4" fontWeight={800} mb={1}>Manage Booking</Typography>
+      <Typography color="text.secondary" mb={4}>
+        Update status and add remarks for booking ID: <Typography component="span" fontWeight="bold" color="text.primary">{bookingId.split('-')[0]}</Typography>...
+      </Typography>
+
+      {errorMsg && <Alert severity="error" sx={{ mb: 3 }}>{errorMsg}</Alert>}
+
+      <Grid container spacing={4}>
+        {/* الكارت الأول: تفاصيل الحجز */}
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              height: '100%', 
+              // السحر هنا: بنغير اللون بناءً على الـ Mode
+              bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.4) : '#f8fafc', 
+              border: '1px solid', 
+              borderColor: 'divider',
+            }}
           >
-            Cancel Booking
-          </Button>
-        )}
-      </Box>
-
-      <Box className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Column: Editable Status & Core Info */}
-        <Box className="lg:col-span-1 space-y-6">
-          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" mb={3} color="primary.main">
-              ⚙️ Manage Status
-            </Typography>
+            <Typography variant="h6" fontWeight={700} mb={2}>Booking Information</Typography>
+            <Divider sx={{ mb: 2 }} />
             
-            <TextField 
-              select 
-              label="Booking Status" 
-              value={currentStatus} 
-              onChange={handleStatusChange} 
-              fullWidth 
-              sx={{ mb: 3 }}
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <MenuItem key={s} value={s}>{s}</MenuItem>
-              ))}
-            </TextField>
-
-            <TextField 
-              label="Total Price" 
-              value={booking.totalPrice || 0} 
-              InputProps={{ 
-                readOnly: true,
-                startAdornment: <InputAdornment position="start">$</InputAdornment> 
-              }} 
-              fullWidth 
-              sx={{ mb: 3 }}
-            />
-
-            <Button 
-              variant="contained" 
-              color="primary" 
-              size="large" 
-              fullWidth 
-              onClick={handleSaveStatus}
-              disabled={isSaving || currentStatus === booking.status} 
-              startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />} 
-              sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
-            >
-              {isSaving ? "Saving..." : "Update Status"}
-            </Button>
-          </Paper>
-
-          {booking.notes && (
-            <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'warning.light', color: 'warning.contrastText' }}>
-              <Typography variant="subtitle2" fontWeight="bold" mb={1}>📝 Booking Notes:</Typography>
-              <Typography variant="body2">{booking.notes}</Typography>
-            </Paper>
-          )}
-        </Box>
-
-        {/* Right Column: Read-only Booking Details */}
-        <Box className="lg:col-span-2 space-y-6">
-          
-          {/* Dates & Locations */}
-          <Paper elevation={0} sx={paperSx}>
-            <Box display="flex" alignItems="center" gap={1} mb={3}>
-              <LocationIcon color="primary" />
-              <Typography variant="h6" fontWeight="bold">Dates & Locations</Typography>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
-            
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField label="Pickup Location" value={booking.pickupLocation?.name || "N/A"} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-              <TextField label="Drop-off Location" value={booking.dropOffLocation?.name || "N/A"} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-              <TextField label="From Date" value={formatDisplayDate(booking.fromDate)} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-              <TextField label="To Date" value={formatDisplayDate(booking.toDate)} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-            </Box>
-          </Paper>
-
-          {/* Vehicle & Supplier */}
-          <Paper elevation={0} sx={paperSx}>
-            <Box display="flex" alignItems="center" gap={1} mb={3}>
-              <CarIcon color="primary" />
-              <Typography variant="h6" fontWeight="bold">Vehicle Details</Typography>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
-            
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField label="Vehicle" value={booking.vehicle?.name || "N/A"} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-              <TextField label="Price Per Day" value={booking.vehicle?.pricePerDay ? `$${booking.vehicle.pricePerDay}` : "N/A"} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-              <TextField label="Supplier" value={booking.supplier?.fullName || "N/A"} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-            </Box>
-          </Paper>
-
-          {/* Driver Details */}
-          <Paper elevation={0} sx={paperSx}>
-            <Box display="flex" alignItems="center" gap={1} mb={3}>
-              <PersonIcon color="primary" />
-              <Typography variant="h6" fontWeight="bold">Driver Information</Typography>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
-            
-            {booking.driver ? (
-              <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <TextField label="Driver Name" value={booking.driver.fullName} InputProps={{ readOnly: true }} fullWidth variant="filled" />
-                <TextField label="Driver Email" value={booking.driver.email} InputProps={{ readOnly: true }} fullWidth variant="filled" />
+            <Stack spacing={2.5}>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Vehicle</Typography>
+                <Typography fontWeight={600} color="text.primary">{bookingDetails.car?.name || "N/A"}</Typography>
               </Box>
-            ) : (
-              <Typography color="text.secondary" fontStyle="italic">No driver assigned to this booking.</Typography>
-            )}
-          </Paper>
+              
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Driver</Typography>
+                <Typography fontWeight={600} color="text.primary">
+                  {bookingDetails.driver?.fullName || "N/A"} 
+                  <Typography component="span" variant="body2" color="text.secondary" ml={1}>
+                    ({bookingDetails.driver?.phone || "No Phone"})
+                  </Typography>
+                </Typography>
+              </Box>
 
-        </Box>
-      </Box>
-    </Container>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Dates</Typography>
+                <Typography variant="body2" fontWeight={500} color="text.primary">
+                  {new Date(bookingDetails.from).toLocaleDateString()} — {new Date(bookingDetails.to).toLocaleDateString()}
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Current Status</Typography>
+                <Chip 
+                  label={bookingDetails.status} 
+                  color={bookingDetails.status === 'Paid' || bookingDetails.status === 'Confirmed' ? 'success' : 'warning'} 
+                  size="small" 
+                  sx={{ mt: 0.5, fontWeight: 600 }}
+                />
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+
+        {/* الكارت التاني: فورم التعديل */}
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              height: '100%', 
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: theme.palette.mode === 'dark' ? 'none' : "0 4px 20px rgba(0,0,0,0.05)" 
+            }}
+          >
+            <Typography variant="h6" fontWeight={700} mb={3}>Update Status</Typography>
+            
+            <Stack spacing={3}>
+              <Box>
+                <Typography variant="subtitle2" mb={1} fontWeight={600}>New Status *</Typography>
+                <Select 
+                  fullWidth 
+                  value={status} 
+                  onChange={(e) => setStatus(e.target.value)} 
+                  size="medium"
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem value="Pending">Pending</MenuItem>
+                  <MenuItem value="Confirmed">Confirmed</MenuItem>
+                  <MenuItem value="Pickup">Pickup (Active)</MenuItem>
+                  <MenuItem value="Return">Returned</MenuItem>
+                  <MenuItem value="Cancelled">Cancelled</MenuItem>
+                </Select>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" mb={1} fontWeight={600}>Admin Remarks (Optional)</Typography>
+                <TextField 
+                  fullWidth 
+                  multiline
+                  rows={4}
+                  placeholder="Add any notes about this status change..."
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Box>
+
+              <Box display="flex" gap={2} pt={2}>
+                <Button 
+                  variant="outlined" 
+                  color="inherit" 
+                  onClick={() => router.push("/admin/bookings")}
+                  sx={{ borderRadius: 2, px: 3 }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  onClick={handleUpdateStatus} 
+                  disabled={isSaving || !status || status === bookingDetails.status}
+                  sx={{ borderRadius: 2, px: 4, fontWeight: 700, flexGrow: 1 }}
+                >
+                  {isSaving ? <CircularProgress size={24} color="inherit" /> : "Save Changes"}
+                </Button>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }

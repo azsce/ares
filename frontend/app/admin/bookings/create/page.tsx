@@ -1,10 +1,18 @@
-import CreateBookingClient from "./_components/CreateBookingClient";
+"use client";
 
-export const metadata = {
-  title: "Create Booking | Admin Dashboard",
-  description: "Manually create a new vehicle booking.",
-};
+import React from "react";
+import { Box, Typography, Paper } from "@mui/material";
 
-export default function CreateBookingPage() {
-  return <CreateBookingClient />;
+export default function CreateBookingClient() {
+  // Form State and Logic goes here
+  
+  return (
+    <Box sx={{ p: 3, maxWidth: 800, mx: "auto" }}>
+      <Typography variant="h5" fontWeight={800} mb={3}>Create New Booking</Typography>
+      <Paper sx={{ p: 3, borderRadius: 3 }}>
+        {/* Form Fields: Select Car, Select User/Driver, Dates, Locations */}
+        <Typography color="text.secondary">Booking form implementation...</Typography>
+      </Paper>
+    </Box>
+  );
 }
