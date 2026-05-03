@@ -1,36 +1,12 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { Box, Typography } from "@mui/material";
-import BookingsManager from "./_components/BookingsManager";
+import React from "react";
+import BookingsClient from "./_components/BookingsClient";
 
-export default async function AdminBookingsPage() {
-  const session = await getServerSession(authOptions);
+export const metadata = {
+  title: "Bookings Management | ARES Admin",
+  description: "Manage all vehicle bookings in the ARES platform",
+};
 
-  // حماية المسار: لازم يكون Admin أو Supplier
-  if (!session || !session.user?.roles?.length) redirect("/sign-in");
-  
-  const userRole = session.user.roles.includes("Supplier") ? "Supplier" : "Admin";
-  if (userRole !== "Admin" && userRole !== "Supplier") redirect("/admin");
-
-  const user = {
-    id: session.user.id,
-    role: userRole
-  };
-
-  return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 900, color: "#0f172a", mb: 1 }}>
-          Bookings Management
-        </Typography>
-        <Typography variant="body1" sx={{ color: "#64748b" }}>
-          View, filter, and manage all car rental reservations.
-        </Typography>
-      </Box>
-
-      {/* بنبعت بيانات اليوزر للكومبوننت اللي هيرسم الجدول */}
-      <BookingsManager user={user} initialLanguage="en" />
-    </Box>
-  );
+export default function BookingsPage() {
+  // Server-side logic can go here (e.g., verifying roles via standard NextAuth server methods)
+  return <BookingsClient />;
 }

@@ -25,8 +25,7 @@ import {
   Pagination,
   Tooltip,
   useTheme,
-  useMediaQuery,
-  alpha
+  alpha,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
@@ -48,11 +47,8 @@ function StatCard({ label, value, color }: any) {
         borderRadius: 4,
         border: "1px solid",
         borderColor: "divider",
-        background: (theme) =>
-          `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(
-            color,
-            0.08
-          )} 100%)`
+        background: theme =>
+          `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.08)} 100%)`,
       }}
     >
       <Typography variant="overline" color="text.secondary" fontWeight={700}>
@@ -196,9 +192,6 @@ export default function UsersPage() {
       const normalized = (data?.data || []).map((u: any) => ({
         ...u,
         status: (u.status || "").toLowerCase(),
-        roles: Array.isArray(u.roles)
-          ? u.roles.map((r: string) => r.toLowerCase())
-          : [(u.roles || "").toLowerCase()]
       }));
 
       setUsers(normalized);
@@ -215,14 +208,10 @@ export default function UsersPage() {
 
   // ── FILTER ────────────────────────────
   const filtered = useMemo(() => {
-    return users.filter((u) => {
-      const matchSearch =
-        `${u.firstName} ${u.lastName} ${u.email}`
-          .toLowerCase()
-          .includes(search.toLowerCase());
+    return users.filter(u => {
+      const matchSearch = `${u.firstName} ${u.lastName} ${u.email}`.toLowerCase().includes(search.toLowerCase());
 
-      const matchStatus =
-        statusFilter === "all" || u.status === statusFilter;
+      const matchStatus = statusFilter === "all" || u.status === statusFilter;
 
       const matchRole =
         roleFilter === "all" || u.roles.includes(roleFilter.toLowerCase());
@@ -233,23 +222,20 @@ export default function UsersPage() {
 
   // ── STATS ─────────────────────────────
   const totalUsers = users.length;
-  const activeUsers = users.filter((u) => u.status === "active").length;
-  const blockedUsers = users.filter((u) => u.status === "blocked").length;
+
+  const activeUsers = users.filter(u => u.status === "active").length;
+
+  const blockedUsers = users.filter(u => u.status === "blocked").length;
 
   // ── PAGINATION ────────────────────────
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
       {/* HEADER */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
-        mb={4}
-      >
+      <Stack direction="row" justifyContent="space-between" mb={4} alignItems="center">
         <Box>
           <Typography
             variant="h4"
@@ -258,9 +244,7 @@ export default function UsersPage() {
           >
             Users Directory
           </Typography>
-          <Typography color="text.secondary" variant="body2">
-            Manage platform users
-          </Typography>
+          <Typography color="text.secondary">Manage platform users</Typography>
         </Box>
 
         {/* ACTION BUTTON */}
@@ -283,7 +267,7 @@ export default function UsersPage() {
                 borderRadius: 3,
                 fontWeight: 700,
                 color: "#fff",
-                background: (theme) =>
+                background: theme =>
                   `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                 boxShadow: 3,
                 display: "flex",
@@ -291,8 +275,6 @@ export default function UsersPage() {
                 justifyContent: "center",
                 gap: 1,
                 transition: "0.2s",
-                whiteSpace: "nowrap",
-                width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   transform: "translateY(-2px)",
                   boxShadow: 6,
@@ -306,14 +288,14 @@ export default function UsersPage() {
       </Stack>
 
       {/* STATS */}
-      <Grid container spacing={{ xs: 2, sm: 3 }} mb={4}>
-        <Grid item xs={12} sm={4}>
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={12} md={4}>
           <StatCard label="Total Users" value={totalUsers} color={theme.palette.primary.main} />
         </Grid>
-        <Grid item xs={6} sm={4}>
+        <Grid item xs={12} md={4}>
           <StatCard label="Active Users" value={activeUsers} color={theme.palette.success.main} />
         </Grid>
-        <Grid item xs={6} sm={4}>
+        <Grid item xs={12} md={4}>
           <StatCard label="Blocked Users" value={blockedUsers} color={theme.palette.error.main} />
         </Grid>
       </Grid>
@@ -324,8 +306,7 @@ export default function UsersPage() {
           fullWidth
           placeholder="Search..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          size={isMobile ? "small" : "medium"}
+          onChange={e => setSearch(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -335,32 +316,9 @@ export default function UsersPage() {
           }}
         />
 
-        <FormControl
-          sx={{ minWidth: { xs: "100%", sm: 140 } }}
-          size={isMobile ? "small" : "medium"}
-        >
-          <Select
-            value={roleFilter}
-            onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-            displayEmpty
-          >
-            <MenuItem value="all">All Roles</MenuItem>
-            <MenuItem value="admin">Admin</MenuItem>
-            <MenuItem value="customer">Customer</MenuItem>
-            <MenuItem value="supplier">Supplier</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl
-          sx={{ minWidth: { xs: "100%", sm: 140 } }}
-          size={isMobile ? "small" : "medium"}
-        >
-          <Select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            displayEmpty
-          >
-            <MenuItem value="all">All Status</MenuItem>
+        <FormControl sx={{ minWidth: 160 }}>
+          <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <MenuItem value="all">All</MenuItem>
             <MenuItem value="active">Active</MenuItem>
             <MenuItem value="blocked">Blocked</MenuItem>
           </Select>
@@ -425,7 +383,7 @@ export default function UsersPage() {
 
               <TableBody>
                 {pageData.length > 0 ? (
-                  pageData.map((u) => {
+                  pageData.map(u => {
                     const status = (u.status || "").toLowerCase();
                     const isActive = status === "active";
 
@@ -433,36 +391,20 @@ export default function UsersPage() {
                       <TableRow key={u.id} hover>
                         <TableCell>
                           <Stack direction="row" spacing={2} alignItems="center">
-                            <Avatar
-                              sx={{
-                                bgcolor: theme.palette.primary.light,
-                                fontWeight: 700,
-                                width: { xs: 32, sm: 40 },
-                                height: { xs: 32, sm: 40 },
-                                fontSize: { xs: 13, sm: 16 },
-                              }}
-                            >
+                            <Avatar sx={{ bgcolor: theme.palette.primary.light, fontWeight: 700 }}>
                               {u.firstName?.[0]}
                               {u.lastName?.[0]}
                             </Avatar>
                             <Box>
-                              <Typography fontWeight={600} fontSize={{ xs: 13, sm: 15 }}>
+                              <Typography fontWeight={600}>
                                 {u.firstName} {u.lastName}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{ display: { xs: "block", sm: "none" } }}
-                              >
-                                {u.email}
                               </Typography>
                             </Box>
                           </Stack>
                         </TableCell>
 
-                        <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                          {u.email}
-                        </TableCell>
+                        {/* CONTACT */}
+                        <TableCell>{u.email}</TableCell>
 
                         <TableCell>
                           <Typography
@@ -476,58 +418,42 @@ export default function UsersPage() {
                         <TableCell>
                           <Chip
                             label={status}
-                            size="small"
                             sx={{
                               textTransform: "capitalize",
                               bgcolor: isActive
                                 ? alpha(theme.palette.success.main, 0.15)
                                 : alpha(theme.palette.error.main, 0.15),
-                              color: isActive
-                                ? theme.palette.success.main
-                                : theme.palette.error.main,
+                              color: isActive ? theme.palette.success.main : theme.palette.error.main,
                               fontWeight: 700,
-                              fontSize: { xs: 11, sm: 13 },
                             }}
                           />
                         </TableCell>
 
                         <TableCell align="right">
-                          <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+                          <Stack direction="row" justifyContent="flex-end" spacing={1}>
                             <Tooltip title="View">
-                              <IconButton
-                                component={Link}
-                                href={`/admin/users/${u.id}`}
-                                size="small"
-                              >
+                              <IconButton component={Link} href={`/admin/users/${u.id}`}>
                                 <VisibilityOutlinedIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
 
                             <Tooltip title="Edit">
-                              <IconButton
-                                component={Link}
-                                href={`/admin/users/${u.id}/edit`}
-                                size="small"
-                                sx={{ display: { xs: "none", sm: "inline-flex" } }}
-                              >
+                              <IconButton component={Link} href={`/admin/users/${u.id}/edit`}>
                                 <EditOutlinedIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
 
                             <Tooltip title={isActive ? "Block User" : "Activate User"}>
                               <IconButton
-                                size="small"
                                 onClick={async () => {
                                   await toggleUserStatus(u.id);
                                   fetchUsers();
                                 }}
-                                sx={{ color: isActive ? "error.main" : "success.main" }}
+                                sx={{
+                                  color: isActive ? "error.main" : "success.main",
+                                }}
                               >
-                                {isActive ? (
-                                  <BlockIcon fontSize="small" />
-                                ) : (
-                                  <CheckCircleIcon fontSize="small" />
-                                )}
+                                {isActive ? <BlockIcon fontSize="small" /> : <CheckCircleIcon fontSize="small" />}
                               </IconButton>
                             </Tooltip>
                           </Stack>
@@ -555,23 +481,12 @@ export default function UsersPage() {
           </TableContainer>
 
           {/* PAGINATION */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            justifyContent="space-between"
-            alignItems="center"
-            gap={1}
-            p={2}
-          >
+          <Stack direction="row" justifyContent="space-between" p={2}>
             <Typography variant="caption">
               Showing {pageData.length} of {filtered.length}
             </Typography>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, v) => setPage(v)}
-              size="small"
-              siblingCount={0}
-            />
+
+            <Pagination count={totalPages} page={page} onChange={(_, v) => setPage(v)} />
           </Stack>
         </Paper>
       )}

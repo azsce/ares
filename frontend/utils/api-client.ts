@@ -34,7 +34,14 @@ export async function apiFetchJson<T>(endpoint: string, options: ApiFetchOptions
   });
 
   if (!response.ok) {
-    throw new Error(`API Error ${String(response.status)}: ${response.statusText}`);
+    // 1. هنقرا تفاصيل المشكلة اللي الباك إند باعتها
+    const errorBody = await response.text(); 
+    
+    // 2. هنطبعها في الكونسول عشان نشوفها
+    console.error(`🚨 Backend Error Details:`, errorBody);
+    
+    // 3. هنرمي الإيرور بالتفاصيل الجديدة
+    throw new Error(`API Error ${String(response.status)}: ${response.statusText} \nDetails: ${errorBody}`);
   }
 
   return (await response.json()) as T;
