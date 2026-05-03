@@ -17,8 +17,8 @@ interface PageProps {
 }
 
 interface ApiVehicleImageDto {
-  readonly id?: string;
-  readonly imageUrl?: string;
+  readonly imageId?: string;
+  readonly url?: string;
   readonly isPrimary?: boolean;
 }
 
@@ -95,8 +95,8 @@ function normalizeVehicle(vehicle: ApiVehicleDto): VehicleDetailsViewModel {
     availabilityStatus: asString(vehicle.availabilityStatus),
     images: (vehicle.images ?? [])
       .map(image => ({
-        id: asString(image.id),
-        imageUrl: asString(image.imageUrl),
+        id: asString(image.imageId),
+        imageUrl: asString(image.url),
         isPrimary: Boolean(image.isPrimary),
       }))
       .filter(image => image.imageUrl !== ""),

@@ -49,6 +49,32 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
+    // Validate Expiry Date
+    const expiryRegex = /^\d{2}\/\d{2}$/;
+    if (!expiryRegex.test(formValues.expiryDate)) {
+      setError("Please enter a valid expiry date in MM/YY format.");
+      return;
+    }
+
+    const [monthStr, yearStr] = formValues.expiryDate.split("/");
+    const month = parseInt(monthStr, 10);
+    const year = parseInt(yearStr, 10) + 2000;
+
+    if (month < 1 || month > 12) {
+      setError("Please enter a valid month (01-12).");
+      return;
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
+      setError("The card has expired. Please enter a valid expiry date.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
