@@ -1,6 +1,7 @@
 using Backend.Application.Interfaces;
 using Backend.Domain.Entities;
 using Backend.Infrastructure.Data;
+using Backend.Domain.Entities.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Repositories;
@@ -44,7 +45,16 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         // Filter by statuses
         if (statuses != null && statuses.Any())
         {
-            query = query.Where(b => b.Status != null && statuses.Contains(b.Status));
+            var enumStatuses = statuses
+                .Select(s => Enum.TryParse<BookingStatus>(s, true, out var parsed) ? parsed : (BookingStatus?)null)
+                .Where(s => s.HasValue)
+                .Select(s => s!.Value)
+                .ToList();
+                
+            if (enumStatuses.Any())
+            {
+                query = query.Where(b => enumStatuses.Contains(b.Status));
+            }
         }
 
         // Filter by vehicle ID
@@ -86,11 +96,14 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         Guid vehicleId,
         CancellationToken cancellationToken = default)
     {
-        var activeStatuses = new[] { "Pending", "Deposit", "Paid", "Reserved", "Active", "PickedUp" };
+        var activeStatuses = new[] { 
+            BookingStatus.Pending, 
+            BookingStatus.Confirmed, 
+            BookingStatus.Active 
+        };
         return await _dbSet
             .AnyAsync(b =>
                 b.VehicleId == vehicleId &&
-                b.Status != null &&
                 activeStatuses.Contains(b.Status),
                 cancellationToken);
     }
@@ -144,7 +157,16 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         // Filter by statuses
         if (statuses != null && statuses.Any())
         {
-            query = query.Where(b => b.Status != null && statuses.Contains(b.Status));
+            var enumStatuses = statuses
+                .Select(s => Enum.TryParse<BookingStatus>(s, true, out var parsed) ? parsed : (BookingStatus?)null)
+                .Where(s => s.HasValue)
+                .Select(s => s!.Value)
+                .ToList();
+                
+            if (enumStatuses.Any())
+            {
+                query = query.Where(b => enumStatuses.Contains(b.Status));
+            }
         }
 
         // Filter by vehicle ID

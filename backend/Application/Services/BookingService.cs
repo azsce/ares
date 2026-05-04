@@ -3,6 +3,7 @@ using Backend.Application.DTOs.Common;
 using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Application.Services;
@@ -75,7 +76,7 @@ public class BookingService : IBookingService
             ReturnDate = request.ReturnDate,
             TotalDays = totalDays,
             TotalPrice = totalPrice,
-            Status = "Pending",
+            Status = BookingStatus.Pending,
             DriverId = request.DriverId,
             RequiresDriver = request.DriverId.HasValue
         };
@@ -142,7 +143,7 @@ public class BookingService : IBookingService
             b.PickupDate ?? DateTime.MinValue,
             b.ReturnDate ?? DateTime.MinValue,
             b.TotalPrice ?? 0,
-            b.Status ?? "Unknown",
+            b.Status.ToString(),
             false // PayLater flag - placeholder until field is added to entity
         )).ToList();
 
@@ -205,7 +206,7 @@ public class BookingService : IBookingService
             booking.PickupDate ?? DateTime.MinValue,
             booking.ReturnDate ?? DateTime.MinValue,
             booking.TotalPrice ?? 0,
-            booking.Status ?? "Unknown",
+            booking.Status.ToString(),
             false // PayLater flag - placeholder until field is added to entity
         );
     }
@@ -232,13 +233,13 @@ public class BookingService : IBookingService
         }
 
         // Requirement 5.12: Verify booking can be cancelled (status check)
-        if (booking.Status == "Cancelled" || booking.Status == "Completed")
+        if (booking.Status == Backend.Domain.Entities.Enums.BookingStatus.Cancelled || booking.Status == Backend.Domain.Entities.Enums.BookingStatus.Completed)
         {
             throw new ValidationException("Status", "This booking cannot be cancelled");
         }
 
         // Requirement 5.13: Update booking status to "Cancelled"
-        booking.Status = "Cancelled";
+        booking.Status = Backend.Domain.Entities.Enums.BookingStatus.Cancelled;
         booking.CancelledAt = DateTime.UtcNow;
 
         await _bookingRepository.UpdateAsync(booking, cancellationToken);
@@ -329,7 +330,7 @@ public class BookingService : IBookingService
             b.PickupDate ?? DateTime.MinValue,
             b.ReturnDate ?? DateTime.MinValue,
             b.TotalPrice ?? 0,
-            b.Status ?? "Unknown",
+            b.Status.ToString(),
             false // PayLater flag - placeholder until field is added to entity
         )).ToList();
 
@@ -393,7 +394,7 @@ public class BookingService : IBookingService
             booking.PickupDate ?? DateTime.MinValue,
             booking.ReturnDate ?? DateTime.MinValue,
             booking.TotalPrice ?? 0,
-            booking.Status ?? "Unknown",
+            booking.Status.ToString(),
             false
         );
     }
@@ -419,12 +420,17 @@ public class BookingService : IBookingService
         }
 
         // Validate status transition
-        if (booking.Status == "Cancelled" || booking.Status == "Completed")
+        if (booking.Status == Backend.Domain.Entities.Enums.BookingStatus.Cancelled || booking.Status == Backend.Domain.Entities.Enums.BookingStatus.Completed)
         {
             throw new ValidationException("Status", $"Cannot update status from {booking.Status}");
         }
 
-        booking.Status = newStatus;
+        if (!Enum.TryParse<Backend.Domain.Entities.Enums.BookingStatus>(newStatus, true, out var parsedStatus))
+        {
+            throw new ValidationException("Status", $"Invalid status value: {newStatus}");
+        }
+
+        booking.Status = parsedStatus;
         booking.UpdatedAt = DateTime.UtcNow;
 
         await _bookingRepository.UpdateAsync(booking, cancellationToken);

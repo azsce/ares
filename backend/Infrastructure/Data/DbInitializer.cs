@@ -1,4 +1,5 @@
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -747,7 +748,7 @@ public static class DbInitializer
             existing.TotalDays = totalDays;
             existing.RequiresDriver = false;
             existing.TotalPrice = totalPrice;
-            existing.Status = status;
+            existing.Status = Enum.Parse<BookingStatus>(status);
             existing.CancelledAt = null;
             existing.CancellationReason = null;
             return existing;
@@ -766,7 +767,7 @@ public static class DbInitializer
             TotalDays = totalDays,
             RequiresDriver = false,
             TotalPrice = totalPrice,
-            Status = status,
+            Status = Enum.Parse<BookingStatus>(status),
             CancelledAt = null,
             CancellationReason = null
         };

@@ -167,7 +167,7 @@ public class VehicleService : IVehicleService
 
         var bookings = await _context.Bookings
             .Where(b => b.VehicleId == vehicleId &&
-                       b.Status != "Cancelled" &&
+                       b.Status != Backend.Domain.Entities.Enums.BookingStatus.Cancelled &&
                        b.PickupDate < endDate &&
                        b.ReturnDate > startDate)
             .ToListAsync(cancellationToken);
