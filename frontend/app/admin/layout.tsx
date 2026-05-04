@@ -1,25 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  Box, 
-  Drawer, 
-  AppBar, 
-  Toolbar, 
-  List, 
-  Typography, 
-  Divider, 
-  IconButton, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
+import {
+  Box,
+  Drawer,
+  AppBar,
+  Toolbar,
+  List,
+  Typography,
+  Divider,
+  IconButton,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
   ListItemText,
   Avatar,
   Menu,
   MenuItem,
   useTheme,
   useMediaQuery,
-  CircularProgress
+  CircularProgress,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -33,7 +33,7 @@ import {
   MonetizationOn as PricingIcon,
   Logout as LogoutIcon,
   Public as CountriesIcon,
-  Place as LocationsIcon
+  Place as LocationsIcon,
 } from "@mui/icons-material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -54,7 +54,7 @@ const menuItems = [
   { text: "Settings", icon: <SettingsIcon />, path: "/admin/settings" },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -81,53 +81,100 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (status === "loading") {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          bgcolor: "background.default",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
-  // Fallback info if session is not available (mock state)
-  const userName = session?.user?.firstName ? `${session.user.firstName} ${session.user.lastName}` : "Admin User";
-  const initial = session?.user?.firstName ? session.user.firstName.charAt(0).toUpperCase() : "A";
+  if (!session) return null;
+
+  if (!session.user.id) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography color="error">User ID missing from session. Please sign in again.</Typography>
+      </Box>
+    );
+  }
+
+  const user = session.user;
+  const userName = user.firstName ? `${user.firstName} ${user.lastName}` : "Admin User";
+  const initial = user.firstName ? user.firstName.charAt(0).toUpperCase() : "A";
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
-      <Toolbar sx={{ px: 3, display: 'flex', alignItems: 'center', gap: 2, height: 80 }}>
-        <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography variant="h6" fontWeight="bold" color="white">A</Typography>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: "background.paper" }}>
+      <Toolbar sx={{ px: 3, display: "flex", alignItems: "center", gap: 2, height: 80 }}>
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            bgcolor: "primary.main",
+            borderRadius: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" color="white">
+            A
+          </Typography>
         </Box>
-        <Typography variant="h6" fontWeight="900" sx={{ letterSpacing: '-0.5px' }}>
+        <Typography variant="h6" fontWeight="900" sx={{ letterSpacing: "-0.5px" }}>
           Ares Admin
         </Typography>
       </Toolbar>
-      <Divider sx={{ mb: 2, borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }} />
-      <List sx={{ px: 2, flex: 1, overflowY: 'auto' }}>
-        {menuItems.map((item) => {
+      <Divider
+        sx={{ mb: 2, borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)" }}
+      />
+      <List sx={{ px: 2, flex: 1, overflowY: "auto" }}>
+        {menuItems.map(item => {
           const isActive = pathname === item.path;
+          let bgColor = "transparent";
+          if (isActive) {
+            bgColor = theme.palette.mode === "dark" ? "rgba(144, 202, 249, 0.16)" : "primary.50";
+          }
+          let hoverBgColor = "action.hover";
+          if (isActive) {
+            hoverBgColor = theme.palette.mode === "dark" ? "rgba(144, 202, 249, 0.24)" : "primary.100";
+          }
+
           return (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <Link href={item.path} passHref style={{ width: '100%', textDecoration: 'none', color: 'inherit' }}>
-                <ListItemButton 
-                  onClick={() => isMobile && setMobileOpen(false)}
-                  sx={{ 
+              <Link href={item.path} passHref style={{ width: "100%", textDecoration: "none", color: "inherit" }}>
+                <ListItemButton
+                  onClick={() => {
+                    if (isMobile) setMobileOpen(false);
+                  }}
+                  sx={{
                     borderRadius: 2,
-                    bgcolor: isActive ? (theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.16)' : 'primary.50') : 'transparent',
-                    color: isActive ? 'primary.main' : 'text.secondary',
-                    '&:hover': {
-                      bgcolor: isActive ? (theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.24)' : 'primary.100') : 'action.hover',
-                    }
+                    bgcolor: bgColor,
+                    color: isActive ? "primary.main" : "text.secondary",
+                    "&:hover": {
+                      bgcolor: hoverBgColor,
+                    },
                   }}
                 >
-                  <ListItemIcon sx={{ color: isActive ? 'primary.main' : 'inherit', minWidth: 40 }}>
+                  <ListItemIcon sx={{ color: isActive ? "primary.main" : "inherit", minWidth: 40 }}>
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText 
-                    primary={item.text} 
-                    primaryTypographyProps={{ 
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: '0.95rem'
-                    }} 
+                  <ListItemText
+                    primary={item.text}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: isActive ? 700 : 500,
+                          fontSize: "0.95rem",
+                        },
+                      },
+                    }}
                   />
                 </ListItemButton>
               </Link>
@@ -137,18 +184,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </List>
       <Box sx={{ p: 2 }}>
         <ListItem disablePadding>
-          <ListItemButton 
-            onClick={handleLogout}
-            sx={{ 
+          <ListItemButton
+            onClick={() => {
+              void handleLogout();
+            }}
+            sx={{
               borderRadius: 2,
-              color: 'error.main',
-              '&:hover': { bgcolor: 'error.lighter' }
+              color: "error.main",
+              "&:hover": { bgcolor: "error.lighter" },
             }}
           >
-            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+            <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
               <LogoutIcon />
             </ListItemIcon>
-            <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 600 }} />
+            <ListItemText
+              primary="Logout"
+              slotProps={{
+                primary: {
+                  sx: { fontWeight: 600 },
+                },
+              }}
+            />
           </ListItemButton>
         </ListItem>
       </Box>
@@ -161,12 +217,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         position="fixed"
         elevation={0}
         sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          bgcolor: 'background.paper',
-          borderBottom: '1px solid',
-          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-          color: 'text.primary'
+          width: { md: `calc(100% - ${drawerWidth.toString()}px)` },
+          ml: { md: `${drawerWidth.toString()}px` },
+          bgcolor: "background.paper",
+          borderBottom: "1px solid",
+          borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+          color: "text.primary",
         }}
       >
         <Toolbar sx={{ height: 80 }}>
@@ -180,23 +236,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <MenuIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }} />
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton color="inherit" sx={{ bgcolor: 'action.hover' }}>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton color="inherit" sx={{ bgcolor: "action.hover" }}>
               <NotificationsIcon />
             </IconButton>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer' }} onClick={handleMenu}>
-              <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={handleMenu}>
+              <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
                 <Typography variant="subtitle2" fontWeight="700">
                   {userName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {session?.user?.roles?.[0] || "Administrator"}
+                  {user.roles[0] || "Administrator"}
                 </Typography>
               </Box>
-              <Avatar sx={{ bgcolor: 'primary.main', color: 'white', width: 44, height: 44 }}>
-                {initial}
-              </Avatar>
+              <Avatar sx={{ bgcolor: "primary.main", color: "white", width: 44, height: 44 }}>{initial}</Avatar>
             </Box>
             <Menu
               id="menu-appbar"
@@ -207,29 +261,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               open={Boolean(anchorEl)}
               onClose={handleClose}
               sx={{ mt: 1 }}
-              PaperProps={{
-                elevation: 0,
-                sx: {
-                  overflow: 'visible',
-                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-                  mt: 1.5,
-                  borderRadius: 2,
-                  minWidth: 200,
-                  '& .MuiAvatar-root': {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1,
+              slotProps={{
+                paper: {
+                  elevation: 0,
+                  sx: {
+                    overflow: "visible",
+                    filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.1))",
+                    mt: 1.5,
+                    borderRadius: 2,
+                    minWidth: 200,
+                    "& .MuiAvatar-root": {
+                      width: 32,
+                      height: 32,
+                      ml: -0.5,
+                      mr: 1,
+                    },
                   },
                 },
               }}
             >
-              <MenuItem onClick={() => { handleClose(); router.push('/account/profile'); }}>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  router.push("/account/profile");
+                }}
+              >
                 <Avatar /> Profile
               </MenuItem>
               <Divider />
-              <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                <ListItemIcon sx={{ color: 'inherit' }}>
+              <MenuItem
+                onClick={() => {
+                  void handleLogout();
+                }}
+                sx={{ color: "error.main" }}
+              >
+                <ListItemIcon sx={{ color: "inherit" }}>
                   <LogoutIcon fontSize="small" />
                 </ListItemIcon>
                 Logout
@@ -239,10 +305,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Toolbar>
       </AppBar>
 
-      <Box
-        component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-      >
+      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -250,7 +313,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: "block", md: "none" },
-            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth, border: 'none' },
+            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth, border: "none" },
           }}
         >
           {drawer}
@@ -259,11 +322,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           variant="permanent"
           sx={{
             display: { xs: "none", md: "block" },
-            "& .MuiDrawer-paper": { 
-              boxSizing: "border-box", 
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: drawerWidth,
-              borderRight: '1px solid',
-              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'
+              borderRight: "1px solid",
+              borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
             },
           }}
           open
@@ -276,8 +339,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          mt: '80px',
+          width: { md: `calc(100% - ${drawerWidth.toString()}px)` },
+          mt: "80px",
         }}
       >
         {children}

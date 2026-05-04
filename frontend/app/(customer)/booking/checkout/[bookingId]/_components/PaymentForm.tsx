@@ -2,17 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-  CircularProgress,
-} from "@mui/material";
+import { Alert, Box, Button, Grid, Paper, Stack, TextField, Typography, CircularProgress } from "@mui/material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import LockIcon from "@mui/icons-material/Lock";
 import { toApiUrl } from "@/utils/api-client";
@@ -101,7 +91,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
       }
 
       const payload = (await response.json()) as PaymentResponse;
-      
+
       if (payload.status === "Captured" || payload.status === "Success") {
         router.push(`/bookings/confirmation/${bookingId}`);
       } else {
@@ -207,7 +197,9 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
               {isSubmitting ? (
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <CircularProgress size={20} color="inherit" />
-                  <Typography variant="body1" fontWeight={800}>Processing...</Typography>
+                  <Typography variant="body1" fontWeight={800}>
+                    Processing...
+                  </Typography>
                 </Stack>
               ) : (
                 "Complete Payment"

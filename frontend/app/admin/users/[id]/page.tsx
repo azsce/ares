@@ -19,11 +19,11 @@ import {
 
 import EditIcon from "@mui/icons-material/Edit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { getUserById } from "@/app/api/users/users";
+import { getUserById, type User } from "@/api-clients/users/users";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import BadgeIcon from "@mui/icons-material/Badge";
-
+import { logger } from "@/utils/logger";
 
 export default function UserDetailsPage() {
   const params = useParams();
@@ -32,7 +32,7 @@ export default function UserDetailsPage() {
 
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,16 +41,16 @@ export default function UserDetailsPage() {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const data = await getUserById(id as string);
+        const data = await getUserById(id);
         setUser(data);
       } catch (err) {
-        console.error("Failed to load user:", err);
+        logger.error("Failed to load user", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    void fetchUser();
   }, [id]);
 
   if (loading) {
@@ -61,7 +61,7 @@ export default function UserDetailsPage() {
     );
   }
 
-  if (!user) {
+  if (!user || !id) {
     return (
       <Box sx={{ p: 4 }}>
         <Typography color="error">User not found</Typography>
@@ -69,20 +69,30 @@ export default function UserDetailsPage() {
     );
   }
 
+  const getStatusColor = () => {
+    if (user.status === "active") return "success";
+    if (user.status === "blocked") return "error";
+    return "default";
+  };
+
   return (
     <Box sx={{ p: 4, maxWidth: 700, mx: "auto" }}>
-
       {/* Header */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-
-        <IconButton onClick={() => router.back()}>
+        <IconButton
+          onClick={() => {
+            router.back();
+          }}
+        >
           <ArrowBackIcon />
         </IconButton>
 
         <Button
           variant="contained"
           startIcon={<EditIcon />}
-          onClick={() => router.push(`/admin/users/${id}/edit`)}
+          onClick={() => {
+            router.push(`/admin/users/${id}/edit`);
+          }}
           sx={{
             borderRadius: 2,
             textTransform: "none",
@@ -105,7 +115,6 @@ export default function UserDetailsPage() {
           background: "linear-gradient(to bottom, #fff, #fafafa)",
         }}
       >
-
         {/* User Header */}
         <Stack direction="row" spacing={2} alignItems="center" mb={3}>
           <Avatar
@@ -116,25 +125,14 @@ export default function UserDetailsPage() {
               fontSize: 20,
             }}
           >
-            {user.firstName?.[0]}
+            {user.firstName[0]}
           </Avatar>
 
           <Box>
             <Typography variant="h6" fontWeight={700}>
               {user.firstName} {user.lastName}
             </Typography>
-            <Chip
-              label={user.status}
-              size="small"
-              color={
-                user.status === "active"
-                  ? "success"
-                  : user.status === "blocked"
-                    ? "error"
-                    : "default"
-              }
-              sx={{ mt: 0.5, fontWeight: 600 }}
-            />
+            <Chip label={user.status} size="small" color={getStatusColor()} sx={{ mt: 0.5, fontWeight: 600 }} />
           </Box>
         </Stack>
 
@@ -142,7 +140,6 @@ export default function UserDetailsPage() {
 
         {/* Info */}
         <Stack spacing={2}>
-
           {/* Email */}
           <Paper
             elevation={0}
@@ -181,9 +178,7 @@ export default function UserDetailsPage() {
               <Typography variant="caption" color="text.secondary">
                 Phone Number
               </Typography>
-              <Typography fontWeight={600}>
-                {user.phoneNumber || "-"}
-              </Typography>
+              <Typography fontWeight={600}>{user.phoneNumber || "-"}</Typography>
             </Box>
           </Paper>
 
@@ -206,18 +201,12 @@ export default function UserDetailsPage() {
               </Typography>
 
               <Stack direction="row" spacing={1} mt={0.5} flexWrap="wrap">
-                {(user.roles || []).map((role: string, i: number) => (
-                  <Chip
-                    key={i}
-                    label={role}
-                    size="small"
-                    color="secondary"
-                  />
+                {user.roles.map((role: string, i: number) => (
+                  <Chip key={i} label={role} size="small" color="secondary" />
                 ))}
               </Stack>
             </Box>
           </Paper>
-
         </Stack>
       </Paper>
     </Box>

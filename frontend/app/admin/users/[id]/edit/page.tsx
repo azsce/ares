@@ -19,7 +19,7 @@ import {
   alpha,
 } from "@mui/material";
 
-import { getUserById, updateUser } from "@/app/api/users/users";
+import { getUserById, updateUser } from "@/api-clients/users/users";
 
 export default function EditUserPage() {
   const params = useParams();
@@ -40,8 +40,6 @@ export default function EditUserPage() {
     roles: [] as string[],
   });
 
-  const [user, setUser] = useState<any>(null);
-
   // -------------------------
   // LOAD USER
   // -------------------------
@@ -51,15 +49,14 @@ export default function EditUserPage() {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const data = await getUserById(id as string);
-        setUser(data);
+        const data = await getUserById(id);
 
         setForm({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
           phoneNumber: data.phoneNumber || "",
           status: data.status || "active",
-          roles: data.roles || [],
+          roles: data.roles,
         });
       } catch {
         setError("Failed to load user");
@@ -68,7 +65,7 @@ export default function EditUserPage() {
       }
     };
 
-    fetchUser();
+    void fetchUser();
   }, [id]);
 
   // -------------------------
@@ -77,8 +74,7 @@ export default function EditUserPage() {
   const validate = () => {
     if (!form.firstName.trim()) return "First name is required";
     if (!form.lastName.trim()) return "Last name is required";
-    if (form.phoneNumber && form.phoneNumber.length < 8)
-      return "Phone number is too short";
+    if (form.phoneNumber.trim() !== "" && form.phoneNumber.length < 8) return "Phone number is too short";
     return "";
   };
 
@@ -86,6 +82,7 @@ export default function EditUserPage() {
   // SUBMIT
   // -------------------------
   const handleSubmit = async () => {
+    if (!id) return;
     try {
       setSaving(true);
       setError("");
@@ -96,7 +93,7 @@ export default function EditUserPage() {
         return;
       }
 
-      await updateUser(id as string, {
+      await updateUser(id, {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         phoneNumber: form.phoneNumber || null,
@@ -105,11 +102,21 @@ export default function EditUserPage() {
       });
 
       router.push(`/admin/users`);
-    } catch (err: any) {
-      setError(err.message || "Update failed");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Update failed";
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
+  };
+
+  // -------------------------
+  // HELPERS
+  // -------------------------
+  const getStatusColor = (status: string) => {
+    if (status === "active") return "success";
+    if (status === "blocked") return "error";
+    return "default";
   };
 
   // -------------------------
@@ -125,7 +132,6 @@ export default function EditUserPage() {
 
   return (
     <Box sx={{ p: 4, maxWidth: 750, mx: "auto" }}>
-
       {/* HEADER */}
       <Typography variant="h5" fontWeight={800}>
         Edit User
@@ -156,9 +162,7 @@ export default function EditUserPage() {
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
-            {form.firstName?.[0] || "U"}
-          </Avatar>
+          <Avatar sx={{ bgcolor: theme.palette.primary.main }}>{form.firstName[0] || "U"}</Avatar>
 
           <Box>
             <Typography fontWeight={700}>
@@ -168,17 +172,7 @@ export default function EditUserPage() {
         </Stack>
 
         <Stack direction="row" spacing={1}>
-          <Chip
-            label={form.status}
-            color={
-              form.status === "active"
-                ? "success"
-                : form.status === "blocked"
-                ? "error"
-                : "default"
-            }
-            sx={{ fontWeight: 600 }}
-          />
+          <Chip label={form.status} color={getStatusColor(form.status)} sx={{ fontWeight: 600 }} />
         </Stack>
       </Paper>
 
@@ -193,7 +187,6 @@ export default function EditUserPage() {
         }}
       >
         <Stack spacing={2.2}>
-
           {/* Personal Info */}
           <Typography fontWeight={700} color="primary">
             Personal Information
@@ -203,18 +196,18 @@ export default function EditUserPage() {
             <TextField
               label="First Name"
               value={form.firstName}
-              onChange={(e) =>
-                setForm({ ...form, firstName: e.target.value })
-              }
+              onChange={e => {
+                setForm({ ...form, firstName: e.target.value });
+              }}
               fullWidth
             />
 
             <TextField
               label="Last Name"
               value={form.lastName}
-              onChange={(e) =>
-                setForm({ ...form, lastName: e.target.value })
-              }
+              onChange={e => {
+                setForm({ ...form, lastName: e.target.value });
+              }}
               fullWidth
             />
           </Stack>
@@ -222,9 +215,9 @@ export default function EditUserPage() {
           <TextField
             label="Phone Number"
             value={form.phoneNumber}
-            onChange={(e) =>
-              setForm({ ...form, phoneNumber: e.target.value })
-            }
+            onChange={e => {
+              setForm({ ...form, phoneNumber: e.target.value });
+            }}
             fullWidth
           />
 
@@ -239,9 +232,9 @@ export default function EditUserPage() {
             select
             label="Status"
             value={form.status}
-            onChange={(e) =>
-              setForm({ ...form, status: e.target.value })
-            }
+            onChange={e => {
+              setForm({ ...form, status: e.target.value });
+            }}
             fullWidth
           >
             <MenuItem value="active">Active</MenuItem>
@@ -251,15 +244,15 @@ export default function EditUserPage() {
           <TextField
             label="Roles (comma separated)"
             value={form.roles.join(",")}
-            onChange={(e) =>
+            onChange={e => {
               setForm({
                 ...form,
                 roles: e.target.value
                   .split(",")
-                  .map((r) => r.trim())
+                  .map(r => r.trim())
                   .filter(Boolean),
-              })
-            }
+              });
+            }}
             fullWidth
           />
 
@@ -267,7 +260,9 @@ export default function EditUserPage() {
           <Stack direction="row" spacing={2} justifyContent="flex-end">
             <Button
               variant="outlined"
-              onClick={() => router.back()}
+              onClick={() => {
+                router.back();
+              }}
               sx={{ borderRadius: 2 }}
             >
               Cancel
@@ -275,7 +270,9 @@ export default function EditUserPage() {
 
             <Button
               variant="contained"
-              onClick={handleSubmit}
+              onClick={() => {
+                void handleSubmit();
+              }}
               disabled={saving}
               sx={{
                 borderRadius: 2,
@@ -285,11 +282,7 @@ export default function EditUserPage() {
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               }}
             >
-              {saving ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Save Changes"
-              )}
+              {saving ? <CircularProgress size={20} color="inherit" /> : "Save Changes"}
             </Button>
           </Stack>
         </Stack>

@@ -79,24 +79,24 @@ const lightPalette: PaletteOptions = {
 
 const darkPalette: PaletteOptions = {
   primary: {
-    main: "#0f5b5b",
-    dark: "#0a3d3d",
-    light: "#2d8b8b",
-    contrastText: "#ffffff",
+    main: "#4db8b8",
+    dark: "#2d8b8b",
+    light: "#8fd6d6",
+    contrastText: "#0a0e0f",
   },
   secondary: {
-    main: "#b8860b",
-    light: "#e0ad2c",
-    dark: "#8f6800",
-    contrastText: "#ffffff",
+    main: "#e0ad2c",
+    light: "#f0c968",
+    dark: "#b8860b",
+    contrastText: "#0a0e0f",
   },
   background: {
     default: "#0a0e0f",
     paper: "#1a1f23",
   },
   text: {
-    primary: "#e8eaed",
-    secondary: "#9aa0a6",
+    primary: "#ffffff",
+    secondary: "#b3b9c1",
   },
   overlay: {
     dark: "rgba(0, 0, 0, 0.7)",

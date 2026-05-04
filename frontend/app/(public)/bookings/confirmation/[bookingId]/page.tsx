@@ -90,7 +90,16 @@ export default async function ConfirmationPage({ params }: PageProps) {
   return (
     <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 4, md: 10 } }}>
       <Container maxWidth="md">
-        <Paper elevation={0} sx={{ p: { xs: 3, md: 6 }, borderRadius: 6, border: "1px solid", borderColor: "divider", textAlign: "center" }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 6 },
+            borderRadius: 6,
+            border: "1px solid",
+            borderColor: "divider",
+            textAlign: "center",
+          }}
+        >
           <CheckCircleOutlineIcon sx={{ fontSize: 80, color: "success.main", mb: 2 }} />
           <Typography variant="h3" fontWeight={900} gutterBottom>
             Booking Confirmed!
@@ -118,7 +127,9 @@ export default async function ConfirmationPage({ params }: PageProps) {
                 <Stack spacing={1}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <CalendarTodayIcon fontSize="small" color="action" />
-                    <Typography variant="subtitle2" fontWeight={700}>Dates</Typography>
+                    <Typography variant="subtitle2" fontWeight={700}>
+                      Dates
+                    </Typography>
                   </Box>
                   <Typography variant="body2">
                     {pickupDate.toLocaleDateString()} - {returnDate.toLocaleDateString()}
@@ -130,7 +141,9 @@ export default async function ConfirmationPage({ params }: PageProps) {
                 <Stack spacing={1}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <LocationOnIcon fontSize="small" color="action" />
-                    <Typography variant="subtitle2" fontWeight={700}>Vehicle</Typography>
+                    <Typography variant="subtitle2" fontWeight={700}>
+                      Vehicle
+                    </Typography>
                   </Box>
                   <Typography variant="body2">
                     {booking.car.make} {booking.car.model}
@@ -144,8 +157,12 @@ export default async function ConfirmationPage({ params }: PageProps) {
 
               <Grid size={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="subtitle1" fontWeight={700}>Total Paid</Typography>
-                  <Typography variant="h5" fontWeight={900}>{formatCurrency(booking.price)}</Typography>
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    Total Paid
+                  </Typography>
+                  <Typography variant="h5" fontWeight={900}>
+                    {formatCurrency(booking.price)}
+                  </Typography>
                 </Stack>
               </Grid>
             </Grid>

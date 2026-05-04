@@ -416,7 +416,8 @@ function SuccessView({ firstName, email: _email }: SuccessViewProps) {
         Check your email!
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Welcome to ARES, {firstName}. We've sent a verification link to your email. Please click the link to verify your account before logging in.
+        Welcome to ARES, {firstName}. We&apos;ve sent a verification link to your email. Please click the link to verify
+        your account before logging in.
       </Typography>
       <Button
         component={Link}

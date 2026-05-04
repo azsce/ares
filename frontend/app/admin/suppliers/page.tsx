@@ -26,9 +26,10 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
-  alpha
+  alpha,
+  Grid,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { Theme } from "@mui/material";
 
 import Link from "next/link";
 import SearchIcon from "@mui/icons-material/Search";
@@ -38,10 +39,17 @@ import BlockIcon from "@mui/icons-material/Block";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BusinessIcon from "@mui/icons-material/Business";
 
-import { getSuppliers } from "@/app/api/suppliers/suppliers";
+import { getSuppliers, type Supplier } from "@/api-clients/suppliers/suppliers";
+import { logger } from "@/utils/logger";
 
 // ── UI Card ─────────────────────────────
-function StatCard({ label, value, color }: any) {
+interface StatCardProps {
+  readonly label: string;
+  readonly value: number | string;
+  readonly color: string;
+}
+
+function StatCard({ label, value, color }: StatCardProps) {
   return (
     <Card
       elevation={0}
@@ -50,11 +58,8 @@ function StatCard({ label, value, color }: any) {
         borderRadius: 4,
         border: "1px solid",
         borderColor: "divider",
-        background: (theme) =>
-          `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(
-            color,
-            0.08
-          )} 100%)`
+        background: (t: Theme) =>
+          `linear-gradient(135deg, ${t.palette.background.paper} 0%, ${alpha(color, 0.08)} 100%)`,
       }}
     >
       <Typography variant="overline" color="text.secondary" fontWeight={700}>
@@ -68,7 +73,12 @@ function StatCard({ label, value, color }: any) {
 }
 
 // ── Mobile Card for each supplier row ───
-function SupplierMobileCard({ s, theme }: { s: any; theme: any }) {
+interface SupplierMobileCardProps {
+  readonly s: Supplier;
+  readonly theme: Theme;
+}
+
+function SupplierMobileCard({ s, theme }: SupplierMobileCardProps) {
   const isActive = s.status === "active";
   return (
     <Paper
@@ -78,13 +88,14 @@ function SupplierMobileCard({ s, theme }: { s: any; theme: any }) {
         mb: 2,
         borderRadius: 3,
         border: "1px solid",
-        borderColor: "divider"
+        borderColor: "divider",
       }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
         <Stack direction="row" spacing={1.5} alignItems="center">
           <Avatar sx={{ bgcolor: theme.palette.secondary.light, fontWeight: 700, width: 40, height: 40 }}>
-            {s.firstName?.[0]}{s.lastName?.[0]}
+            {s.firstName[0]}
+            {s.lastName[0]}
           </Avatar>
           <Box>
             <Typography fontWeight={600} variant="body2">
@@ -100,11 +111,9 @@ function SupplierMobileCard({ s, theme }: { s: any; theme: any }) {
           size="small"
           sx={{
             textTransform: "capitalize",
-            bgcolor: isActive
-              ? alpha(theme.palette.success.main, 0.1)
-              : alpha(theme.palette.error.main, 0.1),
+            bgcolor: isActive ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
             color: isActive ? theme.palette.success.main : theme.palette.error.main,
-            fontWeight: 700
+            fontWeight: 700,
           }}
         />
       </Stack>
@@ -145,7 +154,7 @@ export default function SuppliersPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -158,29 +167,26 @@ export default function SuppliersPage() {
     try {
       setLoading(true);
       const response = await getSuppliers(1, 100);
-      const normalized = (response?.data || []).map((s: any) => ({
+      const rawData = response.data || response.resultData || [];
+      const normalized: Supplier[] = rawData.map((s: Supplier) => ({
         ...s,
-        status: (s.status || "").toLowerCase()
+        status: (s.status || "").toLowerCase(),
       }));
       setSuppliers(normalized);
     } catch (err) {
-      console.error(err);
+      logger.error("Failed to fetch suppliers", err);
     } finally {
       setLoading(false);
     }
   };
 
-    
-
   useEffect(() => {
-    fetchSuppliers();
-  
-    
+    void fetchSuppliers();
   }, []);
 
   // ── FILTER ────────────────────────────
   const filtered = useMemo(() => {
-    return suppliers.filter((s) => {
+    return suppliers.filter(s => {
       const matchSearch = `${s.firstName} ${s.lastName} ${s.email} ${s.companyProfile?.companyName || ""}`
         .toLowerCase()
         .includes(search.toLowerCase());
@@ -191,14 +197,14 @@ export default function SuppliersPage() {
 
   // ── STATS ─────────────────────────────
   const totalSuppliers = suppliers.length;
-  const activeSuppliers = suppliers.filter((s) => s.status === "active").length;
-  const blockedSuppliers = suppliers.filter((s) => s.status === "blocked").length;
+  const activeSuppliers = suppliers.filter(s => s.status === "active").length;
+  const blockedSuppliers = suppliers.filter(s => s.status === "blocked").length;
 
   // ── PAGINATION ────────────────────────
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  console.log(pageData);
+  logger.debug("Suppliers page data", pageData);
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
@@ -236,7 +242,7 @@ export default function SuppliersPage() {
                 gap: 1,
                 transition: "0.2s",
                 width: { xs: "100%", sm: "auto" },
-                "&:hover": { transform: "translateY(-2px)", boxShadow: 6 }
+                "&:hover": { transform: "translateY(-2px)", boxShadow: 6 },
               }}
             >
               + Add New Supplier
@@ -247,13 +253,13 @@ export default function SuppliersPage() {
 
       {/* STATS */}
       <Grid container spacing={{ xs: 2, sm: 3 }} mb={4}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <StatCard label="Total Suppliers" value={totalSuppliers} color={theme.palette.primary.main} />
         </Grid>
-        <Grid item xs={6} sm={4}>
+        <Grid size={{ xs: 6, sm: 4 }}>
           <StatCard label="Active" value={activeSuppliers} color={theme.palette.success.main} />
         </Grid>
-        <Grid item xs={6} sm={4}>
+        <Grid size={{ xs: 6, sm: 4 }}>
           <StatCard label="Blocked" value={blockedSuppliers} color={theme.palette.error.main} />
         </Grid>
       </Grid>
@@ -264,21 +270,29 @@ export default function SuppliersPage() {
           fullWidth
           placeholder="Search by name, email or company..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={e => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           size={isMobile ? "small" : "medium"}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            )
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
         <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }} size={isMobile ? "small" : "medium"}>
           <Select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            onChange={e => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
             displayEmpty
           >
             <MenuItem value="all">All Status</MenuItem>
@@ -289,17 +303,17 @@ export default function SuppliersPage() {
       </Stack>
 
       {/* TABLE / MOBILE CARDS */}
-      {loading ? (
+      {loading && (
         <Box display="flex" justifyContent="center" py={10}>
           <CircularProgress />
         </Box>
-      ) : isMobile ? (
+      )}
+
+      {!loading && isMobile && (
         /* ── MOBILE: card list ── */
         <Box>
           {pageData.length > 0 ? (
-            pageData.map((s) => (
-              <SupplierMobileCard key={s.id} s={s} theme={theme} />
-            ))
+            pageData.map(s => <SupplierMobileCard key={s.id} s={s} theme={theme} />)
           ) : (
             <Box py={8} textAlign="center">
               <Typography color="text.secondary">No suppliers found</Typography>
@@ -314,7 +328,9 @@ export default function SuppliersPage() {
             <Pagination
               count={totalPages}
               page={page}
-              onChange={(_, v) => setPage(v)}
+              onChange={(_, v) => {
+                setPage(v);
+              }}
               size="small"
               color="primary"
               siblingCount={0}
@@ -322,7 +338,9 @@ export default function SuppliersPage() {
             />
           </Stack>
         </Box>
-      ) : (
+      )}
+
+      {!loading && !isMobile && (
         /* ── DESKTOP: table ── */
         <Paper sx={{ borderRadius: 3 }}>
           <TableContainer sx={{ overflowX: "auto" }}>
@@ -339,17 +357,20 @@ export default function SuppliersPage() {
 
               <TableBody>
                 {pageData.length > 0 ? (
-                  pageData.map((s) => {
+                  pageData.map(s => {
                     const isActive = s.status === "active";
                     return (
                       <TableRow key={s.id} hover>
                         <TableCell>
                           <Stack direction="row" spacing={2} alignItems="center">
                             <Avatar sx={{ bgcolor: theme.palette.secondary.light, fontWeight: 700 }}>
-                              {s.firstName?.[0]}{s.lastName?.[0]}
+                              {s.firstName[0]}
+                              {s.lastName[0]}
                             </Avatar>
                             <Box>
-                              <Typography fontWeight={600}>{s.firstName} {s.lastName}</Typography>
+                              <Typography fontWeight={600}>
+                                {s.firstName} {s.lastName}
+                              </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {s.phoneNumber || "No Phone"}
                               </Typography>
@@ -366,9 +387,7 @@ export default function SuppliersPage() {
                           </Stack>
                         </TableCell>
 
-                        <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
-                          {s.email}
-                        </TableCell>
+                        <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>{s.email}</TableCell>
 
                         <TableCell>
                           <Chip
@@ -380,7 +399,7 @@ export default function SuppliersPage() {
                                 ? alpha(theme.palette.success.main, 0.1)
                                 : alpha(theme.palette.error.main, 0.1),
                               color: isActive ? theme.palette.success.main : theme.palette.error.main,
-                              fontWeight: 700
+                              fontWeight: 700,
                             }}
                           />
                         </TableCell>
@@ -426,7 +445,9 @@ export default function SuppliersPage() {
             <Pagination
               count={totalPages}
               page={page}
-              onChange={(_, v) => setPage(v)}
+              onChange={(_, v) => {
+                setPage(v);
+              }}
               size="small"
               color="primary"
             />

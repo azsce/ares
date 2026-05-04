@@ -16,9 +16,22 @@ const iconMap = {
   PeopleAlt: PeopleAltIcon,
 };
 
-export default function StatCard({ title, value, change, isUp, icon, color }: any) {
+type StatColor = "primary" | "secondary" | "error" | "warning" | "info" | "success";
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: string;
+  isUp: boolean;
+  icon: keyof typeof iconMap;
+  color: StatColor;
+}
+
+export default function StatCard({ title, value, change, isUp, icon, color }: Readonly<StatCardProps>) {
   const theme = useTheme();
-  const IconComponent = iconMap[icon as keyof typeof iconMap];
+  const IconComponent = iconMap[icon];
+
+  const mainColor = (theme.palette[color] as { main: string }).main;
 
   return (
     <Card
@@ -44,7 +57,7 @@ export default function StatCard({ title, value, change, isUp, icon, color }: an
               color: "#fff",
               width: 52,
               height: 52,
-              boxShadow: `0 8px 16px ${(theme.palette as any)[color].main}40`,
+              boxShadow: `0 8px 16px ${mainColor}40`,
             }}
           >
             <IconComponent fontSize="medium" />

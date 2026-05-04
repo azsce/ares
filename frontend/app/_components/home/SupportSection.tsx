@@ -129,7 +129,7 @@ export default function SupportSection({ support }: Readonly<SupportSectionProps
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundImage: "url('/img/map.jpg')",
+                backgroundImage: "url('/img/view-on-map.png')",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 opacity: 0.08, // Very subtle background image

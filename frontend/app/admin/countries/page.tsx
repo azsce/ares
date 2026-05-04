@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   Box,
   Typography,
@@ -37,12 +37,19 @@ import {
   PublicTwoTone as CountryIcon,
   MapTwoTone as MapIcon,
 } from "@mui/icons-material";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCountries, checkCountry, deleteCountry } from "@/app/api/countries/countries";
+import { useCountries, checkCountry, deleteCountry, type Country } from "@/api-clients/countries/countries";
+
+// ── TYPES ──
+interface StatCardProps {
+  label: string;
+  value: number;
+  color: string;
+  icon: React.ReactNode;
+}
 
 // ── STAT CARD ──
-const StatCard = memo(function StatCard({ label, value, color, icon }: any) {
+const StatCard = memo(function StatCard({ label, value, color, icon }: StatCardProps) {
   return (
     <Card
       elevation={0}
@@ -53,12 +60,12 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: any) {
         borderColor: "divider",
         position: "relative",
         overflow: "hidden",
-        background: (theme) =>
+        background: theme =>
           `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.08)} 100%)`,
         transition: "transform 0.2s, box-shadow 0.2s",
         "&:hover": {
           transform: "translateY(-2px)",
-          boxShadow: (theme) => `0 8px 24px ${alpha(color, 0.18)}`,
+          boxShadow: () => `0 8px 24px ${alpha(color, 0.18)}`,
         },
       }}
     >
@@ -74,9 +81,7 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: any) {
         }}
       />
       <Stack direction="row" alignItems="center" spacing={1.5}>
-        <Avatar sx={{ bgcolor: alpha(color, 0.15), color, width: 40, height: 40 }}>
-          {icon}
-        </Avatar>
+        <Avatar sx={{ bgcolor: alpha(color, 0.15), color, width: 40, height: 40 }}>{icon}</Avatar>
         <Box>
           <Typography variant="overline" color="text.secondary" fontWeight={700} lineHeight={1.2}>
             {label}
@@ -93,7 +98,6 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: any) {
 // ── MAIN PAGE ──
 export default function AdminCountriesPage() {
   const theme = useTheme();
-  const router = useRouter();
   const { data: session } = useSession();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -101,35 +105,31 @@ export default function AdminCountriesPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const { 
-    countries, 
-    loading, 
-    page, 
-    totalPages, 
-    totalRecords, 
-    setPage, 
-    search, 
-    setSearch, 
-    refresh 
-  } = useCountries(session?.accessToken);
+  const { countries, loading, page, totalPages, totalRecords, setPage, search, setSearch, refresh } = useCountries(
+    session?.accessToken
+  );
 
   // ── HANDLERS ──
-  const handleDeleteClick = useCallback(async (id: string) => {
-    if (!session?.accessToken) return;
-    
-    try {
-      const { canDelete, message } = await checkCountry(session.accessToken, id);
-      if (!canDelete) {
-        setErrorMsg(message || "This country cannot be deleted because it has locations.");
-        return;
+  const handleDeleteClick = useCallback(
+    async (id: string) => {
+      if (!session?.accessToken) return;
+
+      try {
+        const { canDelete, message } = await checkCountry(session.accessToken, id);
+        if (!canDelete) {
+          setErrorMsg(message || "This country cannot be deleted because it has locations.");
+          return;
+        }
+
+        setDeleteId(id);
+        setOpenDelete(true);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to check country status.";
+        setErrorMsg(message);
       }
-      
-      setDeleteId(id);
-      setOpenDelete(true);
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to check country status.");
-    }
-  }, [session?.accessToken]);
+    },
+    [session]
+  );
 
   const confirmDelete = useCallback(async () => {
     if (!deleteId || !session?.accessToken) return;
@@ -139,14 +139,21 @@ export default function AdminCountriesPage() {
       setOpenDelete(false);
       setDeleteId(null);
       refresh();
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to delete country.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to delete country.";
+      setErrorMsg(message);
     }
-  }, [deleteId, session?.accessToken, refresh]);
+  }, [deleteId, session, refresh]);
 
-  const handleCloseDelete = useCallback(() => setOpenDelete(false), []);
-  const handleCloseError = useCallback(() => setErrorMsg(null), []);
-  const handleCloseSuccess = useCallback(() => setSuccessMsg(null), []);
+  const handleCloseDelete = useCallback(() => {
+    setOpenDelete(false);
+  }, []);
+  const handleCloseError = useCallback(() => {
+    setErrorMsg(null);
+  }, []);
+  const handleCloseSuccess = useCallback(() => {
+    setSuccessMsg(null);
+  }, []);
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
@@ -168,20 +175,20 @@ export default function AdminCountriesPage() {
 
       {/* STATS */}
       <Grid container spacing={2} mb={4}>
-        <Grid item xs={12} sm={6}>
-          <StatCard 
-            label="Total Countries" 
-            value={totalRecords} 
-            color={theme.palette.primary.main} 
-            icon={<CountryIcon fontSize="small" />} 
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <StatCard
+            label="Total Countries"
+            value={totalRecords}
+            color={theme.palette.primary.main}
+            icon={<CountryIcon fontSize="small" />}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <StatCard 
-            label="Active Regions" 
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <StatCard
+            label="Active Regions"
             value={totalRecords} // Approximation since countries are derived from active locations
-            color={theme.palette.success.main} 
-            icon={<MapIcon fontSize="small" />} 
+            color={theme.palette.success.main}
+            icon={<MapIcon fontSize="small" />}
           />
         </Grid>
       </Grid>
@@ -192,18 +199,20 @@ export default function AdminCountriesPage() {
           fullWidth
           placeholder="Search country by name..."
           value={search}
-          onChange={(e) => {
+          onChange={e => {
             setSearch(e.target.value);
             setPage(1); // Reset to page 1 on search
           }}
           size="small"
           sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3, bgcolor: "background.paper" } }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: "text.disabled" }} />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "text.disabled" }} />
+                </InputAdornment>
+              ),
+            },
           }}
         />
       </Stack>
@@ -214,16 +223,13 @@ export default function AdminCountriesPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <Paper
-          elevation={0}
-          sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider", overflow: "hidden" }}
-        >
+        <Paper elevation={0} sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider", overflow: "hidden" }}>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow
                   sx={{
-                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+                    bgcolor: theme => alpha(theme.palette.primary.main, 0.04),
                     "& .MuiTableCell-head": {
                       fontWeight: 700,
                       fontSize: 12,
@@ -237,13 +243,15 @@ export default function AdminCountriesPage() {
                   }}
                 >
                   <TableCell sx={{ pl: 6 }}>Country Name</TableCell>
-                  <TableCell align="right" sx={{ pr: 4 }}>Actions</TableCell>
+                  <TableCell align="right" sx={{ pr: 4 }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
                 {countries.length > 0 ? (
-                  countries.map((c: any) => (
+                  countries.map((c: Country) => (
                     <TableRow
                       key={c._id}
                       hover
@@ -251,7 +259,7 @@ export default function AdminCountriesPage() {
                         transition: "background 0.15s",
                         "&:last-child td": { border: 0 },
                         "&:hover": {
-                          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.03),
+                          bgcolor: theme => alpha(theme.palette.primary.main, 0.03),
                         },
                       }}
                     >
@@ -264,7 +272,7 @@ export default function AdminCountriesPage() {
                               borderRadius: 2,
                               overflow: "hidden",
                               flexShrink: 0,
-                              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                              bgcolor: theme => alpha(theme.palette.primary.main, 0.08),
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -281,12 +289,14 @@ export default function AdminCountriesPage() {
                       <TableCell align="right">
                         <Tooltip title="Delete Country">
                           <IconButton
-                            onClick={() => handleDeleteClick(c._id)}
+                            onClick={() => {
+                              void handleDeleteClick(c._id);
+                            }}
                             size="small"
                             sx={{
                               borderRadius: 2,
                               "&:hover": {
-                                bgcolor: (theme) => alpha(theme.palette.error.main, 0.1),
+                                bgcolor: theme => alpha(theme.palette.error.main, 0.1),
                                 color: "error.main",
                               },
                             }}
@@ -307,7 +317,7 @@ export default function AdminCountriesPage() {
                             height: 64,
                             mx: "auto",
                             mb: 2,
-                            bgcolor: (theme) => alpha(theme.palette.text.disabled, 0.1),
+                            bgcolor: theme => alpha(theme.palette.text.disabled, 0.1),
                           }}
                         >
                           <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
@@ -338,7 +348,9 @@ export default function AdminCountriesPage() {
               <Pagination
                 count={totalPages}
                 page={page}
-                onChange={(_, v) => setPage(v)}
+                onChange={(_, v) => {
+                  setPage(v);
+                }}
                 size="small"
                 sx={{ "& .MuiPaginationItem-root": { borderRadius: 2 } }}
               />
@@ -351,7 +363,7 @@ export default function AdminCountriesPage() {
       <Dialog
         open={openDelete}
         onClose={handleCloseDelete}
-        PaperProps={{ sx: { borderRadius: 3, p: 1, minWidth: 350 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3, p: 1, minWidth: 350 } } }}
       >
         <DialogTitle sx={{ fontWeight: 700 }}>Delete Country</DialogTitle>
         <DialogContent>
@@ -363,7 +375,14 @@ export default function AdminCountriesPage() {
           <Button onClick={handleCloseDelete} variant="outlined" sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          <Button onClick={confirmDelete} color="error" variant="contained" sx={{ borderRadius: 2, fontWeight: 700 }}>
+          <Button
+            onClick={() => {
+              void confirmDelete();
+            }}
+            color="error"
+            variant="contained"
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
             Delete
           </Button>
         </DialogActions>

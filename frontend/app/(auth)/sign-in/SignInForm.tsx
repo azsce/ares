@@ -93,7 +93,7 @@ export default function SignInForm() {
       } else if (res?.ok) {
         // Fetch session to determine roles
         const session = await getSession();
-        if (session?.user?.roles?.includes("Admin") || session?.user?.roles?.includes("Supplier")) {
+        if (session?.user.roles.includes("Admin") || session?.user.roles.includes("Supplier")) {
           router.push("/admin");
         } else {
           router.push("/");
