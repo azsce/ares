@@ -10,7 +10,6 @@ import {
   TextField,
   MenuItem,
   CircularProgress,
-  useTheme,
   FormControlLabel,
   Checkbox,
   InputAdornment,
@@ -44,7 +43,6 @@ interface UserResponse {
 }
 
 export default function CreateBookingClient() {
-  const theme = useTheme();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
 
@@ -258,12 +256,12 @@ export default function CreateBookingClient() {
     border: "1px solid",
     borderColor: "divider",
     borderRadius: 3,
-    bgcolor: theme.palette.mode === "dark" ? "background.paper" : "#fff",
+    bgcolor: "background.paper",
   };
 
   if (isLoadingInitial) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
         <CircularProgress />
       </Box>
     );
@@ -295,7 +293,7 @@ export default function CreateBookingClient() {
         >
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h4" fontWeight="800">
+        <Typography variant="h4" sx={{ fontWeight: "800" }}>
           Create New Booking
         </Typography>
       </Box>
@@ -308,7 +306,7 @@ export default function CreateBookingClient() {
         <Box className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Section 1: Dates & Locations */}
           <Paper elevation={0} sx={paperSx}>
-            <Typography variant="h6" fontWeight="bold" mb={3} color="primary.main">
+            <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
               📍 Dates & Locations
             </Typography>
             <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -369,7 +367,7 @@ export default function CreateBookingClient() {
 
           {/* Section 2: Vehicle & Supplier */}
           <Paper elevation={0} sx={paperSx}>
-            <Typography variant="h6" fontWeight="bold" mb={3} color="primary.main">
+            <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
               🚗 Vehicle Details
             </Typography>
             <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -416,7 +414,7 @@ export default function CreateBookingClient() {
 
           {/* Section 3: Driver Details */}
           <Paper elevation={0} sx={paperSx}>
-            <Typography variant="h6" fontWeight="bold" mb={3} color="primary.main">
+            <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
               👤 Driver Assignment
             </Typography>
             <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
@@ -478,7 +476,7 @@ export default function CreateBookingClient() {
             sx={{ ...paperSx, display: "flex", flexDirection: "column", justifyContent: "space-between" }}
           >
             <Box>
-              <Typography variant="h6" fontWeight="bold" mb={3} color="primary.main">
+              <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
                 💳 Payment & Options
               </Typography>
               <Box className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -522,7 +520,7 @@ export default function CreateBookingClient() {
               </Box>
             </Box>
 
-            <Box mt={4}>
+            <Box sx={{ mt: 4 }}>
               <Button
                 type="submit"
                 variant="contained"

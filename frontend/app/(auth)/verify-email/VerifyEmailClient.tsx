@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Box, Typography, Button, CircularProgress, Alert } from "@mui/material";
 import Link from "next/link";
-import { CheckCircle as CheckCircleIcon, ErrorOutline as ErrorIcon } from "@mui/icons-material";
+import { CheckCircle as CheckCircleIcon, ErrorOutlined as ErrorIcon } from "@mui/icons-material";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
@@ -82,7 +82,7 @@ export default function VerifyEmailClient({ userId, token }: Readonly<VerifyEmai
         {status === "loading" && (
           <>
             <CircularProgress size={48} sx={{ mb: 3 }} />
-            <Typography variant="h5" gutterBottom fontWeight="bold">
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
               Verifying your email...
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -94,7 +94,7 @@ export default function VerifyEmailClient({ userId, token }: Readonly<VerifyEmai
         {status === "success" && (
           <>
             <CheckCircleIcon color="success" sx={{ fontSize: 64, mb: 2 }} />
-            <Typography variant="h5" gutterBottom fontWeight="bold">
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
               Email Verified!
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
@@ -116,7 +116,7 @@ export default function VerifyEmailClient({ userId, token }: Readonly<VerifyEmai
         {status === "error" && (
           <>
             <ErrorIcon color="error" sx={{ fontSize: 64, mb: 2 }} />
-            <Typography variant="h5" gutterBottom fontWeight="bold">
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
               Verification Failed
             </Typography>
             <Alert severity="error" sx={{ mb: 4, textAlign: "left", borderRadius: 2 }}>

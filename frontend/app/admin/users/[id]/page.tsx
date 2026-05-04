@@ -13,7 +13,6 @@ import {
   Button,
   Avatar,
   IconButton,
-  alpha,
   useTheme,
 } from "@mui/material";
 
@@ -78,7 +77,7 @@ export default function UserDetailsPage() {
   return (
     <Box sx={{ p: 4, maxWidth: 700, mx: "auto" }}>
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <IconButton
           onClick={() => {
             router.back();
@@ -105,18 +104,18 @@ export default function UserDetailsPage() {
         </Button>
       </Stack>
 
-      {/* Main Card */}
       <Paper
         elevation={0}
         sx={{
           p: 4,
           borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
-          background: "linear-gradient(to bottom, #fff, #fafafa)",
+          border: "1px solid",
+          borderColor: "border.light",
+          bgcolor: "background.paper",
         }}
       >
         {/* User Header */}
-        <Stack direction="row" spacing={2} alignItems="center" mb={3}>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 3 }}>
           <Avatar
             sx={{
               width: 56,
@@ -129,7 +128,7 @@ export default function UserDetailsPage() {
           </Avatar>
 
           <Box>
-            <Typography variant="h6" fontWeight={700}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
               {user.firstName} {user.lastName}
             </Typography>
             <Chip label={user.status} size="small" color={getStatusColor()} sx={{ mt: 0.5, fontWeight: 600 }} />
@@ -146,7 +145,8 @@ export default function UserDetailsPage() {
             sx={{
               p: 2,
               borderRadius: 3,
-              border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+              border: "1px solid",
+              borderColor: "border.light",
               display: "flex",
               alignItems: "center",
               gap: 2,
@@ -157,7 +157,7 @@ export default function UserDetailsPage() {
               <Typography variant="caption" color="text.secondary">
                 Email
               </Typography>
-              <Typography fontWeight={600}>{user.email}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{user.email}</Typography>
             </Box>
           </Paper>
 
@@ -167,7 +167,8 @@ export default function UserDetailsPage() {
             sx={{
               p: 2,
               borderRadius: 3,
-              border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+              border: "1px solid",
+              borderColor: "border.light",
               display: "flex",
               alignItems: "center",
               gap: 2,
@@ -178,7 +179,7 @@ export default function UserDetailsPage() {
               <Typography variant="caption" color="text.secondary">
                 Phone Number
               </Typography>
-              <Typography fontWeight={600}>{user.phoneNumber || "-"}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{user.phoneNumber || "-"}</Typography>
             </Box>
           </Paper>
 
@@ -188,7 +189,8 @@ export default function UserDetailsPage() {
             sx={{
               p: 2,
               borderRadius: 3,
-              border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+              border: "1px solid",
+              borderColor: "border.light",
               display: "flex",
               alignItems: "center",
               gap: 2,
@@ -200,7 +202,7 @@ export default function UserDetailsPage() {
                 Role
               </Typography>
 
-              <Stack direction="row" spacing={1} mt={0.5} flexWrap="wrap">
+              <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexWrap: "wrap" }}>
                 {user.roles.map((role: string, i: number) => (
                   <Chip key={i} label={role} size="small" color="secondary" />
                 ))}

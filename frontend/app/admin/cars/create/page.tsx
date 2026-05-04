@@ -120,8 +120,8 @@ export default function CreateCarPage() {
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1000, mx: "auto" }}>
       {/* Header */}
-      <Stack mb={4}>
-        <Typography variant="h4" fontWeight={800} gutterBottom>
+      <Stack sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800 }} gutterBottom>
           Add New Vehicle
         </Typography>
         <Typography color="text.secondary">Fill in the details to list a new car in the system</Typography>
@@ -313,7 +313,7 @@ export default function CreateCarPage() {
         )}
 
         {/* Actions */}
-        <Stack direction="row" spacing={2} mt={5} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} sx={{ mt: 5, justifyContent: "flex-end" }}>
           <Button
             onClick={() => {
               router.push("/admin/cars");

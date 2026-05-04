@@ -80,13 +80,13 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: StatCardP
           bgcolor: alpha(color, 0.1),
         }}
       />
-      <Stack direction="row" alignItems="center" spacing={1.5}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <Avatar sx={{ bgcolor: alpha(color, 0.15), color, width: 40, height: 40 }}>{icon}</Avatar>
         <Box>
-          <Typography variant="overline" color="text.secondary" fontWeight={700} lineHeight={1.2}>
+          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
             {label}
           </Typography>
-          <Typography variant="h4" fontWeight={800} sx={{ color, lineHeight: 1.1 }}>
+          <Typography variant="h4" sx={{ color, lineHeight: 1.1, fontWeight: 800 }}>
             {value}
           </Typography>
         </Box>
@@ -160,13 +160,15 @@ export default function AdminCountriesPage() {
       {/* HEADER */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        mb={4}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
+        sx={{
+          justifyContent: "space-between",
+          mb: 4,
+          alignItems: { xs: "flex-start", sm: "center" },
+          gap: 2,
+        }}
       >
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "2rem" } }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: "1.6rem", sm: "2rem" } }}>
             Countries
           </Typography>
           <Typography color="text.secondary">Manage available countries for locations</Typography>
@@ -174,7 +176,7 @@ export default function AdminCountriesPage() {
       </Stack>
 
       {/* STATS */}
-      <Grid container spacing={2} mb={4}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, sm: 6 }}>
           <StatCard
             label="Total Countries"
@@ -194,7 +196,7 @@ export default function AdminCountriesPage() {
       </Grid>
 
       {/* FILTER */}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
           fullWidth
           placeholder="Search country by name..."
@@ -219,7 +221,7 @@ export default function AdminCountriesPage() {
 
       {/* TABLE */}
       {loading ? (
-        <Box display="flex" justifyContent="center" py={10}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
           <CircularProgress />
         </Box>
       ) : (
@@ -264,7 +266,7 @@ export default function AdminCountriesPage() {
                       }}
                     >
                       <TableCell sx={{ py: { xs: 1.2, sm: 1.8 } }}>
-                        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ pl: 4 }}>
+                        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", pl: 4 }}>
                           <Box
                             sx={{
                               width: 40,
@@ -280,9 +282,7 @@ export default function AdminCountriesPage() {
                           >
                             <CountryIcon fontSize="small" color="primary" />
                           </Box>
-                          <Typography fontWeight={700} fontSize={{ xs: 13, sm: 15 }}>
-                            {c.name}
-                          </Typography>
+                          <Typography sx={{ fontWeight: 700, fontSize: { xs: 13, sm: 15 } }}>{c.name}</Typography>
                         </Stack>
                       </TableCell>
 
@@ -322,7 +322,7 @@ export default function AdminCountriesPage() {
                         >
                           <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
                         </Avatar>
-                        <Typography variant="h6" fontWeight={700} color="text.secondary">
+                        <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
                           No countries found
                         </Typography>
                       </Box>
@@ -335,11 +335,14 @@ export default function AdminCountriesPage() {
 
           <Stack
             direction={{ xs: "column", sm: "row" }}
-            justifyContent="space-between"
-            alignItems="center"
-            gap={1}
-            p={2}
-            sx={{ borderTop: "1px solid", borderColor: "divider" }}
+            sx={{
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 1,
+              p: 2,
+              borderTop: "1px solid",
+              borderColor: "divider",
+            }}
           >
             <Typography variant="caption" color="text.secondary">
               Showing <strong>{countries.length}</strong> of {totalRecords} countries

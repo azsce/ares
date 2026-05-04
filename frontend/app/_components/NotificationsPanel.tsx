@@ -10,6 +10,7 @@ import {
   Typography,
   Divider,
   Alert,
+  alpha,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useState, useEffect, useCallback } from "react";
@@ -119,8 +120,8 @@ export default function NotificationsPanel() {
               {error}
             </Alert>
           )}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6" fontWeight="bold">
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
               Notifications
             </Typography>
             <IconButton
@@ -143,10 +144,10 @@ export default function NotificationsPanel() {
                 }}
                 sx={{
                   cursor: "pointer",
-                  bgcolor: n.isRead ? "transparent" : "rgba(25, 118, 210, 0.08)",
+                  bgcolor: theme => (n.isRead ? "transparent" : alpha(theme.palette.primary.main, 0.08)),
                   borderRadius: 2,
                   mb: 1,
-                  "&:hover": { bgcolor: "rgba(0, 0, 0, 0.04)" },
+                  "&:hover": { bgcolor: "action.hover" },
                 }}
               >
                 <ListItemText

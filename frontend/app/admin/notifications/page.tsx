@@ -106,7 +106,7 @@ export default function NotificationsPage() {
   // 1. Loading State (Session)
   if (status === "loading") {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
         <CircularProgress size={40} />
       </Box>
     );
@@ -126,7 +126,7 @@ export default function NotificationsPage() {
   const renderContent = (): React.ReactNode => {
     if (loading) {
       return (
-        <Box p={10} textAlign="center">
+        <Box sx={{ p: 10, textAlign: "center" }}>
           <CircularProgress size={30} />
           <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>
             Loading your feed...
@@ -137,7 +137,7 @@ export default function NotificationsPage() {
 
     if (notifications.length === 0) {
       return (
-        <Box p={10} textAlign="center">
+        <Box sx={{ p: 10, textAlign: "center" }}>
           <Typography color="text.secondary">You&apos;re all caught up! No notifications.</Typography>
         </Box>
       );
@@ -150,19 +150,19 @@ export default function NotificationsPage() {
             <Stack
               direction="row"
               spacing={2}
-              alignItems="center"
               sx={{
+                alignItems: "center",
                 p: 3,
                 transition: "0.2s",
                 bgcolor: n.isRead ? "transparent" : "action.hover",
-                "&:hover": { bgcolor: "rgba(0, 0, 0, 0.02)" },
+                "&:hover": { bgcolor: "border.light" },
               }}
             >
               {/* Content */}
               <Box sx={{ flex: 1 }}>
                 <Typography
                   variant="subtitle1"
-                  fontWeight={n.isRead ? 500 : 700}
+                  sx={{ fontWeight: n.isRead ? 500 : 700 }}
                   color={n.isRead ? "text.secondary" : "text.primary"}
                 >
                   {n.title}
@@ -212,12 +212,12 @@ export default function NotificationsPage() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       {/* Header Section */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
-        <Typography variant="h4" fontWeight="800" sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: "800", display: "flex", alignItems: "center", gap: 2 }}>
           <NotificationsActiveIcon color="primary" fontSize="large" />
           Notifications
         </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <Chip
             label={`${unreadCount.toString()} Unread`}
             color={unreadCount > 0 ? "primary" : "default"}

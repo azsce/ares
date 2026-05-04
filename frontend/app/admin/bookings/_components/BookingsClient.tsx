@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -80,8 +80,11 @@ export default function BookingsClient() {
   const [openDelete, setOpenDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false); // ضفنا State عشان الـ Loading بتاع الحذف
 
-  // استخراج اليوزر من الجلسة
-  const user = session?.user ? { id: session.user.id, role: session.user.roles[0] || "Admin" } : undefined;
+  // استخراج اليوزر من الجلسة - useMemo prevents a new object reference on every render
+  const user = useMemo(
+    () => (session?.user ? { id: session.user.id, role: session.user.roles[0] || "Admin" } : undefined),
+    [session?.user]
+  );
 
   // Fetch Data using our custom hook
   const { bookings, loading, totalPages, totalCount } = useBookings(session?.accessToken, user, page, size, search);
@@ -151,7 +154,7 @@ export default function BookingsClient() {
               >
                 <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
               </Avatar>
-              <Typography variant="h6" fontWeight={700} color="text.secondary">
+              <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
                 No bookings found
               </Typography>
             </Box>
@@ -178,7 +181,7 @@ export default function BookingsClient() {
             >
               {/* Vehicle & Driver */}
               <TableCell sx={{ pl: 3 }}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <Avatar
                     variant="rounded"
                     src={toImageUrl(booking.car?.image)}
@@ -192,10 +195,10 @@ export default function BookingsClient() {
                     <CarIcon />
                   </Avatar>
                   <Box>
-                    <Typography fontWeight={700} fontSize={14}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
                       {booking.car?.name || "Unknown Vehicle"}
                     </Typography>
-                    <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", mt: 0.5 }}>
                       <PersonIcon sx={{ fontSize: 14, color: "text.secondary" }} />
                       <Typography variant="caption" color="text.secondary">
                         {booking.driver?.fullName || "No Driver"}
@@ -208,15 +211,15 @@ export default function BookingsClient() {
               {/* Locations */}
               <TableCell>
                 <Stack spacing={0.5}>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                     <LocationIcon sx={{ fontSize: 14, color: "success.main" }} />
-                    <Typography variant="body2" fontSize={13}>
+                    <Typography variant="body2" sx={{ fontSize: 13 }}>
                       {booking.pickupLocation?.name || "-"}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                     <LocationIcon sx={{ fontSize: 14, color: "error.main" }} />
-                    <Typography variant="body2" fontSize={13}>
+                    <Typography variant="body2" sx={{ fontSize: 13 }}>
                       {booking.dropOffLocation?.name || "-"}
                     </Typography>
                   </Stack>
@@ -226,15 +229,15 @@ export default function BookingsClient() {
               {/* Dates */}
               <TableCell>
                 <Stack spacing={0.5}>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                     <DateIcon sx={{ fontSize: 14, color: "text.secondary" }} />
-                    <Typography variant="body2" fontSize={13}>
+                    <Typography variant="body2" sx={{ fontSize: 13 }}>
                       {formatDate(booking.from)}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                     <DateIcon sx={{ fontSize: 14, color: "text.secondary" }} />
-                    <Typography variant="body2" fontSize={13}>
+                    <Typography variant="body2" sx={{ fontSize: 13 }}>
                       {formatDate(booking.to)}
                     </Typography>
                   </Stack>
@@ -243,7 +246,7 @@ export default function BookingsClient() {
 
               {/* Status & Payment */}
               <TableCell>
-                <Stack alignItems="flex-start" spacing={1}>
+                <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
                   <Chip
                     label={statusConfig.label}
                     size="small"
@@ -264,7 +267,7 @@ export default function BookingsClient() {
 
               {/* Actions */}
               <TableCell align="right" sx={{ pr: 3 }}>
-                <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+                <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
                   <Tooltip title="Edit Status">
                     <IconButton
                       size="small"
@@ -304,13 +307,10 @@ export default function BookingsClient() {
 
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        mb={4}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
+        sx={{ alignItems: { xs: "flex-start", sm: "center" }, gap: 2, justifyContent: "space-between", mb: 4 }}
       >
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "2rem" } }}>
+          <Typography variant="h4" sx={{ fontSize: { xs: "1.6rem", sm: "2rem" }, fontWeight: 800 }}>
             Bookings Management
           </Typography>
           <Typography color="text.secondary">Monitor and manage all ARES reservations</Typography>
@@ -325,7 +325,7 @@ export default function BookingsClient() {
             py: 1.2,
             borderRadius: 3,
             fontWeight: 700,
-            color: "#fff",
+            color: "primary.contrastText",
             cursor: "pointer",
             background: theme =>
               `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
@@ -351,7 +351,7 @@ export default function BookingsClient() {
         sx={{ p: 3, borderRadius: 4, border: "1px solid", borderColor: "divider", overflow: "hidden" }}
       >
         {/* Filter Bar */}
-        <Box p={2} sx={{ borderBottom: "1px solid", borderColor: "divider" }}>
+        <Box sx={{ borderBottom: "1px solid", borderColor: "divider", p: 2 }}>
           <TextField
             fullWidth
             placeholder="Search by keyword..."
@@ -408,11 +408,14 @@ export default function BookingsClient() {
         {!loading && (
           <Stack
             direction={{ xs: "column", sm: "row" }}
-            justifyContent="space-between"
-            alignItems="center"
-            gap={1}
-            p={2}
-            sx={{ borderTop: "1px solid", borderColor: "divider" }}
+            sx={{
+              alignItems: "center",
+              borderTop: "1px solid",
+              borderColor: "divider",
+              gap: 1,
+              justifyContent: "space-between",
+              p: 2,
+            }}
           >
             <Typography variant="caption" color="text.secondary">
               Showing page <strong>{page + 1}</strong> of {totalPages || 1} ({totalCount} total)

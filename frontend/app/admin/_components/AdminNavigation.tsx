@@ -21,6 +21,7 @@ import {
   useMediaQuery,
   CircularProgress,
   Badge,
+  alpha,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -73,7 +74,13 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
   if (status === "loading") {
     return (
       <Box
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", bgcolor: "#f8fafc" }}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          bgcolor: "background.default",
+        }}
       >
         <CircularProgress size={48} thickness={4} />
       </Box>
@@ -112,14 +119,14 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            boxShadow: theme => `0 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
           }}
         >
-          <Typography variant="h5" fontWeight="900" color="white">
+          <Typography variant="h5" color="primary.contrastText" sx={{ fontWeight: "900" }}>
             A
           </Typography>
         </Box>
-        <Typography variant="h6" fontWeight="900" sx={{ letterSpacing: "-0.5px", color: "text.primary" }}>
+        <Typography variant="h6" sx={{ color: "text.primary", fontWeight: "900", letterSpacing: "-0.5px" }}>
           ARES Panel
         </Typography>
       </Toolbar>
@@ -137,7 +144,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
                   sx={{
                     borderRadius: 3,
                     bgcolor: isActive ? "primary.main" : "transparent",
-                    color: isActive ? "white" : "text.secondary",
+                    color: isActive ? "primary.contrastText" : "text.secondary",
                     transition: "all 0.2s",
                     "&:hover": {
                       bgcolor: isActive ? "primary.dark" : "action.hover",
@@ -185,14 +192,14 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
   );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f8fafc" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
       <AppBar
         position="fixed"
         elevation={0}
         sx={{
           width: { md: `calc(100% - ${drawerWidth.toString()}px)` },
           ml: { md: `${drawerWidth.toString()}px` },
-          bgcolor: "rgba(255, 255, 255, 0.8)",
+          bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid",
           borderColor: "divider",
@@ -224,10 +231,10 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
               }}
             >
               <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
-                <Typography variant="subtitle2" fontWeight="800">
+                <Typography variant="subtitle2" sx={{ fontWeight: "800" }}>
                   {userName}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" fontWeight="600">
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: "600" }}>
                   {user?.roles[0] || "Administrator"}
                 </Typography>
               </Box>

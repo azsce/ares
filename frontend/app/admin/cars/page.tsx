@@ -120,16 +120,15 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: StatCardP
           bgcolor: alpha(color, 0.1),
         }}
       />
-      <Stack direction="row" alignItems="center" spacing={1.5}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <Avatar sx={{ bgcolor: alpha(color, 0.15), color, width: 40, height: 40 }}>{icon}</Avatar>
         <Box>
-          <Typography variant="overline" color="text.secondary" fontWeight={700} lineHeight={1.2}>
+          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
             {label}
           </Typography>
           <Typography
             variant="h4"
-            fontWeight={800}
-            sx={{ color, lineHeight: 1.1, fontSize: { xs: "1.6rem", sm: "2.125rem" } }}
+            sx={{ fontWeight: 800, color, lineHeight: 1.1, fontSize: { xs: "1.6rem", sm: "2.125rem" } }}
           >
             {value}
           </Typography>
@@ -154,7 +153,7 @@ const ActionButtons = memo(function ActionButtons({
   onNavigate: (path: string) => void;
 }) {
   return (
-    <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+    <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
       <Tooltip title="View">
         <IconButton
           size="small"
@@ -232,7 +231,7 @@ const VehicleMobileCard = memo(function VehicleMobileCard({
         "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.03) },
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1.5} mb={1.5}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 1.5 }}>
         <Box
           sx={{
             width: 52,
@@ -258,18 +257,18 @@ const VehicleMobileCard = memo(function VehicleMobileCard({
           )}
         </Box>
 
-        <Box flex={1} minWidth={0}>
-          <Typography fontWeight={700} fontSize={15} noWrap>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 15 }} noWrap color="text.primary">
             {v.make} {v.model}
           </Typography>
-          <Stack direction="row" spacing={0.8} alignItems="center">
+          <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
             <Typography variant="caption" color="text.secondary">
               {v.category || "General"}
             </Typography>
             <Typography variant="caption" color="text.disabled">
               ·
             </Typography>
-            <Typography variant="caption" fontWeight={700} color="primary.main">
+            <Typography variant="caption" sx={{ fontWeight: 700 }} color="primary.main">
               ${v.dailyRate}/day
             </Typography>
           </Stack>
@@ -373,7 +372,7 @@ export default function AdminCarsPage() {
   const mainContent = (() => {
     if (loading) {
       return (
-        <Box display="flex" justifyContent="center" py={10}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
           <CircularProgress />
         </Box>
       );
@@ -394,7 +393,7 @@ export default function AdminCarsPage() {
               />
             ))
           ) : (
-            <Box py={8} textAlign="center" sx={{ opacity: 0.6 }}>
+            <Box sx={{ py: 8, textAlign: "center", opacity: 0.6 }}>
               <Avatar
                 sx={{
                   width: 64,
@@ -406,14 +405,14 @@ export default function AdminCarsPage() {
               >
                 <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
               </Avatar>
-              <Typography variant="h6" fontWeight={700} color="text.secondary">
+              <Typography variant="h6" sx={{ fontWeight: 700 }} color="text.secondary">
                 No vehicles found
               </Typography>
             </Box>
           )}
 
           {/* PAGINATION mobile */}
-          <Stack direction="column" alignItems="center" spacing={1} mt={2} mb={1}>
+          <Stack direction="column" spacing={1} sx={{ alignItems: "center", mt: 2, mb: 1 }}>
             <Typography variant="caption" color="text.secondary">
               Showing <strong>{filtered.length}</strong> of {total} vehicles
             </Typography>
@@ -494,7 +493,7 @@ export default function AdminCarsPage() {
                       }}
                     >
                       <TableCell sx={{ py: { xs: 1.2, sm: 1.8 } }}>
-                        <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                           <Box
                             sx={{
                               width: { xs: 40, sm: 52 },
@@ -520,14 +519,13 @@ export default function AdminCarsPage() {
                             )}
                           </Box>
                           <Box>
-                            <Typography fontWeight={700} fontSize={{ xs: 13, sm: 15 }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: { xs: 13, sm: 15 }, color: "text.primary" }}>
                               {v.make} {v.model}
                             </Typography>
                             <Stack
                               direction="row"
                               spacing={0.8}
-                              alignItems="center"
-                              sx={{ display: { xs: "flex", sm: "none" }, mt: 0.3 }}
+                              sx={{ alignItems: "center", display: { xs: "flex", sm: "none" }, mt: 0.3 }}
                             >
                               <Typography variant="caption" color="text.secondary">
                                 {v.category}
@@ -535,7 +533,7 @@ export default function AdminCarsPage() {
                               <Typography variant="caption" color="text.disabled">
                                 ·
                               </Typography>
-                              <Typography variant="caption" fontWeight={700} color="primary.main">
+                              <Typography variant="caption" sx={{ fontWeight: 700 }} color="primary.main">
                                 ${v.dailyRate}/day
                               </Typography>
                             </Stack>
@@ -557,9 +555,13 @@ export default function AdminCarsPage() {
                       </TableCell>
 
                       <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
-                        <Typography fontWeight={700} color="primary.main">
+                        <Typography sx={{ fontWeight: 700 }} color="primary.main">
                           ${v.dailyRate}
-                          <Typography component="span" variant="caption" color="text.secondary" fontWeight={400}>
+                          <Typography
+                            sx={{ component: "span", fontWeight: 400 }}
+                            variant="caption"
+                            color="text.secondary"
+                          >
                             {" "}
                             /day
                           </Typography>
@@ -608,7 +610,7 @@ export default function AdminCarsPage() {
                       >
                         <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
                       </Avatar>
-                      <Typography variant="h6" fontWeight={700} color="text.secondary">
+                      <Typography variant="h6" sx={{ fontWeight: 700 }} color="text.secondary">
                         No vehicles found
                       </Typography>
                     </Box>
@@ -621,11 +623,14 @@ export default function AdminCarsPage() {
 
         <Stack
           direction={{ xs: "column", sm: "row" }}
-          justifyContent="space-between"
-          alignItems="center"
-          gap={1}
-          p={2}
-          sx={{ borderTop: "1px solid", borderColor: "divider" }}
+          sx={{
+            gap: 1,
+            justifyContent: "space-between",
+            alignItems: "center",
+            p: 2,
+            borderTop: "1px solid",
+            borderColor: "divider",
+          }}
         >
           <Typography variant="caption" color="text.secondary">
             Showing <strong>{filtered.length}</strong> of {total} vehicles
@@ -649,13 +654,10 @@ export default function AdminCarsPage() {
       {/* HEADER */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        mb={4}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
+        sx={{ gap: 2, justifyContent: "space-between", mb: 4, alignItems: { xs: "flex-start", sm: "center" } }}
       >
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.5rem", sm: "1.6rem", md: "2rem" } }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", sm: "1.6rem", md: "2rem" } }}>
             Fleet Inventory
           </Typography>
           <Typography color="text.secondary" variant="body2">
@@ -672,7 +674,7 @@ export default function AdminCarsPage() {
             py: 1.2,
             borderRadius: 3,
             fontWeight: 700,
-            color: "#fff",
+            color: "primary.contrastText",
             cursor: "pointer",
             background: t => `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.primary.dark})`,
             boxShadow: 3,
@@ -692,7 +694,7 @@ export default function AdminCarsPage() {
       </Stack>
 
       {/* STATS */}
-      <Grid container spacing={2} mb={4}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <StatCard
             label="Total Assets"
@@ -720,7 +722,7 @@ export default function AdminCarsPage() {
       </Grid>
 
       {/* FILTER */}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
           fullWidth
           placeholder="Search by make or model..."

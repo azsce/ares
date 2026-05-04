@@ -122,7 +122,7 @@ export default function EditCarPage() {
 
   if (loadingData) {
     return (
-      <Box display="flex" justifyContent="center" mt={10}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
         <CircularProgress />
       </Box>
     );
@@ -130,8 +130,8 @@ export default function EditCarPage() {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1000, mx: "auto" }}>
-      <Stack mb={4}>
-        <Typography variant="h4" fontWeight={800}>
+      <Stack sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Edit Vehicle
         </Typography>
         <Typography color="text.secondary">Update vehicle information</Typography>
@@ -267,7 +267,7 @@ export default function EditCarPage() {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={2} mt={5} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end", mt: 5 }}>
           <Button
             onClick={() => {
               router.push("/admin/cars");
