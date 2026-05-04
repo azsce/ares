@@ -3,6 +3,7 @@ using Backend.Application.DTOs.Vehicle;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using FsCheck;
@@ -586,7 +587,7 @@ public class VehicleSearchPropertyTests : IDisposable
                 PickupDate = searchStart.AddHours(-12), // Overlaps with search period
                 ReturnDate = searchEnd.AddHours(12),
                 TotalPrice = 200,
-                Status = "Confirmed",
+                Status = BookingStatus.Confirmed,
                 CreatedAt = DateTime.UtcNow
             };
             _context.Bookings.Add(booking);

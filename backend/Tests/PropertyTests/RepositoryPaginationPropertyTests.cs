@@ -1,6 +1,7 @@
 using Backend.Application.DTOs.Common;
 using Backend.Application.Interfaces;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using FsCheck;
@@ -93,7 +94,7 @@ public class RepositoryPaginationPropertyTests : IDisposable
                     PickupDate = DateTime.UtcNow.AddDays(i),
                     ReturnDate = DateTime.UtcNow.AddDays(i + 1),
                     TotalPrice = 100,
-                    Status = "Confirmed",
+                    Status = BookingStatus.Confirmed,
                     CreatedAt = DateTime.UtcNow.AddMinutes(-i)
                 };
                 bookings.Add(booking);
@@ -187,7 +188,7 @@ public class RepositoryPaginationPropertyTests : IDisposable
                     PickupDate = DateTime.UtcNow.AddDays(i),
                     ReturnDate = DateTime.UtcNow.AddDays(i + 1),
                     TotalPrice = 100,
-                    Status = "Confirmed",
+                    Status = BookingStatus.Confirmed,
                     CreatedAt = DateTime.UtcNow.AddMinutes(-i)
                 };
                 _context.Bookings.Add(booking);
@@ -293,7 +294,7 @@ public class RepositoryPaginationPropertyTests : IDisposable
                         PickupDate = DateTime.UtcNow.AddDays(i),
                         ReturnDate = DateTime.UtcNow.AddDays(i + 1),
                         TotalPrice = 100,
-                        Status = "Confirmed",
+                        Status = BookingStatus.Confirmed,
                         CreatedAt = DateTime.UtcNow.AddMinutes(-i)
                     };
                     _context.Bookings.Add(booking);

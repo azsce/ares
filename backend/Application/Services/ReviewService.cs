@@ -138,13 +138,8 @@ public class ReviewService : IReviewService
 
     private bool IsBookingCompleted(Booking booking)
     {
-        if (booking.Status == null)
-        {
-            return false;
-        }
-
-        var completedStatuses = new[] { "Completed", "Paid", "Reserved" };
-        var isStatusCompleted = completedStatuses.Contains(booking.Status, StringComparer.OrdinalIgnoreCase);
+        var completedStatuses = new[] { Backend.Domain.Entities.Enums.BookingStatus.Completed, Backend.Domain.Entities.Enums.BookingStatus.Confirmed };
+        var isStatusCompleted = completedStatuses.Contains(booking.Status);
 
         if (!isStatusCompleted)
         {

@@ -239,8 +239,8 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
                 >
                   <MenuItem value="Pending">Pending</MenuItem>
                   <MenuItem value="Confirmed">Confirmed</MenuItem>
-                  <MenuItem value="Pickup">Pickup (Active)</MenuItem>
-                  <MenuItem value="Return">Returned</MenuItem>
+                  <MenuItem value="Active">Active</MenuItem>
+                  <MenuItem value="Completed">Completed</MenuItem>
                   <MenuItem value="Cancelled">Cancelled</MenuItem>
                 </Select>
               </Box>

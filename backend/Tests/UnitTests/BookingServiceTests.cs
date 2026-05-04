@@ -4,6 +4,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -78,7 +79,7 @@ public class BookingServiceTests
         Assert.NotNull(result);
         Assert.NotEqual(Guid.Empty, result.BookingId);
         Assert.StartsWith("BK-", result.BookingNumber);
-        Assert.Equal("Pending", result.Status);
+        Assert.Equal(BookingStatus.Pending.ToString(), result.Status);
         Assert.Equal(100.00m, result.TotalPrice); // 2 days * $50
         Assert.Equal("Booking created successfully", result.Message);
 
@@ -228,7 +229,7 @@ public class BookingServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(400.00m, result.TotalPrice); // 4 days * $100
-        Assert.Equal("Pending", result.Status);
+        Assert.Equal(BookingStatus.Pending.ToString(), result.Status);
 
         _bookingRepositoryMock.Verify(x => x.AddAsync(It.Is<Booking>(b => 
             b.DriverId == driverId && 
@@ -361,7 +362,7 @@ public class BookingServiceTests
             PickupDate = DateTime.UtcNow.AddDays(1),
             ReturnDate = DateTime.UtcNow.AddDays(3),
             TotalPrice = 150.00m,
-            Status = "Confirmed",
+            Status = BookingStatus.Confirmed,
             Vehicle = new Vehicle
             {
                 Id = vehicleId,
@@ -407,7 +408,7 @@ public class BookingServiceTests
         Assert.Equal("Jane Driver", result.Driver.FullName);
         Assert.Equal("123-456-7890", result.Driver.Phone);
         Assert.Equal(150.00m, result.Price);
-        Assert.Equal("Confirmed", result.Status);
+        Assert.Equal(BookingStatus.Confirmed.ToString(), result.Status);
 
         _bookingRepositoryMock.Verify(x => x.GetBookingWithDetailsAsync(bookingId, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -443,7 +444,7 @@ public class BookingServiceTests
             Id = bookingId,
             UserId = differentUserId, // Different user ID
             VehicleId = Guid.NewGuid(),
-            Status = "Confirmed"
+            Status = BookingStatus.Confirmed
         };
 
         _bookingRepositoryMock.Setup(x => x.GetBookingWithDetailsAsync(bookingId, It.IsAny<CancellationToken>()))
@@ -473,7 +474,7 @@ public class BookingServiceTests
             Id = bookingId,
             UserId = userId,
             VehicleId = vehicleId,
-            Status = "Confirmed",
+            Status = BookingStatus.Confirmed,
             TotalPrice = 200.00m,
             Vehicle = new Vehicle { Id = vehicleId }
         };
@@ -493,7 +494,7 @@ public class BookingServiceTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal("Cancelled", booking.Status);
+        Assert.Equal(BookingStatus.Cancelled, booking.Status);
         Assert.NotNull(booking.CancelledAt);
 
         _bookingRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -533,7 +534,7 @@ public class BookingServiceTests
         {
             Id = bookingId,
             UserId = differentUserId, // Different user ID
-            Status = "Confirmed"
+            Status = BookingStatus.Confirmed
         };
 
         var bookings = new List<Booking> { booking }.AsQueryable();
@@ -550,9 +551,9 @@ public class BookingServiceTests
     }
 
     [Theory]
-    [InlineData("Cancelled")]
-    [InlineData("Completed")]
-    public async Task CancelBookingAsync_WithNonCancellableStatus_ShouldThrowValidationException(string status)
+    [InlineData(BookingStatus.Cancelled)]
+    [InlineData(BookingStatus.Completed)]
+    public async Task CancelBookingAsync_WithNonCancellableStatus_ShouldThrowValidationException(BookingStatus status)
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -639,7 +640,7 @@ public class BookingServiceTests
                 PickupDate = DateTime.UtcNow.AddDays(1),
                 ReturnDate = DateTime.UtcNow.AddDays(3),
                 TotalPrice = 150.00m,
-                Status = "Confirmed",
+                Status = BookingStatus.Confirmed,
                 Vehicle = new Vehicle
                 {
                     Id = vehicleId,
@@ -689,7 +690,7 @@ public class BookingServiceTests
         Assert.Equal("Toyota Camry", bookingDto.Car.Name);
         Assert.Equal("John Supplier", bookingDto.Supplier.FullName);
         Assert.Equal(150.00m, bookingDto.Price);
-        Assert.Equal("Confirmed", bookingDto.Status);
+        Assert.Equal(BookingStatus.Confirmed.ToString(), bookingDto.Status);
 
         _bookingRepositoryMock.Verify(x => x.GetUserBookingsAsync(
             userId, null, null, null, null, null, null, null, null, It.IsAny<CancellationToken>()), Times.Once);

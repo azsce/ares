@@ -499,7 +499,7 @@ export default function CreateBookingClient() {
                   required
                   fullWidth
                 >
-                  {["Pending", "Deposit", "Paid", "Reserved", "Cancelled"].map(s => (
+                  {["Pending", "Confirmed", "Active", "Completed", "Cancelled"].map(s => (
                     <MenuItem key={s} value={s}>
                       {s}
                     </MenuItem>

@@ -4,6 +4,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -695,14 +696,14 @@ public class VehicleServiceTests : IDisposable
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(5), 
                 ReturnDate = DateTime.Today.AddDays(7),
-                Status = "Confirmed"
+                Status = BookingStatus.Confirmed
             },
             new() 
             { 
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(15), 
                 ReturnDate = DateTime.Today.AddDays(18),
-                Status = "Paid"
+                Status = BookingStatus.Confirmed
             }
         };
 
@@ -761,14 +762,14 @@ public class VehicleServiceTests : IDisposable
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(5), 
                 ReturnDate = DateTime.Today.AddDays(7),
-                Status = "Confirmed"
+                Status = BookingStatus.Confirmed
             },
             new() 
             { 
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(10), 
                 ReturnDate = DateTime.Today.AddDays(12),
-                Status = "Cancelled" // This should be excluded
+                Status = BookingStatus.Cancelled // This should be excluded
             }
         };
 
@@ -804,21 +805,21 @@ public class VehicleServiceTests : IDisposable
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(5), 
                 ReturnDate = DateTime.Today.AddDays(8), // Before range
-                Status = "Confirmed"
+                Status = BookingStatus.Confirmed
             },
             new() 
             { 
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(15), 
                 ReturnDate = DateTime.Today.AddDays(17), // Within range
-                Status = "Confirmed"
+                Status = BookingStatus.Confirmed
             },
             new() 
             { 
                 VehicleId = vehicleId, 
                 PickupDate = DateTime.Today.AddDays(25), 
                 ReturnDate = DateTime.Today.AddDays(27), // After range
-                Status = "Confirmed"
+                Status = BookingStatus.Confirmed
             }
         };
 

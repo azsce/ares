@@ -3,6 +3,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using FsCheck;
@@ -435,9 +436,9 @@ public class BookingCreationPropertyTests : IDisposable
             var booking = _bookingRepository.GetByIdAsync(response.BookingId).Result;
 
             return response != null &&
-                   response.Status == "Pending" &&
+                   response.Status == BookingStatus.Pending.ToString() &&
                    booking != null &&
-                   booking.Status == "Pending";
+                   booking.Status == BookingStatus.Pending;
         }
         catch
         {
@@ -572,7 +573,7 @@ public class BookingCreationPropertyTests : IDisposable
         return userId;
     }
 
-    private Booking CreateTestBooking(Guid vehicleId, Guid userId, DateTime pickupDate, DateTime returnDate, string status = "Confirmed")
+    private Booking CreateTestBooking(Guid vehicleId, Guid userId, DateTime pickupDate, DateTime returnDate, BookingStatus status = BookingStatus.Confirmed)
     {
         var booking = new Booking
         {

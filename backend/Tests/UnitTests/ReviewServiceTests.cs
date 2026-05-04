@@ -3,6 +3,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -330,10 +331,9 @@ public class ReviewServiceTests
     }
 
     [Theory]
-    [InlineData("Pending")]
-    [InlineData("Cancelled")]
-    [InlineData("Draft")]
-    public async Task CreateReviewAsync_WithNonCompletedBooking_ShouldThrowValidationException(string status)
+    [InlineData(BookingStatus.Pending)]
+    [InlineData(BookingStatus.Cancelled)]
+    public async Task CreateReviewAsync_WithNonCompletedBooking_ShouldThrowValidationException(BookingStatus status)
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -368,7 +368,7 @@ public class ReviewServiceTests
         var request = new CreateReviewRequest(vehicleId, bookingId, 5, "Great car!");
         
         var vehicle = CreateTestVehicle(vehicleId);
-        var booking = CreateTestBooking(bookingId, userId, vehicleId, "Completed");
+        var booking = CreateTestBooking(bookingId, userId, vehicleId, BookingStatus.Completed);
         booking.ReturnDate = DateTime.UtcNow.AddDays(1); // Future date
 
         _vehicleRepositoryMock.Setup(x => x.GetByIdAsync(vehicleId, It.IsAny<CancellationToken>()))
@@ -416,10 +416,9 @@ public class ReviewServiceTests
     }
 
     [Theory]
-    [InlineData("Completed")]
-    [InlineData("Paid")]
-    [InlineData("Reserved")]
-    public async Task CreateReviewAsync_WithValidCompletedStatuses_ShouldCreateReviewSuccessfully(string status)
+    [InlineData(BookingStatus.Completed)]
+    [InlineData(BookingStatus.Confirmed)]
+    public async Task CreateReviewAsync_WithValidCompletedStatuses_ShouldCreateReviewSuccessfully(BookingStatus status)
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -553,10 +552,10 @@ public class ReviewServiceTests
 
     private Booking CreateTestCompletedBooking(Guid bookingId, Guid userId, Guid vehicleId)
     {
-        return CreateTestBooking(bookingId, userId, vehicleId, "Completed");
+        return CreateTestBooking(bookingId, userId, vehicleId, BookingStatus.Completed);
     }
 
-    private Booking CreateTestBooking(Guid bookingId, Guid userId, Guid vehicleId, string status)
+    private Booking CreateTestBooking(Guid bookingId, Guid userId, Guid vehicleId, BookingStatus status)
     {
         return new Booking
         {

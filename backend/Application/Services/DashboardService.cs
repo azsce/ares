@@ -40,9 +40,9 @@ public class DashboardService : IDashboardService
                 .ToListAsync(cancellationToken);
 
             totalBookings = supplierBookings.Count;
-            pendingBookings = supplierBookings.Count(b => b.Status == "Pending");
+            pendingBookings = supplierBookings.Count(b => b.Status == Backend.Domain.Entities.Enums.BookingStatus.Pending);
             totalRevenue = supplierBookings
-                .Where(b => b.Status == "Paid" || b.Status == "Completed")
+                .Where(b => b.Status == Backend.Domain.Entities.Enums.BookingStatus.Confirmed || b.Status == Backend.Domain.Entities.Enums.BookingStatus.Completed)
                 .Sum(b => b.TotalPrice ?? 0);
         }
         else
@@ -57,9 +57,9 @@ public class DashboardService : IDashboardService
             
             var allBookings = await _context.Bookings.ToListAsync(cancellationToken);
             totalBookings = allBookings.Count;
-            pendingBookings = allBookings.Count(b => b.Status == "Pending");
+            pendingBookings = allBookings.Count(b => b.Status == Backend.Domain.Entities.Enums.BookingStatus.Pending);
             totalRevenue = allBookings
-                .Where(b => b.Status == "Paid" || b.Status == "Completed")
+                .Where(b => b.Status == Backend.Domain.Entities.Enums.BookingStatus.Confirmed || b.Status == Backend.Domain.Entities.Enums.BookingStatus.Completed)
                 .Sum(b => b.TotalPrice ?? 0);
         }
 

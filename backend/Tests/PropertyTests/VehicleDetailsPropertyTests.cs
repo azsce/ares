@@ -3,6 +3,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using FsCheck;
@@ -537,7 +538,7 @@ public class VehicleDetailsPropertyTests : IDisposable
                 PickupDate = baseDate.AddDays(i * 5), // Non-overlapping bookings
                 ReturnDate = baseDate.AddDays(i * 5 + 2),
                 TotalPrice = 200,
-                Status = "Confirmed",
+                Status = BookingStatus.Confirmed,
                 CreatedAt = DateTime.UtcNow
             };
             bookings.Add(booking);

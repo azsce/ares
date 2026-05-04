@@ -8,7 +8,7 @@ interface BookingFiltersProps {
   readonly onFilterChange: (statuses: readonly string[], keyword: string) => void;
 }
 
-const ALL_STATUSES = ["Pending", "Deposit", "Paid", "Reserved", "Cancelled", "Completed"] as const;
+const ALL_STATUSES = ["Pending", "Confirmed", "Active", "Completed", "Cancelled"] as const;
 
 export default function BookingFilters({ onFilterChange }: Readonly<BookingFiltersProps>) {
   const [keyword, setKeyword] = useState("");

@@ -137,7 +137,7 @@ public class VehicleRepository : PaginatedRepository<Vehicle>, IVehicleRepositor
         var hasOverlappingBooking = await _context.Bookings
             .AnyAsync(b =>
                 b.VehicleId == vehicleId &&
-                b.Status != "Cancelled" &&
+                b.Status != Backend.Domain.Entities.Enums.BookingStatus.Cancelled &&
                 b.PickupDate < endDate &&
                 b.ReturnDate > startDate,
                 cancellationToken);

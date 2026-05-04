@@ -52,7 +52,7 @@ public class PaymentService : IPaymentService
         }
 
         // Verify booking is in a payable status
-        if (booking.Status == "Cancelled" || booking.Status == "Completed")
+        if (booking.Status == Backend.Domain.Entities.Enums.BookingStatus.Cancelled || booking.Status == Backend.Domain.Entities.Enums.BookingStatus.Completed)
         {
             throw new ValidationException("Status", "This booking cannot be paid");
         }
@@ -84,7 +84,7 @@ public class PaymentService : IPaymentService
             payment.AuthorizationCode = GenerateAuthorizationCode();
 
             // Requirement 7.12: Update booking status after successful payment
-            booking.Status = "Paid";
+            booking.Status = Backend.Domain.Entities.Enums.BookingStatus.Confirmed;
             await _bookingRepository.UpdateAsync(booking, cancellationToken);
         }
         else

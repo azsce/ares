@@ -4,6 +4,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using FsCheck;
@@ -130,7 +131,7 @@ public class BookingManagementPropertyTests : IDisposable
 
             // Create bookings with different statuses and dates
             var bookings = new List<Booking>();
-            var statuses = new[] { "Pending", "Confirmed", "Cancelled", "Completed" };
+            var statuses = new[] { BookingStatus.Pending, BookingStatus.Confirmed, BookingStatus.Cancelled, BookingStatus.Completed };
             var baseDate = DateTime.UtcNow.AddDays(1);
 
             for (int i = 0; i < bookingCount; i++)
@@ -145,13 +146,13 @@ public class BookingManagementPropertyTests : IDisposable
             }
 
             // Test status filter
-            var confirmedBookings = bookings.Where(b => b.Status == "Confirmed").ToList();
+            var confirmedBookings = bookings.Where(b => b.Status == BookingStatus.Confirmed).ToList();
             if (confirmedBookings.Any())
             {
                 var statusFilterRequest = new BookingListRequest(
                     UserId: user1Id,
                     Suppliers: null,
-                    Statuses: new List<string> { "Confirmed" },
+                    Statuses: new List<string> { BookingStatus.Confirmed.ToString() },
                     CarId: null,
                     Filter: null,
                     Page: 1,
@@ -162,7 +163,7 @@ public class BookingManagementPropertyTests : IDisposable
                 var statusResult = _bookingService.GetUserBookingsAsync(user1Id, statusFilterRequest).Result;
 
                 // Verify all returned bookings have "Confirmed" status
-                if (statusResult.Data.Any(b => b.Status != "Confirmed") ||
+                if (statusResult.Data.Any(b => b.Status != BookingStatus.Confirmed.ToString()) ||
                     statusResult.TotalCount != confirmedBookings.Count)
                 {
                     return false;
@@ -263,7 +264,7 @@ public class BookingManagementPropertyTests : IDisposable
             // Create a booking with driver
             var pickupDate = DateTime.UtcNow.AddDays(1);
             var returnDate = pickupDate.AddDays(3);
-            var booking = CreateTestBookingWithDriver(vehicleId, userId, driverId, pickupDate, returnDate, "Confirmed");
+            var booking = CreateTestBookingWithDriver(vehicleId, userId, driverId, pickupDate, returnDate, BookingStatus.Confirmed);
 
             // Act - Get booking details
             var result = _bookingService.GetBookingDetailsAsync(booking.Id, userId).Result;
@@ -286,7 +287,7 @@ public class BookingManagementPropertyTests : IDisposable
                 result.From == pickupDate &&
                 result.To == returnDate &&
                 result.Price > 0 &&
-                result.Status == "Confirmed";
+                result.Status == BookingStatus.Confirmed.ToString();
 
             return hasAllRequiredFields;
         }
@@ -317,7 +318,7 @@ public class BookingManagementPropertyTests : IDisposable
             // Create a booking that can be cancelled
             var pickupDate = DateTime.UtcNow.AddDays(5); // Future date
             var returnDate = pickupDate.AddDays(days);
-            var booking = CreateTestBooking(vehicleId, userId, pickupDate, returnDate, "Confirmed");
+            var booking = CreateTestBooking(vehicleId, userId, pickupDate, returnDate, BookingStatus.Confirmed);
 
             // Verify vehicle is not available before cancellation
             var availableBeforeCancellation = _vehicleRepository.IsAvailableAsync(vehicleId, pickupDate, returnDate).Result;
@@ -333,7 +334,7 @@ public class BookingManagementPropertyTests : IDisposable
 
             // Assert - Verify cancellation updated status and made vehicle available
             return cancellationResult == true &&
-                   updatedBooking.Status == "Cancelled" &&
+                   updatedBooking.Status == BookingStatus.Cancelled &&
                    updatedBooking.CancelledAt.HasValue &&
                    !availableBeforeCancellation && // Was not available before
                    availableAfterCancellation;     // Is available after cancellation
@@ -364,7 +365,7 @@ public class BookingManagementPropertyTests : IDisposable
             // Create booking for user1
             var pickupDate = DateTime.UtcNow.AddDays(1);
             var returnDate = pickupDate.AddDays(2);
-            var booking = CreateTestBooking(vehicleId, user1Id, pickupDate, returnDate, "Confirmed");
+            var booking = CreateTestBooking(vehicleId, user1Id, pickupDate, returnDate, BookingStatus.Confirmed);
 
             // Act & Assert - user2 should not be able to access user1's booking
             try
@@ -406,7 +407,7 @@ public class BookingManagementPropertyTests : IDisposable
             // Create booking with status that cannot be cancelled
             var pickupDate = DateTime.UtcNow.AddDays(1);
             var returnDate = pickupDate.AddDays(2);
-            var booking = CreateTestBooking(vehicleId, userId, pickupDate, returnDate, "Completed");
+            var booking = CreateTestBooking(vehicleId, userId, pickupDate, returnDate, BookingStatus.Completed);
 
             // Act & Assert - Should not be able to cancel completed booking
             try
@@ -594,7 +595,7 @@ public class BookingManagementPropertyTests : IDisposable
         return driverId;
     }
 
-    private Booking CreateTestBooking(Guid vehicleId, Guid userId, DateTime pickupDate, DateTime returnDate, string status = "Confirmed")
+    private Booking CreateTestBooking(Guid vehicleId, Guid userId, DateTime pickupDate, DateTime returnDate, BookingStatus status = BookingStatus.Confirmed)
     {
         var booking = new Booking
         {
@@ -615,7 +616,7 @@ public class BookingManagementPropertyTests : IDisposable
         return booking;
     }
 
-    private Booking CreateTestBookingWithDriver(Guid vehicleId, Guid userId, Guid driverId, DateTime pickupDate, DateTime returnDate, string status = "Confirmed")
+    private Booking CreateTestBookingWithDriver(Guid vehicleId, Guid userId, Guid driverId, DateTime pickupDate, DateTime returnDate, BookingStatus status = BookingStatus.Confirmed)
     {
         var booking = new Booking
         {
@@ -641,7 +642,7 @@ public class BookingManagementPropertyTests : IDisposable
     {
         var bookings = new List<Booking>();
         var baseDate = DateTime.UtcNow.AddDays(1);
-        var statuses = new[] { "Pending", "Confirmed", "Cancelled", "Completed" };
+        var statuses = new[] { BookingStatus.Pending, BookingStatus.Confirmed, BookingStatus.Cancelled, BookingStatus.Completed };
 
         for (int i = 0; i < count; i++)
         {

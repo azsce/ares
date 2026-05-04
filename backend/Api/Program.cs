@@ -42,7 +42,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // Register IApplicationDbContext
-builder.Services.AddScoped<Backend.Application.Interfaces.IApplicationDbContext>(provider => 
+builder.Services.AddScoped<IApplicationDbContext>(provider => 
     provider.GetRequiredService<ApplicationDbContext>());
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -85,8 +85,8 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 
 // Register Generic Repositories
-builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IPaginatedRepository<>), typeof(PaginatedRepository<>));
+builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IRepository<>), typeof(Backend.Infrastructure.Repositories.Repository<>));
+builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IPaginatedRepository<>), typeof(Backend.Infrastructure.Repositories.PaginatedRepository<>));
 
 // Register Specific Repositories
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
@@ -117,7 +117,8 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPublicDestinationService, PublicDestinationService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<ISettingsService, Backend.Infrastructure.Services.SettingsService>();
+builder.Services.AddScoped<Backend.Application.Services.ISettingsService, Backend.Infrastructure.Services.SettingsService>();
+builder.Services.AddHostedService<Backend.Infrastructure.Services.BookingStatusUpdateService>();
 
 // Register FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();

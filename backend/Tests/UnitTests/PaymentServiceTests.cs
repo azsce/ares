@@ -4,6 +4,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Moq;
 using Xunit;
 
@@ -49,7 +50,7 @@ public class PaymentServiceTests
         {
             Id = bookingId,
             UserId = userId,
-            Status = "Pending",
+            Status = BookingStatus.Pending,
             TotalPrice = 150.00m
         };
 
@@ -74,7 +75,7 @@ public class PaymentServiceTests
         Assert.Equal("Payment processed successfully", result.Message);
 
         // Verify booking status was updated to "Paid"
-        _bookingRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Booking>(b => b.Status == "Paid"), It.IsAny<CancellationToken>()), Times.Once);
+        _bookingRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Booking>(b => b.Status == BookingStatus.Confirmed), It.IsAny<CancellationToken>()), Times.Once);
         _paymentRepositoryMock.Verify(x => x.AddAsync(It.Is<BookingPayment>(p => 
             p.BookingId == bookingId && 
             p.Amount == 150.00m && 
@@ -168,7 +169,7 @@ public class PaymentServiceTests
         {
             Id = bookingId,
             UserId = differentUserId, // Different user ID
-            Status = "Pending"
+            Status = BookingStatus.Pending
         };
 
         _bookingRepositoryMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
@@ -183,9 +184,9 @@ public class PaymentServiceTests
     }
 
     [Theory]
-    [InlineData("Cancelled")]
-    [InlineData("Completed")]
-    public async Task ProcessPaymentAsync_WithNonPayableBookingStatus_ShouldThrowValidationException(string status)
+    [InlineData(BookingStatus.Cancelled)]
+    [InlineData(BookingStatus.Completed)]
+    public async Task ProcessPaymentAsync_WithNonPayableBookingStatus_ShouldThrowValidationException(BookingStatus status)
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -237,7 +238,7 @@ public class PaymentServiceTests
         {
             Id = bookingId,
             UserId = userId,
-            Status = "Pending"
+            Status = BookingStatus.Pending
         };
 
         _bookingRepositoryMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
@@ -281,7 +282,7 @@ public class PaymentServiceTests
         {
             Id = bookingId,
             UserId = userId,
-            Status = "Pending"
+            Status = BookingStatus.Pending
         };
 
         _bookingRepositoryMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))

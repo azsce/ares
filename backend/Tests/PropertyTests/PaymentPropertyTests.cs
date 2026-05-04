@@ -4,6 +4,7 @@ using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
 using Backend.Domain.Entities;
+using Backend.Domain.Entities.Enums;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repositories;
 using FsCheck;
@@ -214,11 +215,11 @@ public class PaymentPropertyTests : IDisposable
             ClearTestData();
 
             // Create test user and booking with "Pending" status
-            var (userId, bookingId) = CreateTestUserAndBooking(amount, "Pending");
+            var (userId, bookingId) = CreateTestUserAndBooking(amount, BookingStatus.Pending);
 
             // Verify booking is initially in "Pending" status
             var initialBooking = _bookingRepository.GetByIdAsync(bookingId).Result;
-            if (initialBooking?.Status != "Pending")
+            if (initialBooking?.Status != BookingStatus.Pending)
             {
                 // Debug: Initial booking status is not Pending
                 return false;
@@ -256,7 +257,7 @@ public class PaymentPropertyTests : IDisposable
                 return false;
             }
 
-            if (updatedBooking.Status != "Paid")
+            if (updatedBooking.Status != BookingStatus.Confirmed)
             {
                 // Debug: Booking status was not updated to "Paid", it's: {updatedBooking.Status}
                 return false;
@@ -391,7 +392,7 @@ public class PaymentPropertyTests : IDisposable
             var user2Id = CreateTestUser();
 
             // Create booking for user1
-            var (_, bookingId) = CreateTestUserAndBooking(amount, "Pending", user1Id);
+            var (_, bookingId) = CreateTestUserAndBooking(amount, BookingStatus.Pending, user1Id);
 
             // Try to pay for user1's booking with user2
             var paymentRequest = new PaymentRequest(
@@ -448,7 +449,7 @@ public class PaymentPropertyTests : IDisposable
 
             for (int i = 0; i < paymentCount; i++)
             {
-                var (_, bookingId) = CreateTestUserAndBooking(100 + i, "Pending", userId);
+                var (_, bookingId) = CreateTestUserAndBooking(100 + i, BookingStatus.Pending, userId);
                 var payment = new BookingPayment
                 {
                     PaymentId = Guid.NewGuid(),
@@ -602,7 +603,7 @@ public class PaymentPropertyTests : IDisposable
         return userId;
     }
 
-    private (Guid userId, Guid bookingId) CreateTestUserAndBooking(decimal amount, string status = "Confirmed", Guid? existingUserId = null)
+    private (Guid userId, Guid bookingId) CreateTestUserAndBooking(decimal amount, BookingStatus status = BookingStatus.Confirmed, Guid? existingUserId = null)
     {
         var userId = existingUserId ?? CreateTestUser();
 
@@ -693,7 +694,7 @@ public class PaymentPropertyTests : IDisposable
         for (int i = 0; i < count; i++)
         {
             // Create separate booking for each payment
-            var (_, bookingId) = CreateTestUserAndBooking(100 + i, "Confirmed", userId);
+            var (_, bookingId) = CreateTestUserAndBooking(100 + i, BookingStatus.Confirmed, userId);
             
             var status = statuses[i % statuses.Length];
             var method = methods[i % methods.Length];
