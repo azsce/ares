@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, Typography, Box, IconButton, LinearProgress } from "@mui/material";
+import { Card, CardContent, Typography, Box, IconButton, LinearProgress, alpha } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
@@ -22,7 +22,7 @@ export default function SystemHealth() {
     <Card elevation={0} sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider", height: "100%" }}>
       <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-          <Typography variant="h6" fontWeight="800">
+          <Typography variant="h6" sx={{ fontWeight: "800" }}>
             System Status
           </Typography>
           <IconButton size="small">
@@ -34,10 +34,10 @@ export default function SystemHealth() {
           {healthItems.map((item, i) => (
             <Box key={i}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                <Typography variant="body2" fontWeight="700">
+                <Typography variant="body2" sx={{ fontWeight: "700" }}>
                   {item.label}
                 </Typography>
-                <Typography variant="body2" fontWeight="900" color={`${item.color}.main`}>
+                <Typography variant="body2" sx={{ fontWeight: "900" }} color={`${item.color}.main`}>
                   {item.value}
                 </Typography>
               </Box>
@@ -45,7 +45,7 @@ export default function SystemHealth() {
                 variant="determinate"
                 value={item.amount}
                 color={item.color}
-                sx={{ height: 8, borderRadius: 4, bgcolor: "rgba(0,0,0,0.05)" }}
+                sx={{ height: 8, borderRadius: 4, bgcolor: "action.hover" }}
               />
             </Box>
           ))}
@@ -55,16 +55,16 @@ export default function SystemHealth() {
               mt: 1,
               p: 2,
               borderRadius: 3,
-              bgcolor: "rgba(46, 125, 50, 0.05)",
+              bgcolor: theme => alpha(theme.palette.success.main, 0.05),
               display: "flex",
               alignItems: "flex-start",
               gap: 2,
-              border: "1px solid rgba(46, 125, 50, 0.1)",
+              border: theme => `1px solid ${alpha(theme.palette.success.main, 0.1)}`,
             }}
           >
             <TaskAltIcon color="success" />
             <Box>
-              <Typography variant="subtitle2" fontWeight="800" color="success.dark">
+              <Typography variant="subtitle2" sx={{ fontWeight: "800" }} color="success.dark">
                 All Systems Operational
               </Typography>
               <Typography variant="body2" color="success.main" sx={{ mt: 0.5, fontWeight: 500 }}>

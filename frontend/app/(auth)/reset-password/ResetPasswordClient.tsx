@@ -19,11 +19,11 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
-  ErrorOutline as ErrorIcon,
+  ErrorOutlined as ErrorIcon,
   Lock as LockIcon,
   Visibility,
   VisibilityOff,
-  CheckCircleOutline as SuccessIcon,
+  CheckCircleOutlined as SuccessIcon,
 } from "@mui/icons-material";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
@@ -174,7 +174,7 @@ export default function ResetPasswordClient({ email, token }: ResetPasswordClien
           }}
         >
           <SuccessIcon color="success" sx={{ fontSize: 64, mb: 2 }} />
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
             Password Reset Successfully!
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -207,7 +207,7 @@ export default function ResetPasswordClient({ email, token }: ResetPasswordClien
           }}
         >
           <ErrorIcon color="error" sx={{ fontSize: 64, mb: 2 }} />
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
             Invalid Link
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -291,7 +291,7 @@ export default function ResetPasswordClient({ email, token }: ResetPasswordClien
                 <Box
                   component="form"
                   onSubmit={e => {
-                    void handleSubmit(e as React.SyntheticEvent<HTMLFormElement>);
+                    void handleSubmit(e);
                   }}
                   noValidate
                 >
@@ -345,7 +345,7 @@ export default function ResetPasswordClient({ email, token }: ResetPasswordClien
                           color={passwordStrength.color}
                           sx={{ height: 4, borderRadius: 999, mb: 0.5 }}
                         />
-                        <Typography variant="caption" color={`${passwordStrength.color}.main`} fontWeight={600}>
+                        <Typography variant="caption" color={`${passwordStrength.color}.main`} sx={{ fontWeight: 600 }}>
                           {passwordStrength.label}
                         </Typography>
                       </Box>
@@ -436,11 +436,14 @@ export default function ResetPasswordClient({ email, token }: ResetPasswordClien
                 />
               </Box>
               <Box sx={{ position: "absolute", inset: 0, background: theme.palette.overlay.tealGradient }} />
-              <Box sx={{ position: "absolute", bottom: 0, left: 0, right: 0, p: 6, color: "white" }}>
+              <Box sx={{ position: "absolute", bottom: 0, left: 0, right: 0, p: 6, color: "common.white" }}>
                 <Typography variant="h3" component="h3" sx={{ fontWeight: 900, mb: 2, letterSpacing: "-0.02em" }}>
                   A Fresh Start
                 </Typography>
-                <Typography variant="h6" sx={{ maxWidth: 500, color: "grey.300", fontWeight: 400, lineHeight: 1.6 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ maxWidth: 500, color: "text.secondary", fontWeight: 400, lineHeight: 1.6 }}
+                >
                   Secure your account and prepare for your next extraordinary journey with Ares.
                 </Typography>
               </Box>

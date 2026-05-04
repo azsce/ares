@@ -17,7 +17,11 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Email as EmailIcon, ErrorOutline as ErrorIcon, CheckCircleOutline as SuccessIcon } from "@mui/icons-material";
+import {
+  Email as EmailIcon,
+  ErrorOutlined as ErrorIcon,
+  CheckCircleOutlined as SuccessIcon,
+} from "@mui/icons-material";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 import { z } from "zod";
@@ -135,7 +139,7 @@ export default function ForgotPasswordForm() {
                 }}
               >
                 <SuccessIcon color="success" sx={{ fontSize: 64, mb: 2 }} />
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                <Typography variant="h6" sx={{ fontWeight: "bold" }} gutterBottom>
                   Check Your Email
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -248,11 +252,14 @@ export default function ForgotPasswordForm() {
                 />
               </Box>
               <Box sx={{ position: "absolute", inset: 0, background: theme.palette.overlay.tealGradient }} />
-              <Box sx={{ position: "absolute", bottom: 0, left: 0, right: 0, p: 6, color: "white" }}>
+              <Box sx={{ position: "absolute", bottom: 0, left: 0, right: 0, p: 6, color: "common.white" }}>
                 <Typography variant="h3" component="h3" sx={{ fontWeight: 900, mb: 2, letterSpacing: "-0.02em" }}>
                   Seamless Recovery
                 </Typography>
-                <Typography variant="h6" sx={{ maxWidth: 500, color: "grey.300", fontWeight: 400, lineHeight: 1.6 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ maxWidth: 500, color: "text.secondary", fontWeight: 400, lineHeight: 1.6 }}
+                >
                   Don&apos;t worry, getting back on the road is just a click away. Let&apos;s get you signed back in
                   securely.
                 </Typography>

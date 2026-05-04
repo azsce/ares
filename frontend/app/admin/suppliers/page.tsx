@@ -62,10 +62,10 @@ function StatCard({ label, value, color }: StatCardProps) {
           `linear-gradient(135deg, ${t.palette.background.paper} 0%, ${alpha(color, 0.08)} 100%)`,
       }}
     >
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700 }}>
         {label}
       </Typography>
-      <Typography variant="h4" fontWeight={800} sx={{ color }}>
+      <Typography variant="h4" sx={{ fontWeight: 800, color }}>
         {value}
       </Typography>
     </Card>
@@ -91,14 +91,14 @@ function SupplierMobileCard({ s, theme }: SupplierMobileCardProps) {
         borderColor: "divider",
       }}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar sx={{ bgcolor: theme.palette.secondary.light, fontWeight: 700, width: 40, height: 40 }}>
             {s.firstName[0]}
             {s.lastName[0]}
           </Avatar>
           <Box>
-            <Typography fontWeight={600} variant="body2">
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {s.firstName} {s.lastName}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -118,14 +118,14 @@ function SupplierMobileCard({ s, theme }: SupplierMobileCardProps) {
         />
       </Stack>
 
-      <Stack direction="row" alignItems="center" gap={0.75} mb={0.5}>
+      <Stack direction="row" sx={{ gap: 0.75, alignItems: "center", mb: 0.5 }}>
         <BusinessIcon fontSize="small" color="disabled" />
-        <Typography variant="body2" fontWeight={500}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
           {s.companyProfile?.companyName || "N/A"}
         </Typography>
       </Stack>
 
-      <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
         {s.email}
       </Typography>
 
@@ -211,13 +211,10 @@ export default function SuppliersPage() {
       {/* HEADER */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
-        mb={4}
+        sx={{ gap: 2, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, mb: 4 }}
       >
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" } }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" } }}>
             Suppliers Directory
           </Typography>
           <Typography color="text.secondary" variant="body2">
@@ -233,7 +230,7 @@ export default function SuppliersPage() {
                 py: 1.2,
                 borderRadius: 3,
                 fontWeight: 700,
-                color: "#fff",
+                color: "common.white",
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                 boxShadow: 3,
                 display: "flex",
@@ -252,7 +249,7 @@ export default function SuppliersPage() {
       </Stack>
 
       {/* STATS */}
-      <Grid container spacing={{ xs: 2, sm: 3 }} mb={4}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <StatCard label="Total Suppliers" value={totalSuppliers} color={theme.palette.primary.main} />
         </Grid>
@@ -265,7 +262,7 @@ export default function SuppliersPage() {
       </Grid>
 
       {/* FILTER */}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
           fullWidth
           placeholder="Search by name, email or company..."
@@ -304,7 +301,7 @@ export default function SuppliersPage() {
 
       {/* TABLE / MOBILE CARDS */}
       {loading && (
-        <Box display="flex" justifyContent="center" py={10}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
           <CircularProgress />
         </Box>
       )}
@@ -315,13 +312,13 @@ export default function SuppliersPage() {
           {pageData.length > 0 ? (
             pageData.map(s => <SupplierMobileCard key={s.id} s={s} theme={theme} />)
           ) : (
-            <Box py={8} textAlign="center">
+            <Box sx={{ py: 8, textAlign: "center" }}>
               <Typography color="text.secondary">No suppliers found</Typography>
             </Box>
           )}
 
           {/* PAGINATION mobile */}
-          <Stack direction="column" alignItems="center" spacing={1} mt={2} mb={1}>
+          <Stack direction="column" spacing={1} sx={{ alignItems: "center", mt: 2, mb: 1 }}>
             <Typography variant="caption">
               Showing {pageData.length} of {filtered.length} suppliers
             </Typography>
@@ -362,13 +359,13 @@ export default function SuppliersPage() {
                     return (
                       <TableRow key={s.id} hover>
                         <TableCell>
-                          <Stack direction="row" spacing={2} alignItems="center">
+                          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                             <Avatar sx={{ bgcolor: theme.palette.secondary.light, fontWeight: 700 }}>
                               {s.firstName[0]}
                               {s.lastName[0]}
                             </Avatar>
                             <Box>
-                              <Typography fontWeight={600}>
+                              <Typography sx={{ fontWeight: 600 }}>
                                 {s.firstName} {s.lastName}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
@@ -379,9 +376,9 @@ export default function SuppliersPage() {
                         </TableCell>
 
                         <TableCell>
-                          <Stack direction="row" alignItems="center" gap={1}>
+                          <Stack direction="row" sx={{ gap: 1, alignItems: "center" }}>
                             <BusinessIcon fontSize="small" color="disabled" />
-                            <Typography variant="body2" fontWeight={500}>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
                               {s.companyProfile?.companyName || "N/A"}
                             </Typography>
                           </Stack>
@@ -405,7 +402,7 @@ export default function SuppliersPage() {
                         </TableCell>
 
                         <TableCell align="right">
-                          <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                          <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
                             <Tooltip title="View Details">
                               <IconButton component={Link} href={`/admin/suppliers/${s.id}`} size="small">
                                 <VisibilityOutlinedIcon fontSize="small" />
@@ -438,7 +435,7 @@ export default function SuppliersPage() {
           </TableContainer>
 
           {/* PAGINATION desktop */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center" p={2}>
+          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", p: 2 }}>
             <Typography variant="caption">
               Showing {pageData.length} of {filtered.length} suppliers
             </Typography>

@@ -13,6 +13,7 @@ import {
   TableHead,
   TableRow,
   Chip,
+  alpha,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
@@ -66,16 +67,17 @@ export default function RecentBookings() {
       elevation={0}
       sx={{
         borderRadius: "16px",
-        bgcolor: "#ffffff", // ده هيمنع اللون الأسود الكئيب
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.05)",
+        bgcolor: "background.paper",
+        border: "1px solid",
+        borderColor: "divider",
+        boxShadow: theme => `0 4px 6px -1px ${alpha(theme.palette.common.black, 0.05)}`,
         height: "100%",
       }}
     >
       {" "}
       <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-          <Typography variant="h6" fontWeight="800">
+          <Typography variant="h6" sx={{ fontWeight: "800" }}>
             Recent Bookings
           </Typography>
           <IconButton size="small">

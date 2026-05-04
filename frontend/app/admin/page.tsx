@@ -250,9 +250,8 @@ export default function AdminDashboardPage() {
         <Box>
           <Typography
             variant="h4"
-            fontWeight="800"
             gutterBottom
-            sx={{ color: "text.primary", letterSpacing: "-0.5px" }}
+            sx={{ fontWeight: "800", color: "text.primary", letterSpacing: "-0.5px" }}
           >
             Dashboard Overview
           </Typography>
@@ -273,14 +272,13 @@ export default function AdminDashboardPage() {
                   sx={{
                     borderRadius: 4,
                     border: "1px solid",
-                    borderColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
+                    borderColor: "border.main",
                     bgcolor: "background.paper",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    boxShadow: theme.palette.mode === "light" ? "0 4px 20px rgba(0,0,0,0.03)" : "none",
+                    boxShadow: "shadow.card",
                     "&:hover": {
                       transform: "translateY(-6px)",
-                      boxShadow:
-                        theme.palette.mode === "light" ? "0 12px 28px rgba(0,0,0,0.08)" : "0 12px 28px rgba(0,0,0,0.4)",
+                      boxShadow: "shadow.cardHover",
                     },
                   }}
                 >
@@ -289,7 +287,7 @@ export default function AdminDashboardPage() {
                       <Avatar
                         sx={{
                           bgcolor: `${stat.color}.main`,
-                          color: "#fff",
+                          color: "common.white",
                           width: 52,
                           height: 52,
                           boxShadow: `0 8px 16px ${theme.palette[stat.color].main}40`,
@@ -312,14 +310,18 @@ export default function AdminDashboardPage() {
                         sx={{ fontWeight: "bold", borderRadius: 2, px: 0.5 }}
                       />
                     </Box>
-                    <Typography variant="h3" fontWeight="800" sx={{ mb: 1, letterSpacing: "-1px" }}>
+                    <Typography variant="h3" sx={{ fontWeight: "800", mb: 1, letterSpacing: "-1px" }}>
                       {stat.value}
                     </Typography>
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      fontWeight="600"
-                      sx={{ textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.75rem" }}
+                      sx={{
+                        fontWeight: "600",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.75rem",
+                      }}
                     >
                       {stat.title}
                     </Typography>
@@ -338,14 +340,14 @@ export default function AdminDashboardPage() {
                 sx={{
                   borderRadius: 4,
                   border: "1px solid",
-                  borderColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
+                  borderColor: "border.main",
                   height: "100%",
-                  boxShadow: theme.palette.mode === "light" ? "0 4px 20px rgba(0,0,0,0.03)" : "none",
+                  boxShadow: "shadow.card",
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                    <Typography variant="h6" fontWeight="700">
+                    <Typography variant="h6" sx={{ fontWeight: "700" }}>
                       Recent Bookings
                     </Typography>
                     <IconButton size="small">
@@ -453,14 +455,14 @@ export default function AdminDashboardPage() {
                 sx={{
                   borderRadius: 4,
                   border: "1px solid",
-                  borderColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
+                  borderColor: "border.main",
                   height: "100%",
-                  boxShadow: theme.palette.mode === "light" ? "0 4px 20px rgba(0,0,0,0.03)" : "none",
+                  boxShadow: "shadow.card",
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                    <Typography variant="h6" fontWeight="700">
+                    <Typography variant="h6" sx={{ fontWeight: "700" }}>
                       System Status
                     </Typography>
                     <IconButton size="small">
@@ -476,10 +478,10 @@ export default function AdminDashboardPage() {
                     ].map((item, i) => (
                       <Box key={i}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                          <Typography variant="body2" fontWeight="600">
+                          <Typography variant="body2" sx={{ fontWeight: "600" }}>
                             {item.label}
                           </Typography>
-                          <Typography variant="body2" fontWeight="bold" color={`${item.color}.main`}>
+                          <Typography variant="body2" color={`${item.color}.main`} sx={{ fontWeight: "bold" }}>
                             {item.value}
                           </Typography>
                         </Box>
@@ -490,7 +492,7 @@ export default function AdminDashboardPage() {
                           sx={{
                             height: 8,
                             borderRadius: 4,
-                            bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+                            bgcolor: "border.light",
                           }}
                         />
                       </Box>
@@ -501,7 +503,7 @@ export default function AdminDashboardPage() {
                         mt: 2,
                         p: 2,
                         borderRadius: 3,
-                        bgcolor: theme.palette.mode === "dark" ? "rgba(46, 125, 50, 0.1)" : "rgba(46, 125, 50, 0.05)",
+                        bgcolor: "border.light",
                         display: "flex",
                         alignItems: "flex-start",
                         gap: 2,
@@ -509,7 +511,7 @@ export default function AdminDashboardPage() {
                     >
                       <TaskAltIcon color="success" />
                       <Box>
-                        <Typography variant="subtitle2" fontWeight="bold" color="success.main">
+                        <Typography variant="subtitle2" color="success.main" sx={{ fontWeight: "bold" }}>
                           All Systems Operational
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>

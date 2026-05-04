@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, Typography, Box, Badge, LinearProgress, Avatar } from "@mui/material";
+import { Card, CardContent, Typography, Box, Badge, LinearProgress, Avatar, alpha } from "@mui/material";
 import SettingsInputAntennaIcon from "@mui/icons-material/SettingsInputAntenna";
 import PhonelinkRingIcon from "@mui/icons-material/PhonelinkRing";
 
@@ -13,11 +13,16 @@ export default function LiveTrackingWidget() {
   return (
     <Card
       elevation={0}
-      sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}
+      sx={{
+        borderRadius: 4,
+        border: "1px solid",
+        borderColor: "divider",
+        boxShadow: theme => `0 4px 20px ${alpha(theme.palette.common.black, 0.02)}`,
+      }}
     >
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-          <Typography variant="h6" fontWeight="800">
+          <Typography variant="h6" sx={{ fontWeight: "800" }}>
             Live Mobile Tracking
           </Typography>
           <Badge
@@ -32,14 +37,21 @@ export default function LiveTrackingWidget() {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-          <Avatar sx={{ bgcolor: "rgba(33, 150, 243, 0.1)", color: "primary.main", width: 56, height: 56 }}>
+          <Avatar
+            sx={{
+              bgcolor: theme => alpha(theme.palette.primary.main, 0.1),
+              color: "primary.main",
+              width: 56,
+              height: 56,
+            }}
+          >
             <PhonelinkRingIcon fontSize="large" />
           </Avatar>
           <Box>
-            <Typography variant="h4" fontWeight="900">
+            <Typography variant="h4" sx={{ fontWeight: "900" }}>
               {connectedPhones} / {totalActiveRentals}
             </Typography>
-            <Typography variant="body2" color="text.secondary" fontWeight="600">
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: "600" }}>
               Active Phones Connected
             </Typography>
           </Box>
@@ -47,10 +59,10 @@ export default function LiveTrackingWidget() {
 
         <Box>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-            <Typography variant="caption" fontWeight="bold">
+            <Typography variant="caption" sx={{ fontWeight: "bold" }}>
               WebSocket Health
             </Typography>
-            <Typography variant="caption" fontWeight="bold" color="success.main">
+            <Typography variant="caption" color="success.main" sx={{ fontWeight: "bold" }}>
               {Math.round(connectionHealth)}%
             </Typography>
           </Box>
@@ -58,7 +70,7 @@ export default function LiveTrackingWidget() {
             variant="determinate"
             value={connectionHealth}
             color="success"
-            sx={{ height: 8, borderRadius: 4, bgcolor: "rgba(0,0,0,0.05)" }}
+            sx={{ height: 8, borderRadius: 4, bgcolor: "action.hover" }}
           />
         </Box>
       </CardContent>

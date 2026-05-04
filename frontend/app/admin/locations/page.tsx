@@ -87,17 +87,13 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: StatCardP
           bgcolor: alpha(color, 0.1),
         }}
       />
-      <Stack direction="row" alignItems="center" spacing={1.5}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <Avatar sx={{ bgcolor: alpha(color, 0.15), color, width: 40, height: 40 }}>{icon}</Avatar>
         <Box>
-          <Typography variant="overline" color="text.secondary" fontWeight={700} lineHeight={1.2}>
+          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
             {label}
           </Typography>
-          <Typography
-            variant="h4"
-            fontWeight={800}
-            sx={{ color, lineHeight: 1.1, fontSize: { xs: "1.6rem", sm: "2.125rem" } }}
-          >
+          <Typography variant="h4" sx={{ color, lineHeight: 1.1, fontSize: { xs: "1.6rem", sm: "2.125rem" } }}>
             {value}
           </Typography>
         </Box>
@@ -117,7 +113,7 @@ const ActionButtons = memo(function ActionButtons({
   onNavigate: (path: string) => void;
 }) {
   return (
-    <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+    <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
       <Tooltip title="Edit">
         <IconButton
           size="small"
@@ -126,7 +122,7 @@ const ActionButtons = memo(function ActionButtons({
           }}
           sx={{ borderRadius: 2 }}
         >
-          <EditIcon fontSize="small" />
+          <EditIcon sx={{ fontSize: "small" }} />
         </IconButton>
       </Tooltip>
 
@@ -144,7 +140,7 @@ const ActionButtons = memo(function ActionButtons({
             },
           }}
         >
-          <DeleteIcon fontSize="small" />
+          <DeleteIcon sx={{ fontSize: "small" }} />
         </IconButton>
       </Tooltip>
     </Stack>
@@ -176,7 +172,7 @@ const LocationMobileCard = memo(function LocationMobileCard({
         "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.03) },
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1.5} mb={1.5}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 1.5 }}>
         <Box
           sx={{
             width: 52,
@@ -198,12 +194,12 @@ const LocationMobileCard = memo(function LocationMobileCard({
               sx={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
-            <LocationIcon fontSize="small" color="primary" />
+            <LocationIcon color="primary" sx={{ fontSize: "small" }} />
           )}
         </Box>
 
-        <Box flex={1} minWidth={0}>
-          <Typography fontWeight={700} fontSize={15} noWrap>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography noWrap sx={{ fontWeight: 700, fontSize: 15 }}>
             {loc.name}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap>
@@ -212,7 +208,7 @@ const LocationMobileCard = memo(function LocationMobileCard({
         </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1} mb={2}>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
         <Chip size="small" label={loc.city} variant="outlined" />
         <Chip size="small" label={loc.country} variant="outlined" />
         {loc.isPrimary && <Chip size="small" label="Primary" color="primary" sx={{ fontWeight: 600 }} />}
@@ -277,7 +273,7 @@ export default function AdminLocationsPage() {
   const renderLocations = () => {
     if (loading) {
       return (
-        <Box display="flex" justifyContent="center" py={10}>
+        <Box sx={{ justifyContent: "center", display: "flex", py: 10 }}>
           <CircularProgress />
         </Box>
       );
@@ -286,7 +282,7 @@ export default function AdminLocationsPage() {
     if (isMobile) {
       if (locations.length === 0) {
         return (
-          <Box py={8} textAlign="center" sx={{ opacity: 0.6 }}>
+          <Box sx={{ opacity: 0.6, textAlign: "center", py: 8 }}>
             <Avatar
               sx={{
                 width: 64,
@@ -298,7 +294,7 @@ export default function AdminLocationsPage() {
             >
               <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
             </Avatar>
-            <Typography variant="h6" fontWeight={700} color="text.secondary">
+            <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
               No locations found
             </Typography>
           </Box>
@@ -307,9 +303,9 @@ export default function AdminLocationsPage() {
 
       return (
         <Box>
-          {locations.map((loc: Location) => (
+          {locations.map((loc: Location, i: number) => (
             <LocationMobileCard
-              key={loc.id}
+              key={`${loc.id}-${String(i)}`}
               loc={loc}
               theme={theme}
               onDelete={handleDelete}
@@ -317,7 +313,7 @@ export default function AdminLocationsPage() {
             />
           ))}
 
-          <Stack direction="column" alignItems="center" spacing={1} mt={2} mb={1}>
+          <Stack direction="column" spacing={1} sx={{ alignItems: "center", mb: 1, mt: 2 }}>
             <Pagination
               count={totalPages}
               page={page}
@@ -366,9 +362,9 @@ export default function AdminLocationsPage() {
 
             <TableBody>
               {locations.length > 0 ? (
-                locations.map((loc: Location) => (
+                locations.map((loc: Location, i: number) => (
                   <TableRow
-                    key={loc.id}
+                    key={`${loc.id}-${String(i)}`}
                     hover
                     sx={{
                       transition: "background 0.15s",
@@ -379,7 +375,7 @@ export default function AdminLocationsPage() {
                     }}
                   >
                     <TableCell sx={{ py: { xs: 1.2, sm: 1.8 } }}>
-                      <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                         <Box
                           sx={{
                             width: { xs: 40, sm: 52 },
@@ -401,13 +397,11 @@ export default function AdminLocationsPage() {
                               sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                             />
                           ) : (
-                            <LocationIcon fontSize="small" color="primary" />
+                            <LocationIcon color="primary" sx={{ fontSize: "small" }} />
                           )}
                         </Box>
                         <Box>
-                          <Typography fontWeight={700} fontSize={{ xs: 13, sm: 15 }}>
-                            {loc.name}
-                          </Typography>
+                          <Typography sx={{ fontSize: { xs: 13, sm: 15 }, fontWeight: 700 }}>{loc.name}</Typography>
                           <Typography variant="caption" color="text.secondary">
                             {loc.addressLine}
                           </Typography>
@@ -416,7 +410,7 @@ export default function AdminLocationsPage() {
                     </TableCell>
 
                     <TableCell>
-                      <Typography fontWeight={600} variant="body2">
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {loc.city}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
@@ -425,7 +419,7 @@ export default function AdminLocationsPage() {
                     </TableCell>
 
                     <TableCell>
-                      <Typography variant="body2" fontFamily="monospace">
+                      <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
                         {loc.latitude}, {loc.longitude}
                       </Typography>
                     </TableCell>
@@ -458,7 +452,7 @@ export default function AdminLocationsPage() {
                       >
                         <SearchIcon sx={{ fontSize: 32, color: "text.disabled" }} />
                       </Avatar>
-                      <Typography variant="h6" fontWeight={700} color="text.secondary">
+                      <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
                         No locations found
                       </Typography>
                     </Box>
@@ -469,14 +463,7 @@ export default function AdminLocationsPage() {
           </Table>
         </TableContainer>
 
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          justifyContent="flex-end"
-          alignItems="center"
-          gap={1}
-          p={2}
-          sx={{ borderTop: "1px solid", borderColor: "divider" }}
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} sx={{ borderTop: "1px solid", borderColor: "divider" }}>
           <Pagination
             count={totalPages}
             page={page}
@@ -494,15 +481,9 @@ export default function AdminLocationsPage() {
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
       {/* HEADER */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        mb={4}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
-      >
+      <Stack direction={{ xs: "column", sm: "row" }} sx={{ alignItems: { xs: "flex-start", sm: "center" } }}>
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.5rem", sm: "1.6rem", md: "2rem" } }}>
+          <Typography variant="h4" sx={{ fontSize: { xs: "1.5rem", sm: "1.6rem", md: "2rem" }, fontWeight: 800 }}>
             Locations Management
           </Typography>
           <Typography color="text.secondary" variant="body2">
@@ -519,7 +500,7 @@ export default function AdminLocationsPage() {
             py: 1.2,
             borderRadius: 3,
             fontWeight: 700,
-            color: "#fff",
+            color: "primary.contrastText",
             cursor: "pointer",
             background: t => `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.primary.dark})`,
             boxShadow: 3,
@@ -533,25 +514,25 @@ export default function AdminLocationsPage() {
             "&:hover": { transform: "translateY(-2px)", boxShadow: 6 },
           }}
         >
-          <AddIcon fontSize="small" />
+          <AddIcon sx={{ fontSize: "small" }} />
           Add New Location
         </Box>
       </Stack>
 
       {/* STATS */}
-      <Grid container spacing={2} mb={4}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <StatCard
             label="Total Locations"
             value={locations.length}
             color={theme.palette.primary.main}
-            icon={<MapIcon fontSize="small" />}
+            icon={<MapIcon />}
           />
         </Grid>
       </Grid>
 
       {/* FILTER */}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
           fullWidth
           placeholder="Search by city, name, or country..."
@@ -581,7 +562,6 @@ export default function AdminLocationsPage() {
         open={openDelete}
         onClose={handleCloseDelete}
         fullWidth
-        maxWidth="xs"
         slotProps={{ paper: { sx: { borderRadius: 3, p: 1, mx: { xs: 2, sm: "auto" } } } }}
       >
         <DialogTitle sx={{ fontWeight: 700 }}>Delete Location</DialogTitle>
