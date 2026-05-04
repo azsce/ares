@@ -23,11 +23,11 @@ export interface BookingItem {
 
 function getStatusColor(status?: string): "success" | "warning" | "error" | "default" {
   switch (status?.toLowerCase()) {
-    case "paid":
-    case "reserved":
+    case "active":
+    case "completed":
       return "success";
     case "pending":
-    case "deposit":
+    case "confirmed":
       return "warning";
     case "cancelled":
       return "error";

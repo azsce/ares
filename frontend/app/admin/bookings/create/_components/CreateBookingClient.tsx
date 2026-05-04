@@ -341,7 +341,7 @@ export default function CreateBookingClient() {
                   InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
                 />
                 <TextField select label="Status" name="status" value={formData.status} onChange={handleChange} required fullWidth>
-                  {["Pending", "Deposit", "Paid", "Reserved", "Cancelled"].map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                  {["Pending", "Confirmed", "Active", "Completed", "Cancelled"].map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                 </TextField>
               </Box>
               <Box sx={{ display: 'flex', gap: 4 }}>

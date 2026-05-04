@@ -46,8 +46,8 @@ import { apiFetchJson } from "@/utils/api-client"; // ضفنا الـ API Client
 // ── CONSTANTS & HELPERS ──
 const getStatusConfig = (status: string) => {
   const s = status?.toLowerCase() || "";
-  if (s === "confirmed" || s === "pickup") return { label: status, colorKey: "success" as const };
-  if (s === "cancelled" || s === "returned") return { label: status, colorKey: "error" as const };
+  if (s === "active" || s === "completed") return { label: status, colorKey: "success" as const };
+  if (s === "cancelled") return { label: status, colorKey: "error" as const };
   return { label: status || "Pending", colorKey: "warning" as const };
 };
 
