@@ -20,6 +20,7 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
+  alpha,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -34,10 +35,13 @@ import {
   Logout as LogoutIcon,
   Public as CountriesIcon,
   Place as LocationsIcon,
+  Home as HomeIcon,
 } from "@mui/icons-material";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 
 const drawerWidth = 280;
 
@@ -112,38 +116,47 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
   const drawer = (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: "background.paper" }}>
       <Toolbar sx={{ px: 3, display: "flex", alignItems: "center", gap: 2, height: 80 }}>
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            bgcolor: "primary.main",
-            borderRadius: 2,
+        <Link
+          href="/"
+          style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            gap: "16px",
+            textDecoration: "none",
+            color: "inherit",
           }}
         >
-          <Typography variant="h6" fontWeight="bold" color="white">
-            A
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              bgcolor: "primary.main",
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: "bold" }} color="primary.contrastText">
+              A
+            </Typography>
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: "900", letterSpacing: "-0.5px", color: "text.primary" }}>
+            Ares Admin
           </Typography>
-        </Box>
-        <Typography variant="h6" fontWeight="900" sx={{ letterSpacing: "-0.5px" }}>
-          Ares Admin
-        </Typography>
+        </Link>
       </Toolbar>
-      <Divider
-        sx={{ mb: 2, borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)" }}
-      />
+      <Divider sx={{ mb: 2, borderColor: "divider" }} />
       <List sx={{ px: 2, flex: 1, overflowY: "auto" }}>
         {menuItems.map(item => {
           const isActive = pathname === item.path;
           let bgColor = "transparent";
           if (isActive) {
-            bgColor = theme.palette.mode === "dark" ? "rgba(144, 202, 249, 0.16)" : "primary.50";
+            bgColor = alpha(theme.palette.primary.main, 0.1);
           }
           let hoverBgColor = "action.hover";
           if (isActive) {
-            hoverBgColor = theme.palette.mode === "dark" ? "rgba(144, 202, 249, 0.24)" : "primary.100";
+            hoverBgColor = alpha(theme.palette.primary.main, 0.15);
           }
 
           return (
@@ -221,7 +234,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           ml: { md: `${drawerWidth.toString()}px` },
           bgcolor: "background.paper",
           borderBottom: "1px solid",
-          borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+          borderColor: "divider",
           color: "text.primary",
         }}
       >
@@ -235,22 +248,55 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           >
             <MenuIcon />
           </IconButton>
+
+          {/* Site Logo/Home Link */}
+          <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                alignItems: "center",
+                gap: 1,
+                color: "primary.main",
+                "&:hover": { opacity: 0.8 },
+              }}
+            >
+              <HomeIcon />
+              <Typography variant="subtitle2" sx={{ fontWeight: "700" }}>
+                Back to Site
+              </Typography>
+            </Box>
+            <Box sx={{ display: { xs: "flex", md: "none" }, height: 32, width: 80, position: "relative" }}>
+              <Image
+                src="/img/favicon/logo_transparent.png"
+                alt="Ares Logo"
+                fill
+                style={{
+                  objectFit: "contain",
+                  filter: theme.palette.mode === "dark" ? "none" : "invert(1) brightness(0.5)",
+                }}
+              />
+            </Box>
+          </Link>
+
           <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <ThemeSwitcher />
             <IconButton color="inherit" sx={{ bgcolor: "action.hover" }}>
               <NotificationsIcon />
             </IconButton>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={handleMenu}>
               <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
-                <Typography variant="subtitle2" fontWeight="700">
+                <Typography variant="subtitle2" sx={{ fontWeight: "700" }}>
                   {userName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {user.roles[0] || "Administrator"}
                 </Typography>
               </Box>
-              <Avatar sx={{ bgcolor: "primary.main", color: "white", width: 44, height: 44 }}>{initial}</Avatar>
+              <Avatar sx={{ bgcolor: "primary.main", color: "primary.contrastText", width: 44, height: 44 }}>
+                {initial}
+              </Avatar>
             </Box>
             <Menu
               id="menu-appbar"
@@ -266,7 +312,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
                   elevation: 0,
                   sx: {
                     overflow: "visible",
-                    filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.1))",
+                    filter: theme => `drop-shadow(0px 2px 8px ${alpha(theme.palette.common.black, 0.1)})`,
                     mt: 1.5,
                     borderRadius: 2,
                     minWidth: 200,
@@ -326,7 +372,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
               boxSizing: "border-box",
               width: drawerWidth,
               borderRight: "1px solid",
-              borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+              borderColor: "divider",
             },
           }}
           open

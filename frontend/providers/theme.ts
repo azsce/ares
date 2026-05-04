@@ -8,6 +8,7 @@ declare module "@mui/material/styles" {
       dark: string;
       gradient: string;
       tealGradient: string;
+      blur: string;
     };
     border: {
       light: string;
@@ -19,12 +20,27 @@ declare module "@mui/material/styles" {
       button: string;
       buttonHover: string;
     };
+    header: {
+      background: string;
+      border: string;
+      buttonHover: string;
+      avatarBorder: string;
+    };
+    footer: {
+      background: string;
+      text: string;
+      title: string;
+      divider: string;
+      socialBg: string;
+      socialText: string;
+    };
   }
   interface PaletteOptions {
     overlay?: {
       dark?: string;
       gradient?: string;
       tealGradient?: string;
+      blur?: string;
     };
     border?: {
       light?: string;
@@ -35,6 +51,20 @@ declare module "@mui/material/styles" {
       cardHover?: string;
       button?: string;
       buttonHover?: string;
+    };
+    header?: {
+      background?: string;
+      border?: string;
+      buttonHover?: string;
+      avatarBorder?: string;
+    };
+    footer?: {
+      background?: string;
+      text?: string;
+      title?: string;
+      divider?: string;
+      socialBg?: string;
+      socialText?: string;
     };
   }
 }
@@ -64,6 +94,7 @@ const lightPalette: PaletteOptions = {
     dark: "rgba(0, 0, 0, 0.4)",
     gradient: "linear-gradient(135deg, #f4f6f8 0%, rgba(15, 91, 91, 0.05) 100%)",
     tealGradient: "linear-gradient(135deg, rgba(15, 91, 91, 0.85) 0%, rgba(16, 33, 43, 0.90) 100%)",
+    blur: "rgba(255, 255, 255, 0.8)",
   },
   border: {
     light: "rgba(15, 91, 91, 0.08)",
@@ -74,6 +105,20 @@ const lightPalette: PaletteOptions = {
     cardHover: "0 32px 80px rgba(15, 91, 91, 0.20), 0 0 0 1px rgba(15, 91, 91, 0.05)",
     button: "0 8px 16px rgba(15, 91, 91, 0.3)",
     buttonHover: "0 12px 20px rgba(15, 91, 91, 0.4)",
+  },
+  header: {
+    background: "rgba(15, 91, 91, 0.95)",
+    border: "rgba(255, 255, 255, 0.1)",
+    buttonHover: "rgba(255, 255, 255, 0.15)",
+    avatarBorder: "rgba(255, 255, 255, 0.3)",
+  },
+  footer: {
+    background: "#1a1f23", // Matching dark paper/grey.900 equivalent
+    text: "#b3b9c1",
+    title: "#ffffff",
+    divider: "rgba(255, 255, 255, 0.1)",
+    socialBg: "rgba(255, 255, 255, 0.05)",
+    socialText: "#b3b9c1",
   },
 };
 
@@ -102,6 +147,7 @@ const darkPalette: PaletteOptions = {
     dark: "rgba(0, 0, 0, 0.7)",
     gradient: "linear-gradient(135deg, #0a0e0f 0%, rgba(15, 91, 91, 0.15) 100%)",
     tealGradient: "linear-gradient(135deg, rgba(15, 91, 91, 0.95) 0%, rgba(16, 33, 43, 0.98) 100%)",
+    blur: "rgba(26, 31, 35, 0.8)",
   },
   border: {
     light: "rgba(255, 255, 255, 0.08)",
@@ -112,6 +158,20 @@ const darkPalette: PaletteOptions = {
     cardHover: "0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)",
     button: "0 8px 16px rgba(0, 0, 0, 0.4)",
     buttonHover: "0 12px 20px rgba(0, 0, 0, 0.6)",
+  },
+  header: {
+    background: "rgba(10, 14, 15, 0.95)",
+    border: "rgba(255, 255, 255, 0.05)",
+    buttonHover: "rgba(255, 255, 255, 0.15)",
+    avatarBorder: "rgba(255, 255, 255, 0.2)",
+  },
+  footer: {
+    background: "#050708", // Darker than background.default
+    text: "#b3b9c1",
+    title: "#ffffff",
+    divider: "rgba(255, 255, 255, 0.05)",
+    socialBg: "rgba(255, 255, 255, 0.05)",
+    socialText: "#b3b9c1",
   },
 };
 

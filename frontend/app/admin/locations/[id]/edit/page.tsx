@@ -130,7 +130,7 @@ export default function AdminEditLocationPage() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: 800, mx: "auto" }}>
-      <Stack direction="row" alignItems="center" mb={4} spacing={2}>
+      <Stack direction="row" sx={{ alignItems: "center", mb: 4 }} spacing={2}>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => {
@@ -141,7 +141,7 @@ export default function AdminEditLocationPage() {
         >
           Back
         </Button>
-        <Typography variant="h4" fontWeight={800} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, display: "flex", alignItems: "center", gap: 1 }}>
           <LocationOnIcon fontSize="large" color="primary" />
           Edit Location
         </Typography>
@@ -155,7 +155,7 @@ export default function AdminEditLocationPage() {
         >
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
-              <Typography variant="h6" fontWeight={700} mb={1}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                 Location Details
               </Typography>
             </Grid>
@@ -201,8 +201,8 @@ export default function AdminEditLocationPage() {
               />
             </Grid>
 
-            <Grid size={{ xs: 12 }} mt={2}>
-              <Typography variant="h6" fontWeight={700} mb={1}>
+            <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                 Coordinates & Media
               </Typography>
             </Grid>
@@ -247,8 +247,8 @@ export default function AdminEditLocationPage() {
               />
             </Grid>
 
-            <Grid size={{ xs: 12 }} mt={2}>
-              <Stack direction="row" justifyContent="flex-end" spacing={2}>
+            <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+              <Stack direction="row" sx={{ justifyContent: "flex-end" }} spacing={2}>
                 <Button
                   variant="outlined"
                   onClick={() => {

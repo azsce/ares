@@ -61,10 +61,10 @@ function StatCard({ label, value, color }: StatCardProps) {
           `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.08)} 100%)`,
       }}
     >
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700 }}>
         {label}
       </Typography>
-      <Typography variant="h4" fontWeight={800} sx={{ color }}>
+      <Typography variant="h4" sx={{ fontWeight: 800, color }}>
         {value}
       </Typography>
     </Card>
@@ -103,8 +103,8 @@ function UserMobileCard({ u, theme, fetchUsers }: UserMobileCardProps) {
       }}
     >
       {/* Top row: avatar + name/email + status chip */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
-        <Stack direction="row" spacing={1.5} alignItems="center" flex={1} minWidth={0}>
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
           <Avatar
             sx={{
               bgcolor: theme.palette.primary.light,
@@ -118,11 +118,11 @@ function UserMobileCard({ u, theme, fetchUsers }: UserMobileCardProps) {
             {u.firstName[0]}
             {u.lastName[0]}
           </Avatar>
-          <Box minWidth={0}>
-            <Typography fontWeight={600} fontSize={14} noWrap>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography noWrap sx={{ fontWeight: 600, fontSize: 14 }}>
               {u.firstName} {u.lastName}
             </Typography>
-            <Typography variant="caption" color="text.secondary" noWrap display="block">
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block" }}>
               {u.email}
             </Typography>
           </Box>
@@ -249,7 +249,7 @@ export default function UsersPage() {
   const renderContent = () => {
     if (loading) {
       return (
-        <Box display="flex" justifyContent="center" py={10}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
           <CircularProgress />
         </Box>
       );
@@ -270,9 +270,9 @@ export default function UsersPage() {
               />
             ))
           ) : (
-            <Box py={8} textAlign="center" sx={{ opacity: 0.6 }}>
+            <Box sx={{ py: 8, textAlign: "center", opacity: 0.6 }}>
               <SearchIcon sx={{ fontSize: 60, mb: 2, color: "text.disabled" }} />
-              <Typography variant="h6" fontWeight={700} color="text.secondary">
+              <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
                 No users found
               </Typography>
               <Typography variant="body2" color="text.disabled">
@@ -282,7 +282,7 @@ export default function UsersPage() {
           )}
 
           {/* PAGINATION mobile */}
-          <Stack direction="column" alignItems="center" spacing={1} mt={2} mb={1}>
+          <Stack direction="column" spacing={1} sx={{ alignItems: "center", mt: 2, mb: 1 }}>
             <Typography variant="caption">
               Showing {pageData.length} of {filtered.length}
             </Typography>
@@ -334,7 +334,7 @@ export default function UsersPage() {
                   return (
                     <TableRow key={u.id} hover>
                       <TableCell>
-                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                           <Avatar
                             sx={{
                               bgcolor: theme.palette.primary.light,
@@ -348,7 +348,7 @@ export default function UsersPage() {
                             {u.lastName[0]}
                           </Avatar>
                           <Box>
-                            <Typography fontWeight={600} fontSize={{ xs: 13, sm: 15 }}>
+                            <Typography sx={{ fontWeight: 600, fontSize: { xs: 13, sm: 15 } }}>
                               {u.firstName} {u.lastName}
                             </Typography>
                             <Typography
@@ -387,7 +387,7 @@ export default function UsersPage() {
                       </TableCell>
 
                       <TableCell align="right">
-                        <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+                        <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
                           <Tooltip title="View">
                             <IconButton component={Link} href={`/admin/users/${u.id}`} size="small">
                               <VisibilityOutlinedIcon fontSize="small" />
@@ -426,7 +426,7 @@ export default function UsersPage() {
                   <TableCell colSpan={5} align="center" sx={{ py: 10 }}>
                     <Box sx={{ textAlign: "center", opacity: 0.6 }}>
                       <SearchIcon sx={{ fontSize: 60, mb: 2, color: "text.disabled" }} />
-                      <Typography variant="h6" fontWeight={700} color="text.secondary">
+                      <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
                         No users found
                       </Typography>
                       <Typography variant="body2" color="text.disabled">
@@ -441,7 +441,10 @@ export default function UsersPage() {
         </TableContainer>
 
         {/* PAGINATION */}
-        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" gap={1} p={2}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          sx={{ gap: 1, justifyContent: "space-between", alignItems: "center", p: 2 }}
+        >
           <Typography variant="caption">
             Showing {pageData.length} of {filtered.length}
           </Typography>
@@ -464,13 +467,10 @@ export default function UsersPage() {
       {/* HEADER */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        gap={2}
-        mb={4}
+        sx={{ gap: 2, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, mb: 4 }}
       >
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" } }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" } }}>
             Users Directory
           </Typography>
           <Typography color="text.secondary" variant="body2">
@@ -493,7 +493,7 @@ export default function UsersPage() {
                 py: 1.2,
                 borderRadius: 3,
                 fontWeight: 700,
-                color: "#fff",
+                color: "common.white",
                 background: (theme: Theme) =>
                   `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                 boxShadow: 3,
@@ -517,7 +517,7 @@ export default function UsersPage() {
       </Stack>
 
       {/* STATS */}
-      <Grid container spacing={{ xs: 2, sm: 3 }} mb={4}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <StatCard label="Total Users" value={totalUsers} color={theme.palette.primary.main} />
         </Grid>
@@ -530,7 +530,7 @@ export default function UsersPage() {
       </Grid>
 
       {/* FILTER */}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
           fullWidth
           placeholder="Search..."

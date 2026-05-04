@@ -109,8 +109,8 @@ export default function AdminSettingsPage() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: 800, mx: "auto" }}>
-      <Stack direction="row" alignItems="center" mb={4} spacing={2}>
-        <Typography variant="h4" fontWeight={800} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, display: "flex", alignItems: "center", gap: 1 }}>
           <SettingsRoundedIcon fontSize="large" color="primary" />
           Platform Settings
         </Typography>
@@ -132,10 +132,10 @@ export default function AdminSettingsPage() {
         >
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
-              <Typography variant="h6" fontWeight={700} mb={1}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                 Global Configuration
               </Typography>
-              <Typography variant="body2" color="text.secondary" mb={2}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Set the default language and currency for the entire platform.
               </Typography>
             </Grid>
@@ -176,8 +176,8 @@ export default function AdminSettingsPage() {
               </TextField>
             </Grid>
 
-            <Grid size={{ xs: 12 }} mt={2}>
-              <Stack direction="row" justifyContent="flex-end">
+            <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+              <Stack direction="row" sx={{ justifyContent: "flex-end" }}>
                 <Button
                   type="submit"
                   variant="contained"

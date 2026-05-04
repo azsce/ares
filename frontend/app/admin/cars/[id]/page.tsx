@@ -73,7 +73,7 @@ export default function CarDetailsPage() {
   if (!car) {
     return (
       <Container maxWidth="sm" sx={{ mt: 10, textAlign: "center" }}>
-        <Typography variant="h5" fontWeight={700} color="text.secondary">
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "text.secondary" }}>
           Vehicle Not Found
         </Typography>
         <Button
@@ -112,14 +112,14 @@ export default function CarDetailsPage() {
     >
       <Container maxWidth="md">
         {/* Top Header / Navigation */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 4 }}>
           <IconButton
             onClick={() => {
               router.back();
             }}
             sx={{
               bgcolor: "background.paper",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              boxShadow: "shadow.card",
               "&:hover": { bgcolor: "background.paper", transform: "translateX(-3px)" },
             }}
           >
@@ -153,8 +153,9 @@ export default function CarDetailsPage() {
           sx={{
             borderRadius: "32px",
             overflow: "hidden",
-            border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.03)",
+            border: "1px solid",
+            borderColor: "border.light",
+            boxShadow: "shadow.card",
           }}
         >
           {/* Visual Header Section */}
@@ -164,28 +165,28 @@ export default function CarDetailsPage() {
               background: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.main, 0.03)}, transparent)`,
             }}
           >
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={4} alignItems="center">
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={4} sx={{ alignItems: "center" }}>
               <Avatar
                 sx={{
                   width: 100,
                   height: 100,
                   bgcolor: "background.paper",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-                  color: theme.palette.primary.main,
+                  boxShadow: "shadow.card",
+                  color: "primary.main",
                 }}
               >
                 <DirectionsCarFilledIcon sx={{ fontSize: 50 }} />
               </Avatar>
 
               <Box sx={{ textAlign: { xs: "center", sm: "left" }, flexGrow: 1 }}>
-                <Typography variant="h3" fontWeight={900} letterSpacing="-0.02em" gutterBottom>
+                <Typography variant="h3" gutterBottom sx={{ fontWeight: 900, letterSpacing: "-0.02em" }}>
                   {car.make}{" "}
                   <Box component="span" sx={{ color: "primary.main" }}>
                     {car.model}
                   </Box>
                 </Typography>
 
-                <Stack direction="row" spacing={1.5} justifyContent={{ xs: "center", sm: "flex-start" }}>
+                <Stack direction="row" spacing={1.5} sx={{ justifyContent: { xs: "center", sm: "flex-start" } }}>
                   <Chip
                     label={car.year}
                     sx={{ fontWeight: 800, borderRadius: "8px", bgcolor: alpha(theme.palette.text.primary, 0.05) }}
@@ -203,7 +204,7 @@ export default function CarDetailsPage() {
                     }}
                   >
                     <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "currentColor" }} />
-                    <Typography variant="caption" fontWeight={800} sx={{ textTransform: "uppercase" }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, textTransform: "uppercase" }}>
                       {car.availabilityStatus}
                     </Typography>
                   </Box>
@@ -250,14 +251,14 @@ export default function CarDetailsPage() {
                       textAlign: "center",
                       border: "1px solid transparent",
                       transition: "0.3s",
-                      "&:hover": { border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, bgcolor: "white" },
+                      "&:hover": { border: "1px solid", borderColor: "border.light", bgcolor: "background.paper" },
                     }}
                   >
                     <Box sx={{ color: "text.secondary", mb: 1 }}>{item.icon}</Box>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 0.5 }}>
                       {item.label}
                     </Typography>
-                    <Typography variant="body2" fontWeight={700}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
                       {item.value}
                     </Typography>
                   </Box>
@@ -269,8 +270,7 @@ export default function CarDetailsPage() {
             <Box sx={{ mt: 6 }}>
               <Typography
                 variant="subtitle1"
-                fontWeight={800}
-                sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+                sx={{ fontWeight: 800, mb: 2, display: "flex", alignItems: "center", gap: 1 }}
               >
                 About this Vehicle
               </Typography>
@@ -314,8 +314,9 @@ function InfoCard({ icon, label, value, color }: InfoCardProps) {
         alignItems: "center",
         gap: 3,
         bgcolor: "background.paper",
-        border: "1px solid rgba(0,0,0,0.04)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
+        border: "1px solid",
+        borderColor: "border.light",
+        boxShadow: "shadow.card",
       }}
     >
       <Box
@@ -332,13 +333,11 @@ function InfoCard({ icon, label, value, color }: InfoCardProps) {
       <Box>
         <Typography
           variant="caption"
-          fontWeight={600}
-          color="text.secondary"
-          sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}
+          sx={{ fontWeight: 600, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           {label}
         </Typography>
-        <Typography variant="h5" fontWeight={800}>
+        <Typography variant="h5" sx={{ fontWeight: 800 }}>
           {value}
         </Typography>
       </Box>

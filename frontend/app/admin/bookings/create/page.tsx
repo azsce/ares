@@ -7,7 +7,7 @@ export default function CreateBookingClient() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: "auto" }}>
-      <Typography variant="h5" fontWeight={800} mb={3}>
+      <Typography variant="h5" sx={{ fontWeight: 800, mb: 3 }}>
         Create New Booking
       </Typography>
       <Paper sx={{ p: 3, borderRadius: 3 }}>

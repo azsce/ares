@@ -94,11 +94,11 @@ export default function CreateSupplierPage() {
   return (
     <Box sx={{ p: 4, maxWidth: 750, mx: "auto" }}>
       {/* Header */}
-      <Typography variant="h5" fontWeight={800} mb={1}>
+      <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
         Create User
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" mb={3}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Create a new system user account
       </Typography>
 
@@ -108,19 +108,19 @@ export default function CreateSupplierPage() {
         </Alert>
       )}
 
-      {/* Card */}
       <Paper
         elevation={0}
         sx={{
           p: 4,
           borderRadius: 4,
-          border: "1px solid rgba(0,0,0,0.08)",
-          background: "#fff",
+          border: "1px solid",
+          borderColor: "border.light",
+          bgcolor: "background.paper",
         }}
       >
         <Stack spacing={2.2}>
           {/* Account */}
-          <Typography fontWeight={700} color="primary">
+          <Typography sx={{ fontWeight: 700 }} color="primary">
             Account Info
           </Typography>
 
@@ -152,7 +152,7 @@ export default function CreateSupplierPage() {
           <Divider />
 
           {/* Personal */}
-          <Typography fontWeight={700} color="primary">
+          <Typography sx={{ fontWeight: 700 }} color="primary">
             Personal Info
           </Typography>
 
@@ -197,7 +197,7 @@ export default function CreateSupplierPage() {
           <Divider />
 
           {/* Role */}
-          <Typography fontWeight={700} color="primary">
+          <Typography sx={{ fontWeight: 700 }} color="primary">
             Role
           </Typography>
 
@@ -230,7 +230,7 @@ export default function CreateSupplierPage() {
           </TextField>
 
           {/* Actions */}
-          <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
+          <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end", mt: 2 }}>
             <Button
               variant="outlined"
               onClick={() => {

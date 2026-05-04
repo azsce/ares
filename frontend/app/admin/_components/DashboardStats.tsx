@@ -134,7 +134,7 @@ export default function DashboardStats() {
               bgcolor: "background.paper", // هيقلب أبيض في الفاتح ورمادي غامق في الدارك
               border: "1px solid",
               borderColor: "divider", // خط فاصل متناسق مع المود
-              boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.4)" : "0 4px 20px rgba(0,0,0,0.03)",
+              boxShadow: "shadow.card",
               transition: "all 0.2s",
               "&:hover": { transform: "translateY(-4px)" },
             }}
@@ -145,7 +145,7 @@ export default function DashboardStats() {
                   sx={{
                     // لو دارك هنخلي الخلفية شفافة شوية من اللون الأساسي، ولو لايت هتبقى أفتح
                     bgcolor: isDark ? `${stat.color}.dark` : `${stat.color}.light`,
-                    color: isDark ? "#fff" : `${stat.color}.dark`,
+                    color: isDark ? "common.white" : `${stat.color}.dark`,
                     width: 48,
                     height: 48,
                     borderRadius: "12px",
@@ -165,14 +165,13 @@ export default function DashboardStats() {
                 />
               </Box>
               {/* text.primary هيخلي اللون أسود في اللايت، وأبيض في الدارك تلقائياً */}
-              <Typography variant="h4" fontWeight="800" sx={{ mb: 0.5, color: "text.primary" }}>
+              <Typography variant="h4" sx={{ color: "text.primary", fontWeight: "800", mb: 0.5 }}>
                 {stat.value}
               </Typography>
               {/* text.secondary للون الرمادي المريح للعين */}
               <Typography
                 variant="body2"
-                fontWeight="600"
-                sx={{ color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.5px" }}
+                sx={{ color: "text.secondary", fontWeight: "600", letterSpacing: "0.5px", textTransform: "uppercase" }}
               >
                 {stat.title}
               </Typography>

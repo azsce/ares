@@ -93,7 +93,7 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
 
   if (isFetching) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
         <CircularProgress />
       </Box>
     );
@@ -101,7 +101,7 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
 
   if (!bookingDetails) {
     return (
-      <Box p={3} maxWidth={900} mx="auto">
+      <Box sx={{ p: 3, maxWidth: 900, mx: "auto" }}>
         <Alert severity="error">{errorMsg || "Booking not found!"}</Alert>
         <Button
           variant="outlined"
@@ -118,12 +118,12 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, mx: "auto" }}>
-      <Typography variant="h4" fontWeight={800} mb={1}>
+      <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
         Manage Booking
       </Typography>
-      <Typography color="text.secondary" mb={4}>
+      <Typography color="text.secondary" sx={{ mb: 4 }}>
         Update status and add remarks for booking ID:{" "}
-        <Typography component="span" fontWeight="bold" color="text.primary">
+        <Typography component="span" sx={{ fontWeight: "bold" }} color="text.primary">
           {bookingId.split("-")[0]}
         </Typography>
         ...
@@ -145,50 +145,51 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
               borderRadius: 3,
               height: "100%",
               // السحر هنا: بنغير اللون بناءً على الـ Mode
-              bgcolor: theme.palette.mode === "dark" ? alpha(theme.palette.background.paper, 0.4) : "#f8fafc",
+              bgcolor:
+                theme.palette.mode === "dark" ? alpha(theme.palette.background.paper, 0.4) : "background.default",
               border: "1px solid",
               borderColor: "divider",
             }}
           >
-            <Typography variant="h6" fontWeight={700} mb={2}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
               Booking Information
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             <Stack spacing={2.5}>
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   Vehicle
                 </Typography>
-                <Typography fontWeight={600} color="text.primary">
+                <Typography sx={{ fontWeight: 600 }} color="text.primary">
                   {bookingDetails.car?.name || "N/A"}
                 </Typography>
               </Box>
 
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   Driver
                 </Typography>
-                <Typography fontWeight={600} color="text.primary">
+                <Typography sx={{ fontWeight: 600 }} color="text.primary">
                   {bookingDetails.driver?.fullName || "N/A"}
-                  <Typography component="span" variant="body2" color="text.secondary" ml={1}>
+                  <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
                     ({bookingDetails.driver?.phone || "No Phone"})
                   </Typography>
                 </Typography>
               </Box>
 
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   Dates
                 </Typography>
-                <Typography variant="body2" fontWeight={500} color="text.primary">
+                <Typography variant="body2" sx={{ fontWeight: 500 }} color="text.primary">
                   {new Date(bookingDetails.from).toLocaleDateString()} —{" "}
                   {new Date(bookingDetails.to).toLocaleDateString()}
                 </Typography>
               </Box>
 
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
                   Current Status
                 </Typography>
                 <Chip
@@ -215,16 +216,16 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
               bgcolor: "background.paper",
               border: "1px solid",
               borderColor: "divider",
-              boxShadow: theme.palette.mode === "dark" ? "none" : "0 4px 20px rgba(0,0,0,0.05)",
+              boxShadow: "shadow.card",
             }}
           >
-            <Typography variant="h6" fontWeight={700} mb={3}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
               Update Status
             </Typography>
 
             <Stack spacing={3}>
               <Box>
-                <Typography variant="subtitle2" mb={1} fontWeight={600}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                   New Status *
                 </Typography>
                 <Select
@@ -245,7 +246,7 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
               </Box>
 
               <Box>
-                <Typography variant="subtitle2" mb={1} fontWeight={600}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                   Admin Remarks (Optional)
                 </Typography>
                 <TextField
@@ -261,7 +262,7 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
                 />
               </Box>
 
-              <Box display="flex" gap={2} pt={2}>
+              <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
                 <Button
                   variant="outlined"
                   color="inherit"

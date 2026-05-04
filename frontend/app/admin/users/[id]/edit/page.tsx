@@ -16,7 +16,6 @@ import {
   Divider,
   useTheme,
   Avatar,
-  alpha,
 } from "@mui/material";
 
 import { getUserById, updateUser } from "@/api-clients/users/users";
@@ -133,11 +132,11 @@ export default function EditUserPage() {
   return (
     <Box sx={{ p: 4, maxWidth: 750, mx: "auto" }}>
       {/* HEADER */}
-      <Typography variant="h5" fontWeight={800}>
+      <Typography variant="h5" sx={{ fontWeight: 800 }}>
         Edit User
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" mb={3}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Update user profile information and roles
       </Typography>
 
@@ -154,18 +153,19 @@ export default function EditUserPage() {
           p: 2,
           mb: 2,
           borderRadius: 3,
-          border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+          border: "1px solid",
+          borderColor: "border.light",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: "linear-gradient(to right, #fff, #fafafa)",
+          bgcolor: "background.paper",
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <Avatar sx={{ bgcolor: theme.palette.primary.main }}>{form.firstName[0] || "U"}</Avatar>
 
           <Box>
-            <Typography fontWeight={700}>
+            <Typography sx={{ fontWeight: 700 }}>
               {form.firstName} {form.lastName}
             </Typography>
           </Box>
@@ -182,13 +182,14 @@ export default function EditUserPage() {
         sx={{
           p: 4,
           borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
-          background: "linear-gradient(to bottom, #fff, #fafafa)",
+          border: "1px solid",
+          borderColor: "border.light",
+          bgcolor: "background.paper",
         }}
       >
         <Stack spacing={2.2}>
           {/* Personal Info */}
-          <Typography fontWeight={700} color="primary">
+          <Typography color="primary" sx={{ fontWeight: 700 }}>
             Personal Information
           </Typography>
 
@@ -224,7 +225,7 @@ export default function EditUserPage() {
           <Divider />
 
           {/* Account */}
-          <Typography fontWeight={700} color="primary">
+          <Typography color="primary" sx={{ fontWeight: 700 }}>
             Account Settings
           </Typography>
 
@@ -257,7 +258,7 @@ export default function EditUserPage() {
           />
 
           {/* ACTIONS */}
-          <Stack direction="row" spacing={2} justifyContent="flex-end">
+          <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end" }}>
             <Button
               variant="outlined"
               onClick={() => {

@@ -108,9 +108,9 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
   return (
     <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, border: "1px solid", borderColor: "divider" }}>
       <Stack spacing={3}>
-        <Box display="flex" alignItems="center" gap={1.5}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <CreditCardIcon color="primary" />
-          <Typography variant="h6" fontWeight={800}>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
             Payment Method
           </Typography>
         </Box>
@@ -179,7 +179,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
             </Grid>
           </Grid>
 
-          <Box mt={4}>
+          <Box sx={{ mt: 4 }}>
             <Button
               type="submit"
               variant="contained"
@@ -195,9 +195,9 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
               }}
             >
               {isSubmitting ? (
-                <Stack direction="row" spacing={1.5} alignItems="center">
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <CircularProgress size={20} color="inherit" />
-                  <Typography variant="body1" fontWeight={800}>
+                  <Typography variant="body1" sx={{ fontWeight: 800 }}>
                     Processing...
                   </Typography>
                 </Stack>
@@ -208,9 +208,9 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
           </Box>
         </Box>
 
-        <Box display="flex" alignItems="center" justifyContent="center" gap={1} color="text.secondary">
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, color: "text.secondary" }}>
           <LockIcon sx={{ fontSize: 16 }} />
-          <Typography variant="caption" fontWeight={600}>
+          <Typography variant="caption" sx={{ fontWeight: 600 }}>
             SSL Secured & PCI Compliant (Simulated)
           </Typography>
         </Box>
