@@ -168,25 +168,51 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
         })}
       </List>
       <Box sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>
-        {/* استخدام handleLogout هنا */}
-        <ListItemButton
-          onClick={() => {
-            void handleLogout();
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            cursor: "pointer",
+            p: 1.5,
+            borderRadius: 3,
+            transition: "all 0.2s",
+            "&:hover": {
+              bgcolor: "action.hover",
+              transform: "translateY(-2px)",
+            },
           }}
-          sx={{ borderRadius: 3, color: "error.main", "&:hover": { bgcolor: "error.light", color: "error.dark" } }}
+          onClick={e => {
+            setAnchorEl(e.currentTarget);
+          }}
         >
-          <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Sign Out"
-            slotProps={{
-              primary: {
-                sx: { fontWeight: 600 },
-              },
+          <Avatar
+            sx={{
+              bgcolor: "primary.main",
+              fontWeight: "bold",
+              width: 44,
+              height: 44,
+              boxShadow: theme => `0 4px 8px ${alpha(theme.palette.primary.main, 0.25)}`,
             }}
-          />
-        </ListItemButton>
+          >
+            {initial}
+          </Avatar>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: "800", color: "text.primary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+            >
+              {userName}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: "700", textTransform: "uppercase", fontSize: "0.65rem", letterSpacing: "0.5px" }}
+            >
+              {user?.roles[0] || "Admin"}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
@@ -224,50 +250,79 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
                 <NotificationsIcon />
               </Badge>
             </IconButton>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }}
-              onClick={e => {
-                setAnchorEl(e.currentTarget);
-              }}
-            >
-              <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: "800" }}>
-                  {userName}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: "600" }}>
-                  {user?.roles[0] || "Administrator"}
-                </Typography>
-              </Box>
-              <Avatar sx={{ bgcolor: "primary.main", fontWeight: "bold" }}>{initial}</Avatar>
-            </Box>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={() => {
-                setAnchorEl(null);
-              }}
-              slotProps={{ paper: { elevation: 3, sx: { mt: 1.5, borderRadius: 3, minWidth: 200 } } }}
-            >
-              <MenuItem
-                onClick={() => {
-                  setAnchorEl(null);
-                }}
-              >
-                Profile
-              </MenuItem>
-              {/* استخدام handleLogout هنا أيضاً */}
-              <MenuItem
-                onClick={() => {
-                  void handleLogout();
-                }}
-                sx={{ color: "error.main" }}
-              >
-                Logout
-              </MenuItem>
-            </Menu>
           </Box>
         </Toolbar>
       </AppBar>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => {
+          setAnchorEl(null);
+        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+        slotProps={{
+          paper: {
+            elevation: 4,
+            sx: {
+              mt: -1,
+              ml: 1,
+              borderRadius: 4,
+              minWidth: 200,
+              border: "1px solid",
+              borderColor: "divider",
+              overflow: "visible",
+              "&::before": {
+                content: '""',
+                display: "block",
+                position: "absolute",
+                bottom: 15,
+                left: -6,
+                width: 12,
+                height: 12,
+                bgcolor: "background.paper",
+                transform: "rotate(45deg)",
+                borderLeft: "1px solid",
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              },
+            },
+          },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            {userName}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.75rem" }}>
+            {user?.email || "admin@ares.com"}
+          </Typography>
+        </Box>
+        <Divider sx={{ my: 1, opacity: 0.5 }} />
+        <MenuItem
+          onClick={() => {
+            setAnchorEl(null);
+          }}
+          sx={{ py: 1, borderRadius: 2, mx: 1, gap: 1.5 }}
+        >
+          <ListItemIcon sx={{ minWidth: "auto" }}>
+            <CarIcon fontSize="small" />
+          </ListItemIcon>
+          Profile
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            void handleLogout();
+          }}
+          sx={{ py: 1, borderRadius: 2, mx: 1, mt: 0.5, color: "error.main", gap: 1.5, "&:hover": { bgcolor: "error.light" } }}
+        >
+          <ListItemIcon sx={{ color: "inherit", minWidth: "auto" }}>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
+      </Menu>
 
       <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer

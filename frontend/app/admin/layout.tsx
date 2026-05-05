@@ -36,6 +36,9 @@ import {
   Public as CountriesIcon,
   Place as LocationsIcon,
   Home as HomeIcon,
+  Person as PersonIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import Link from "next/link";
 import Image from "next/image";
@@ -43,7 +46,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 
-const drawerWidth = 280;
+const drawerWidth = 260;
+
+// Sidebar (dark navy) palette — kept local so we don't touch the global theme.
+const SIDEBAR_BG = "#0f172a"; // slate-900
+const SIDEBAR_TEXT = "#cbd5e1"; // slate-300
+const SIDEBAR_TEXT_MUTED = "#94a3b8"; // slate-400
+const SIDEBAR_ACTIVE_BG = "#3b82f6"; // blue-500
+const SIDEBAR_HOVER_BG = "#1e293b"; // slate-800
+const SIDEBAR_DIVIDER = "#1e293b";
 
 const menuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
@@ -113,52 +124,63 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
   const userName = user.firstName ? `${user.firstName} ${user.lastName}` : "Admin User";
   const initial = user.firstName ? user.firstName.charAt(0).toUpperCase() : "A";
 
+  // Derive the page title from the currently active sidebar item (purely visual; no logic change).
+  const activeMenuItem = menuItems.find(item => item.path === pathname);
+  const pageTitle = activeMenuItem?.text ?? "Dashboard";
+
   const drawer = (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: "background.paper" }}>
-      <Toolbar sx={{ px: 3, display: "flex", alignItems: "center", gap: 2, height: 80 }}>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: SIDEBAR_BG, color: SIDEBAR_TEXT }}>
+      <Toolbar sx={{ px: 3, display: "flex", alignItems: "center", gap: 2, height: 88 }}>
         <Link
           href="/"
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "16px",
+            gap: "12px",
             textDecoration: "none",
             color: "inherit",
           }}
         >
           <Box
             sx={{
-              width: 40,
-              height: 40,
-              bgcolor: "primary.main",
+              width: 44,
+              height: 44,
+              bgcolor: "rgba(255,255,255,0.08)",
               borderRadius: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              color: "#fff",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: "bold" }} color="primary.contrastText">
-              A
+            <CarIcon sx={{ fontSize: 26 }} />
+          </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 900, letterSpacing: 1, color: "#fff", lineHeight: 1.1 }}
+            >
+              ARES
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 600,
+                color: SIDEBAR_TEXT_MUTED,
+                fontSize: "0.65rem",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+              }}
+            >
+              Rental Platform
             </Typography>
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: "900", letterSpacing: "-0.5px", color: "text.primary" }}>
-            Ares Admin
-          </Typography>
         </Link>
       </Toolbar>
-      <Divider sx={{ mb: 2, borderColor: "divider" }} />
-      <List sx={{ px: 2, flex: 1, overflowY: "auto" }}>
+      <Divider sx={{ mb: 1.5, borderColor: SIDEBAR_DIVIDER }} />
+      <List sx={{ px: 1.5, flex: 1, overflowY: "auto" }}>
         {menuItems.map(item => {
           const isActive = pathname === item.path;
-          let bgColor = "transparent";
-          if (isActive) {
-            bgColor = alpha(theme.palette.primary.main, 0.1);
-          }
-          let hoverBgColor = "action.hover";
-          if (isActive) {
-            hoverBgColor = alpha(theme.palette.primary.main, 0.15);
-          }
-
           return (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
               <Link href={item.path} passHref style={{ width: "100%", textDecoration: "none", color: "inherit" }}>
@@ -168,23 +190,25 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
                   }}
                   sx={{
                     borderRadius: 2,
-                    bgcolor: bgColor,
-                    color: isActive ? "primary.main" : "text.secondary",
+                    py: 1.1,
+                    px: 1.5,
+                    bgcolor: isActive ? SIDEBAR_ACTIVE_BG : "transparent",
+                    color: isActive ? "#fff" : SIDEBAR_TEXT,
+                    transition: "all 0.2s ease",
                     "&:hover": {
-                      bgcolor: hoverBgColor,
+                      bgcolor: isActive ? SIDEBAR_ACTIVE_BG : SIDEBAR_HOVER_BG,
+                      color: "#fff",
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: isActive ? "primary.main" : "inherit", minWidth: 40 }}>
-                    {item.icon}
-                  </ListItemIcon>
+                  <ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>{item.icon}</ListItemIcon>
                   <ListItemText
                     primary={item.text}
                     slotProps={{
                       primary: {
                         sx: {
                           fontWeight: isActive ? 700 : 500,
-                          fontSize: "0.95rem",
+                          fontSize: "0.92rem",
                         },
                       },
                     }}
@@ -195,31 +219,65 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           );
         })}
       </List>
-      <Box sx={{ p: 2 }}>
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => {
-              void handleLogout();
-            }}
+      <Box sx={{ p: 1.5, borderTop: `1px solid ${SIDEBAR_DIVIDER}` }}>
+        <Box
+          onClick={handleMenu}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            cursor: "pointer",
+            p: 1.25,
+            borderRadius: 2,
+            transition: "all 0.2s ease",
+            "&:hover": {
+              bgcolor: SIDEBAR_HOVER_BG,
+            },
+          }}
+        >
+          <Avatar
             sx={{
-              borderRadius: 2,
-              color: "error.main",
-              "&:hover": { bgcolor: "error.lighter" },
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              width: 40,
+              height: 40,
+              fontWeight: "bold",
+              fontSize: "1rem",
             }}
           >
-            <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary="Logout"
-              slotProps={{
-                primary: {
-                  sx: { fontWeight: 600 },
-                },
+            {initial}
+          </Avatar>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 700,
+                color: "#fff",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                lineHeight: 1.2,
               }}
-            />
-          </ListItemButton>
-        </ListItem>
+            >
+              {userName}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 500,
+                color: SIDEBAR_TEXT_MUTED,
+                fontSize: "0.72rem",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "block",
+              }}
+            >
+              {user.email || (user.roles[0] || "Administrator")}
+            </Typography>
+          </Box>
+          <KeyboardArrowDownIcon sx={{ color: SIDEBAR_TEXT_MUTED, fontSize: 20 }} />
+        </Box>
       </Box>
     </Box>
   );
@@ -232,124 +290,211 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
         sx={{
           width: { md: `calc(100% - ${drawerWidth.toString()}px)` },
           ml: { md: `${drawerWidth.toString()}px` },
-          bgcolor: "background.paper",
+          bgcolor: theme => alpha(theme.palette.background.paper, 0.85),
+          backdropFilter: "blur(10px)",
           borderBottom: "1px solid",
           borderColor: "divider",
           color: "text.primary",
         }}
       >
-        <Toolbar sx={{ height: 80 }}>
+        <Toolbar sx={{ height: 72, gap: 2 }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: "none" } }}
+            sx={{ mr: 1, display: { md: "none" } }}
           >
             <MenuIcon />
           </IconButton>
 
-          {/* Site Logo/Home Link */}
-          <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex" },
-                alignItems: "center",
-                gap: 1,
-                color: "primary.main",
-                "&:hover": { opacity: 0.8 },
-              }}
-            >
-              <HomeIcon />
-              <Typography variant="subtitle2" sx={{ fontWeight: "700" }}>
-                Back to Site
-              </Typography>
-            </Box>
-            <Box sx={{ display: { xs: "flex", md: "none" }, height: 32, width: 80, position: "relative" }}>
-              <Image
-                src="/img/favicon/logo_transparent.png"
-                alt="Ares Logo"
-                fill
-                style={{
-                  objectFit: "contain",
-                  filter: theme.palette.mode === "dark" ? "none" : "invert(1) brightness(0.5)",
-                }}
-              />
-            </Box>
-          </Link>
+          {/* Hamburger placeholder on desktop (purely decorative — toggles mobile drawer too) */}
+          <IconButton
+            color="inherit"
+            aria-label="toggle menu"
+            onClick={handleDrawerToggle}
+            sx={{ display: { xs: "none", md: "inline-flex" }, color: "text.secondary" }}
+          >
+            <MenuIcon />
+          </IconButton>
+
+          {/* Page title */}
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 800,
+              color: "text.primary",
+              letterSpacing: "-0.5px",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {pageTitle}
+          </Typography>
+
+          {/* Mobile-only logo (since title takes precedence on desktop) */}
+          <Box sx={{ display: { xs: "flex", md: "none" }, alignItems: "center", ml: 1 }}>
+            <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+              <Box sx={{ height: 28, width: 70, position: "relative" }}>
+                <Image
+                  src="/img/favicon/logo_transparent.png"
+                  alt="Ares Logo"
+                  fill
+                  style={{
+                    objectFit: "contain",
+                    filter: theme.palette.mode === "dark" ? "none" : "invert(1) brightness(0.5)",
+                  }}
+                />
+              </Box>
+            </Link>
+          </Box>
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <ThemeSwitcher />
-            <IconButton color="inherit" sx={{ bgcolor: "action.hover" }}>
-              <NotificationsIcon />
-            </IconButton>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={handleMenu}>
-              <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: "700" }}>
-                  {userName}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {user.roles[0] || "Administrator"}
-                </Typography>
-              </Box>
-              <Avatar sx={{ bgcolor: "primary.main", color: "primary.contrastText", width: 44, height: 44 }}>
-                {initial}
-              </Avatar>
-            </Box>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              keepMounted
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              sx={{ mt: 1 }}
-              slotProps={{
-                paper: {
-                  elevation: 0,
-                  sx: {
-                    overflow: "visible",
-                    filter: theme => `drop-shadow(0px 2px 8px ${alpha(theme.palette.common.black, 0.1)})`,
-                    mt: 1.5,
-                    borderRadius: 2,
-                    minWidth: 200,
-                    "& .MuiAvatar-root": {
-                      width: 32,
-                      height: 32,
-                      ml: -0.5,
-                      mr: 1,
-                    },
-                  },
-                },
+          {/* Visual search bar (decorative) */}
+          <Box
+            sx={{
+              display: { xs: "none", md: "flex" },
+              alignItems: "center",
+              gap: 1,
+              bgcolor: "action.hover",
+              borderRadius: 2,
+              px: 2,
+              py: 0.75,
+              width: 280,
+              border: "1px solid",
+              borderColor: "divider",
+              transition: "all 0.2s ease",
+              "&:focus-within": {
+                borderColor: "primary.main",
+                bgcolor: "background.paper",
+              },
+            }}
+          >
+            <SearchIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+            <Box
+              component="input"
+              placeholder="Search..."
+              sx={{
+                border: "none",
+                outline: "none",
+                bgcolor: "transparent",
+                color: "text.primary",
+                fontSize: "0.9rem",
+                width: "100%",
+                "&::placeholder": { color: "text.secondary" },
               }}
+            />
+          </Box>
+
+          {/* Quick actions */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <ThemeSwitcher />
+            {/* Back to site (icon only — desktop) */}
+            <IconButton
+              component={Link}
+              href="/"
+              aria-label="back to site"
+              sx={{ display: { xs: "none", md: "inline-flex" }, color: "text.secondary" }}
             >
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/account/profile");
+              <HomeIcon />
+            </IconButton>
+            <IconButton aria-label="notifications" sx={{ color: "text.secondary" }}>
+              <Box
+                sx={{
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                <Avatar /> Profile
-              </MenuItem>
-              <Divider />
-              <MenuItem
-                onClick={() => {
-                  void handleLogout();
-                }}
-                sx={{ color: "error.main" }}
-              >
-                <ListItemIcon sx={{ color: "inherit" }}>
-                  <LogoutIcon fontSize="small" />
-                </ListItemIcon>
-                Logout
-              </MenuItem>
-            </Menu>
+                <NotificationsIcon />
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: -4,
+                    right: -4,
+                    minWidth: 18,
+                    height: 18,
+                    bgcolor: "error.main",
+                    color: "common.white",
+                    borderRadius: "50%",
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    px: 0.5,
+                  }}
+                >
+                  3
+                </Box>
+              </Box>
+            </IconButton>
           </Box>
         </Toolbar>
       </AppBar>
+
+      {/* User dropdown menu (anchored to sidebar user section) */}
+      <Menu
+        id="menu-appbar"
+        anchorEl={anchorEl}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        keepMounted
+        transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        slotProps={{
+          paper: {
+            elevation: 6,
+            sx: {
+              overflow: "visible",
+              filter: theme => `drop-shadow(0px 4px 12px ${alpha(theme.palette.common.black, 0.12)})`,
+              mt: -1,
+              ml: 1,
+              borderRadius: 2,
+              minWidth: 220,
+              maxWidth: "calc(100vw - 32px)",
+              border: "1px solid",
+              borderColor: "divider",
+              bgcolor: "background.paper",
+            },
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            router.push("/account/profile");
+          }}
+          sx={{ py: 1, borderRadius: 1.5, mx: 1, gap: 1.5 }}
+        >
+          <ListItemIcon sx={{ minWidth: "auto" }}>
+            <PersonIcon fontSize="small" />
+          </ListItemIcon>
+          Profile
+        </MenuItem>
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem
+          onClick={() => {
+            void handleLogout();
+          }}
+          sx={{
+            py: 1,
+            borderRadius: 1.5,
+            mx: 1,
+            gap: 1.5,
+            color: "error.main",
+            "&:hover": { bgcolor: "error.lighter" },
+          }}
+        >
+          <ListItemIcon sx={{ color: "inherit", minWidth: "auto" }}>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
+      </Menu>
 
       <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer
@@ -359,7 +504,12 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: "block", md: "none" },
-            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth, border: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+              border: "none",
+              bgcolor: SIDEBAR_BG,
+            },
           }}
         >
           {drawer}
@@ -371,8 +521,8 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
-              borderRight: "1px solid",
-              borderColor: "divider",
+              border: "none",
+              bgcolor: SIDEBAR_BG,
             },
           }}
           open
@@ -386,7 +536,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
         sx={{
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth.toString()}px)` },
-          mt: "80px",
+          mt: "72px",
         }}
       >
         {children}
