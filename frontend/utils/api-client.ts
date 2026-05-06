@@ -13,7 +13,7 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     public readonly statusText: string,
-    public readonly body: string,
+    public readonly body: string
   ) {
     super(`API Error ${String(status)}: ${statusText}`);
     this.name = "ApiError";

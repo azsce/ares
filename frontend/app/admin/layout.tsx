@@ -32,7 +32,6 @@ import {
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
   MonetizationOn as PricingIcon,
-
   Public as CountriesIcon,
   Place as LocationsIcon,
   Home as HomeIcon,
@@ -289,7 +288,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <IconButton
               size="small"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 void handleLogout();
               }}

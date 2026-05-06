@@ -67,9 +67,7 @@ export default function NotificationsBell() {
       const data = (await getNotifications(token)) as NotificationsResponse;
       const list: NotificationItem[] = Array.isArray(data) ? data : data.notifications || [];
       // Newest first
-      list.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setItems(list);
     } catch (err) {
       logger.error("NotificationsBell: fetch failed", err);
@@ -307,9 +305,7 @@ export default function NotificationsBell() {
                     <NotificationsActiveIcon fontSize="small" />
                   </Avatar>
                   <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
                       <Typography
                         variant="body2"
                         sx={{

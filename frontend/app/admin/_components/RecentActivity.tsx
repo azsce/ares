@@ -37,10 +37,10 @@ interface RawBooking {
   bookingNumber?: string;
   status?: string;
   car?: { name?: string };
-  createdAt?: string;   // real creation timestamp (after rebuild)
-  updatedAt?: string;   // last status-change timestamp (after rebuild)
+  createdAt?: string; // real creation timestamp (after rebuild)
+  updatedAt?: string; // last status-change timestamp (after rebuild)
   // pre-rebuild only fields still available:
-  from?: string;        // pickup date (used as last-resort fallback only)
+  from?: string; // pickup date (used as last-resort fallback only)
 }
 
 interface RawUser {
@@ -48,7 +48,7 @@ interface RawUser {
   firstName?: string;
   lastName?: string;
   email?: string;
-  createdAt?: string;   // always present — UserManagementDto always had this
+  createdAt?: string; // always present — UserManagementDto always had this
 }
 
 interface RawVehicle {
@@ -56,7 +56,7 @@ interface RawVehicle {
   id?: string | number;
   make?: string;
   model?: string;
-  createdAt?: string;   // present after VehicleListDto rebuild
+  createdAt?: string; // present after VehicleListDto rebuild
 }
 
 // PagedResult<T> serialises as { data, page, pageSize, totalCount, totalPages }
@@ -74,7 +74,7 @@ const TYPE_META: Record<
 > = {
   booking: { color: "primary", icon: <EventAvailableIcon fontSize="small" /> },
   payment: { color: "success", icon: <PaymentIcon fontSize="small" /> },
-  user:    { color: "info",    icon: <PersonAddIcon fontSize="small" /> },
+  user: { color: "info", icon: <PersonAddIcon fontSize="small" /> },
   vehicle: { color: "warning", icon: <DirectionsCarIcon fontSize="small" /> },
 };
 
@@ -93,12 +93,10 @@ function formatTimestamp(iso: string | null | undefined): string {
 
   const seconds = Math.floor(diffMs / 1000);
   const minutes = Math.floor(seconds / 60);
-  const hours   = Math.floor(minutes / 60);
+  const hours = Math.floor(minutes / 60);
 
   const isToday =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth()    === now.getMonth()    &&
-    date.getDate()     === now.getDate();
+    date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
 
   if (isToday) {
     if (seconds < 60) return "just now";
@@ -109,18 +107,16 @@ function formatTimestamp(iso: string | null | undefined): string {
   // Older than today → "Apr 29" or "Apr 29, 2025" for a different year
   return date.toLocaleDateString("en-US", {
     month: "short",
-    day:   "numeric",
+    day: "numeric",
     ...(date.getFullYear() !== now.getFullYear() ? { year: "numeric" } : {}),
   });
 }
 
 // ── Fallback helpers ──────────────────────────────────────────────────────────
-const extractRows = <T,>(res: AnyPagedResponse<T> | null): T[] =>
-  res?.data ?? res?.resultData ?? res?.items ?? [];
+const extractRows = <T,>(res: AnyPagedResponse<T> | null): T[] => res?.data ?? res?.resultData ?? res?.items ?? [];
 
 // Best available timestamp for a booking record
-const bestBookingTs = (b: RawBooking): string | undefined =>
-  b.createdAt ?? (b.from ? b.from : undefined);
+const bestBookingTs = (b: RawBooking): string | undefined => b.createdAt ?? (b.from ? b.from : undefined);
 
 // Best available timestamp for a payment event (status changed to Confirmed/Completed)
 const bestPaymentTs = (b: RawBooking): string | undefined =>
@@ -130,9 +126,8 @@ const bestPaymentTs = (b: RawBooking): string | undefined =>
 async function fetchViaFallbackApis(
   accessToken: string,
   isSupplier: boolean,
-  userId: string,
+  userId: string
 ): Promise<RecentActivityItem[]> {
-
   const [bookingsRes, usersRes, vehiclesRes] = await Promise.all([
     // POST /api/admin/bookings/search/1/10  → PagedResult<BookingListDto> → { data: [...] }
     apiFetchJson<AnyPagedResponse<RawBooking>>("api/admin/bookings/search/1/10", {
@@ -148,21 +143,30 @@ async function fetchViaFallbackApis(
         size: 10,
         language: "en",
       }),
-    }).catch((e: unknown) => { logger.error("RecentActivity fallback: bookings", e); return null; }),
+    }).catch((e: unknown) => {
+      logger.error("RecentActivity fallback: bookings", e);
+      return null;
+    }),
 
     // POST /api/admin/users/1/10  → PagedResult<UserManagementDto> → { data: [...] }
     apiFetchJson<AnyPagedResponse<RawUser>>("api/admin/users/1/10", {
       method: "POST",
       accessToken,
       body: JSON.stringify({ keyword: null, types: ["user"] }),
-    }).catch((e: unknown) => { logger.error("RecentActivity fallback: users", e); return null; }),
+    }).catch((e: unknown) => {
+      logger.error("RecentActivity fallback: users", e);
+      return null;
+    }),
 
     // POST /api/vehicles/search/1/10  → PagedResult<VehicleListDto> → { data: [...] }
     apiFetchJson<AnyPagedResponse<RawVehicle>>("api/vehicles/search/1/10", {
       method: "POST",
       accessToken,
       body: JSON.stringify({ suppliers: null, keyword: null }),
-    }).catch((e: unknown) => { logger.error("RecentActivity fallback: vehicles", e); return null; }),
+    }).catch((e: unknown) => {
+      logger.error("RecentActivity fallback: vehicles", e);
+      return null;
+    }),
   ]);
 
   // One slot per type — keep the most recently created
@@ -178,7 +182,7 @@ async function fetchViaFallbackApis(
   // ── Bookings + Payment ────────────────────────────────────────────────────
   const bookings = extractRows(bookingsRes);
   for (const b of bookings) {
-    const rawId  = String(b.id ?? "");
+    const rawId = String(b.id ?? "");
     const shortId = (b.bookingNumber ?? rawId.substring(0, 6)).toUpperCase() || "–";
     const carName = b.car?.name ?? "";
 
@@ -186,9 +190,7 @@ async function fetchViaFallbackApis(
     // Always add booking — if no real timestamp, show "–" rather than skip
     keepLatest({
       type: "booking",
-      message: carName
-        ? `Booking for ${carName} created`
-        : `Booking #${shortId} created`,
+      message: carName ? `Booking for ${carName} created` : `Booking #${shortId} created`,
       createdAt: bTs ?? "",
       icon: "booking",
     });
@@ -199,9 +201,7 @@ async function fetchViaFallbackApis(
       const pTs = bestPaymentTs(b);
       keepLatest({
         type: "payment",
-        message: carName
-          ? `Payment completed for ${carName}`
-          : `Payment completed for Booking #${shortId}`,
+        message: carName ? `Payment completed for ${carName}` : `Payment completed for Booking #${shortId}`,
         createdAt: pTs ?? "",
         icon: "payment",
       });
@@ -211,9 +211,7 @@ async function fetchViaFallbackApis(
   // ── Users ─────────────────────────────────────────────────────────────────
   const users = extractRows(usersRes);
   for (const u of users) {
-    const fullName = `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
-                     || u.email
-                     || "New user";
+    const fullName = `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email || "New user";
     keepLatest({
       type: "user",
       message: `New user registered: ${fullName}`,
@@ -238,10 +236,10 @@ async function fetchViaFallbackApis(
   }
 
   return [...latestByType.values()]
-    .sort((a, b) =>
-      // Items without timestamps go to bottom
-      (b.createdAt ? new Date(b.createdAt).getTime() : 0) -
-      (a.createdAt ? new Date(a.createdAt).getTime() : 0)
+    .sort(
+      (a, b) =>
+        // Items without timestamps go to bottom
+        (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0)
     )
     .slice(0, 4);
 }
@@ -252,9 +250,9 @@ export default function RecentActivity() {
   const theme = useTheme();
   const { data: session } = useSession();
 
-  const [items, setItems]     = useState<RecentActivityItem[]>([]);
+  const [items, setItems] = useState<RecentActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(false);
+  const [error, setError] = useState(false);
 
   const fetchActivity = useCallback(async () => {
     if (!session?.accessToken) return;
@@ -263,10 +261,9 @@ export default function RecentActivity() {
 
     // ── Strategy 1: dedicated endpoint (available after backend rebuild) ──
     try {
-      const data = await apiFetchJson<RecentActivityItem[]>(
-        "api/dashboard/recent-summary",
-        { accessToken: session.accessToken },
-      );
+      const data = await apiFetchJson<RecentActivityItem[]>("api/dashboard/recent-summary", {
+        accessToken: session.accessToken,
+      });
       setItems(Array.isArray(data) ? data : []);
       setLoading(false);
       return;
@@ -285,7 +282,7 @@ export default function RecentActivity() {
     // ── Strategy 2: assemble from existing APIs ───────────────────────────
     try {
       const isSupplier = session.user?.roles?.includes("Supplier") ?? false;
-      const userId     = session.user?.id ?? "";
+      const userId = session.user?.id ?? "";
       setItems(await fetchViaFallbackApis(session.accessToken, isSupplier, userId));
     } catch (err: unknown) {
       logger.error("RecentActivity: fallback failed", err);
@@ -294,7 +291,9 @@ export default function RecentActivity() {
     setLoading(false);
   }, [session?.accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { void fetchActivity(); }, [fetchActivity]);
+  useEffect(() => {
+    void fetchActivity();
+  }, [fetchActivity]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -309,7 +308,16 @@ export default function RecentActivity() {
 
     if (error) {
       return (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 180, gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 180,
+            gap: 1,
+          }}
+        >
           <Typography color="error" variant="body2" sx={{ fontWeight: 500 }}>
             Failed to load recent activity.
           </Typography>
@@ -317,7 +325,9 @@ export default function RecentActivity() {
             variant="caption"
             color="text.secondary"
             sx={{ cursor: "pointer", textDecoration: "underline" }}
-            onClick={() => { void fetchActivity(); }}
+            onClick={() => {
+              void fetchActivity();
+            }}
           >
             Try again
           </Typography>
@@ -338,7 +348,7 @@ export default function RecentActivity() {
     return (
       <Stack spacing={0.5}>
         {items.map((item, idx) => {
-          const meta      = TYPE_META[item.type] ?? TYPE_META.booking;
+          const meta = TYPE_META[item.type] ?? TYPE_META.booking;
           const colorMain = theme.palette[meta.color].main;
 
           return (
@@ -424,7 +434,9 @@ export default function RecentActivity() {
           </Typography>
           <IconButton
             size="small"
-            onClick={() => { void fetchActivity(); }}
+            onClick={() => {
+              void fetchActivity();
+            }}
             disabled={loading}
             aria-label="Refresh recent activity"
             sx={{ transition: "transform 0.25s ease", "&:hover": { transform: "rotate(90deg)" } }}
