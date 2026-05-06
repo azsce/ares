@@ -35,6 +35,7 @@ import { apiFetchJson } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 import { DashboardSummary } from "./types";
 import BookingOverview from "./_components/BookingOverview";
+import RecentActivity from "./_components/RecentActivity";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -99,10 +100,12 @@ export default function AdminDashboardPage() {
             accessToken: session.accessToken,
           });
 
+          // Defensive coercion — backend can return undefined/null for any of these fields
+          const safeNum = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
           setSummaryData([
             {
               title: "Total Bookings",
-              value: data.totalBookings.toString(),
+              value: safeNum(data.totalBookings).toLocaleString(),
               change: "+12.5%",
               isUp: true,
               icon: <EventAvailableIcon fontSize="medium" />,
@@ -110,7 +113,7 @@ export default function AdminDashboardPage() {
             },
             {
               title: "Active Vehicles",
-              value: data.totalVehicles.toString(),
+              value: safeNum(data.totalVehicles).toLocaleString(),
               change: "+4.2%",
               isUp: true,
               icon: <DirectionsCarIcon fontSize="medium" />,
@@ -118,7 +121,7 @@ export default function AdminDashboardPage() {
             },
             {
               title: "Total Revenue",
-              value: `$${data.totalRevenue.toLocaleString()}`,
+              value: `$${safeNum(data.totalRevenue).toLocaleString()}`,
               change: "+18.2%",
               isUp: true,
               icon: <AttachMoneyIcon fontSize="medium" />,
@@ -126,7 +129,7 @@ export default function AdminDashboardPage() {
             },
             {
               title: "Total Users",
-              value: data.totalUsers.toString(),
+              value: safeNum(data.totalUsers).toLocaleString(),
               change: "-2.1%",
               isUp: false,
               icon: <PeopleAltIcon fontSize="medium" />,
@@ -340,6 +343,11 @@ export default function AdminDashboardPage() {
               <BookingOverview />
             </motion.div>
           </Grid>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <motion.div variants={itemVariants} style={{ height: "100%" }}>
+              <RecentActivity />
+            </motion.div>
+          </Grid>
         </Grid>
 
         <Grid container spacing={3}>
@@ -347,13 +355,13 @@ export default function AdminDashboardPage() {
             <motion.div variants={itemVariants}>
               <Card
                 elevation={0}
-                sx={{
+                sx={theme => ({
                   borderRadius: 4,
                   border: "1px solid",
-                  borderColor: "border.main",
+                  borderColor: theme.palette.border.main,
                   height: "100%",
-                  boxShadow: "shadow.card",
-                }}
+                  boxShadow: theme.palette.shadow.card,
+                })}
               >
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -462,13 +470,13 @@ export default function AdminDashboardPage() {
             <motion.div variants={itemVariants}>
               <Card
                 elevation={0}
-                sx={{
+                sx={theme => ({
                   borderRadius: 4,
                   border: "1px solid",
-                  borderColor: "border.main",
+                  borderColor: theme.palette.border.main,
                   height: "100%",
-                  boxShadow: "shadow.card",
-                }}
+                  boxShadow: theme.palette.shadow.card,
+                })}
               >
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
