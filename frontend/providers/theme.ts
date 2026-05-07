@@ -93,7 +93,7 @@ const lightPalette: PaletteOptions = {
   overlay: {
     dark: "rgba(0, 0, 0, 0.4)",
     gradient: "linear-gradient(135deg, #f4f6f8 0%, rgba(15, 91, 91, 0.05) 100%)",
-    tealGradient: "linear-gradient(135deg, rgba(15, 91, 91, 0.85) 0%, rgba(16, 33, 43, 0.90) 100%)",
+    tealGradient: "linear-gradient(135deg, rgba(15, 91, 91, 0.55) 0%, rgba(16, 33, 43, 0.55) 75%)",
     blur: "rgba(255, 255, 255, 0.8)",
   },
   border: {
@@ -133,7 +133,7 @@ const darkPalette: PaletteOptions = {
     main: "#e0ad2c",
     light: "#f0c968",
     dark: "#b8860b",
-    contrastText: "#0a0e0f",
+    contrastText: "#000000ff",
   },
   background: {
     default: "#0a0e0f",
@@ -146,7 +146,7 @@ const darkPalette: PaletteOptions = {
   overlay: {
     dark: "rgba(0, 0, 0, 0.7)",
     gradient: "linear-gradient(135deg, #0a0e0f 0%, rgba(15, 91, 91, 0.15) 100%)",
-    tealGradient: "linear-gradient(135deg, rgba(15, 91, 91, 0.95) 0%, rgba(16, 33, 43, 0.98) 100%)",
+    tealGradient: "linear-gradient(135deg, rgba(15, 91, 91, 0.75) 0%, rgba(16, 33, 43, 0.75) 75%)",
     blur: "rgba(26, 31, 35, 0.8)",
   },
   border: {

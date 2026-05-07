@@ -1,2 +1,16 @@
 #!/bin/sh
-~/.bun/bin/bun run --cwd frontend lint-staged
+cd frontend
+
+echo "🔍 Running format check..."
+~/.bun/bin/bun run format:check || exit 1
+
+echo "🔍 Running TypeScript check..."
+~/.bun/bin/bun run tsgo || exit 1
+
+echo "🔍 Running lint..."
+~/.bun/bin/bun run lint || exit 1
+
+echo "🏗️  Running build..."
+~/.bun/bin/bun run build || exit 1
+
+echo "✅ All checks passed!"
