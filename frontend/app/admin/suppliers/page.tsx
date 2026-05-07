@@ -159,7 +159,9 @@ function SupplierMobileCard({ s, theme, onDeleteClick }: SupplierMobileCardProps
               size="small"
               color="error"
               disabled={s.status === "deleted"}
-              onClick={() => onDeleteClick(s)}
+              onClick={() => {
+                onDeleteClick(s);
+              }}
             >
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
@@ -359,7 +361,9 @@ export default function SuppliersPage() {
                 key={s.id}
                 s={s}
                 theme={theme}
-                onDeleteClick={setDeleteTarget}
+                onDeleteClick={(supplier) => {
+                  setDeleteTarget(supplier);
+                }}
               />
             ))
           ) : (
@@ -475,7 +479,9 @@ export default function SuppliersPage() {
                                   size="small"
                                   color="error"
                                   disabled={s.status === "deleted"}
-                                  onClick={() => setDeleteTarget(s)}
+                                  onClick={() => {
+                                    setDeleteTarget(s);
+                                  }}
                                 >
                                   <DeleteOutlineIcon fontSize="small" />
                                 </IconButton>
@@ -518,7 +524,11 @@ export default function SuppliersPage() {
       {/* ── DELETE CONFIRM DIALOG ── */}
       <Dialog
         open={!!deleteTarget}
-        onClose={() => !deleting && setDeleteTarget(null)}
+        onClose={() => {
+          if (!deleting) {
+            setDeleteTarget(null);
+          }
+        }}
         maxWidth="xs"
         fullWidth
       >
@@ -534,14 +544,18 @@ export default function SuppliersPage() {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
-            onClick={() => setDeleteTarget(null)}
+            onClick={() => {
+              setDeleteTarget(null);
+            }}
             disabled={deleting}
             variant="outlined"
           >
             Cancel
           </Button>
           <Button
-            onClick={handleDeleteConfirm}
+            onClick={() => {
+              void handleDeleteConfirm();
+            }}
             disabled={deleting}
             variant="contained"
             color="error"

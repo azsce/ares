@@ -12,7 +12,6 @@ import {
   Chip,
   Button,
   Avatar,
-  IconButton,
   useTheme,
   alpha,
 } from "@mui/material";
@@ -23,7 +22,6 @@ import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import BusinessIcon from "@mui/icons-material/Business";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import BadgeIcon from "@mui/icons-material/Badge";
 import { getSupplierById, type Supplier } from "@/api-clients/suppliers/suppliers";
 import { logger } from "@/utils/logger";
 
@@ -35,10 +33,10 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 };
 
 // ─── section label (same as EditSupplierPage) ──────────────────────────────────
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children }: { readonly children: React.ReactNode }) {
   const theme = useTheme();
   return (
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
       <Box
         sx={{
           width: 3,
@@ -71,11 +69,11 @@ function InfoRow({
   label,
   children,
 }: {
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  label: string;
-  children: React.ReactNode;
+  readonly icon: React.ReactNode;
+  readonly iconBg: string;
+  readonly iconColor: string;
+  readonly label: string;
+  readonly children: React.ReactNode;
 }) {
   const theme = useTheme();
   return (
@@ -193,7 +191,9 @@ export default function SupplierDetailsPage() {
           Supplier not found
         </Typography>
         <Button
-          onClick={() => router.back()}
+          onClick={() => {
+            router.back();
+          }}
           startIcon={<ArrowBackIcon />}
           sx={{ textTransform: "none", fontWeight: 600 }}
         >
@@ -204,7 +204,7 @@ export default function SupplierDetailsPage() {
   }
 
   const statusMeta =
-    STATUS_META[supplier.status ?? ""] ?? { label: supplier.status ?? "Unknown", color: "#64748b", bg: "#f1f5f9" };
+    STATUS_META[supplier.status] ?? { label: supplier.status, color: "#64748b", bg: "#f1f5f9" };
 
   const initials = supplier.firstName
     ? supplier.firstName[0].toUpperCase()
@@ -288,7 +288,7 @@ export default function SupplierDetailsPage() {
               iconColor="#3C4DB7"
               label="Company Name"
             >
-              <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", color: theme.palette.primary.dark ?? theme.palette.primary.main }}>
+              <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", color: theme.palette.primary.main }}>
                 {supplier.companyProfile?.companyName || "N/A"}
               </Typography>
             </InfoRow>
@@ -397,7 +397,9 @@ export default function SupplierDetailsPage() {
         >
           <Button
             variant="outlined"
-            onClick={() => router.back()}
+            onClick={() => {
+              router.back();
+            }}
             startIcon={<ArrowBackIcon fontSize="small" />}
             sx={{
               borderRadius: 2.5,
@@ -412,7 +414,9 @@ export default function SupplierDetailsPage() {
           <Button
             variant="contained"
             startIcon={<EditIcon fontSize="small" />}
-            onClick={() => router.push(`/admin/suppliers/${supplierId}/edit`)}
+            onClick={() => {
+              router.push(`/admin/suppliers/${supplierId}/edit`);
+            }}
             disableElevation
             sx={{
               borderRadius: 2.5,

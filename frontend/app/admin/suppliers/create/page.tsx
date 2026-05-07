@@ -38,7 +38,7 @@ export default function CreateSupplierPage() {
   });
 
   const createSupplierSchema = z.object({
-    email: z.string().email({ message: "Invalid email" }),
+    email: z.email({ message: "Invalid email" }),
     password: passwordSchema,
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
@@ -125,7 +125,9 @@ export default function CreateSupplierPage() {
               value={form.email}
               error={Boolean(fieldErrors.email)}
               helperText={fieldErrors.email}
-              onChange={e => setForm({ ...form, email: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, email: e.target.value });
+              }}
             />
             <TextField
               label="Password"
@@ -134,7 +136,9 @@ export default function CreateSupplierPage() {
               value={form.password}
               error={Boolean(fieldErrors.password)}
               helperText={fieldErrors.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, password: e.target.value });
+              }}
             />
           </Stack>
 
@@ -149,7 +153,9 @@ export default function CreateSupplierPage() {
               value={form.firstName}
               error={Boolean(fieldErrors.firstName)}
               helperText={fieldErrors.firstName}
-              onChange={e => setForm({ ...form, firstName: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, firstName: e.target.value });
+              }}
             />
             <TextField
               label="Last Name"
@@ -157,7 +163,9 @@ export default function CreateSupplierPage() {
               value={form.lastName}
               error={Boolean(fieldErrors.lastName)}
               helperText={fieldErrors.lastName}
-              onChange={e => setForm({ ...form, lastName: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, lastName: e.target.value });
+              }}
             />
           </Stack>
           <TextField
@@ -166,7 +174,9 @@ export default function CreateSupplierPage() {
             value={form.phoneNumber}
             error={Boolean(fieldErrors.phoneNumber)}
             helperText={fieldErrors.phoneNumber}
-            onChange={e => setForm({ ...form, phoneNumber: e.target.value })}
+            onChange={e => {
+              setForm({ ...form, phoneNumber: e.target.value });
+            }}
           />
 
           <Divider />
@@ -179,7 +189,9 @@ export default function CreateSupplierPage() {
             value={form.companyName}
             error={Boolean(fieldErrors.companyName)}
             helperText={fieldErrors.companyName}
-            onChange={e => setForm({ ...form, companyName: e.target.value })}
+            onChange={e => {
+              setForm({ ...form, companyName: e.target.value });
+            }}
           />
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
@@ -188,7 +200,9 @@ export default function CreateSupplierPage() {
               value={form.commercialRegistrationNumber}
               error={Boolean(fieldErrors.commercialRegistrationNumber)}
               helperText={fieldErrors.commercialRegistrationNumber}
-              onChange={e => setForm({ ...form, commercialRegistrationNumber: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, commercialRegistrationNumber: e.target.value });
+              }}
             />
             <TextField
               label="Tax ID"
@@ -196,7 +210,9 @@ export default function CreateSupplierPage() {
               value={form.taxId}
               error={Boolean(fieldErrors.taxId)}
               helperText={fieldErrors.taxId}
-              onChange={e => setForm({ ...form, taxId: e.target.value })}
+              onChange={e => {
+                setForm({ ...form, taxId: e.target.value });
+              }}
             />
           </Stack>
 
@@ -204,7 +220,9 @@ export default function CreateSupplierPage() {
             select
             label="Status"
             value={form.status}
-            onChange={e => setForm({ ...form, status: e.target.value })}
+            onChange={e => {
+              setForm({ ...form, status: e.target.value });
+            }}
             fullWidth
           >
             <MenuItem value="active">Active</MenuItem>
@@ -213,7 +231,13 @@ export default function CreateSupplierPage() {
 
           {/* Actions */}
           <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end", mt: 2 }}>
-            <Button variant="outlined" onClick={() => router.back()} sx={{ borderRadius: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                router.back();
+              }}
+              sx={{ borderRadius: 2 }}
+            >
               Cancel
             </Button>
 

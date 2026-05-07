@@ -19,18 +19,19 @@ import {
 } from "@mui/material";
 
 import { getSupplierById, updateSupplier } from "@/api-clients/suppliers/suppliers";
+import { logger } from "@/utils/logger";
 
 // ─── tiny status helpers ───────────────────────────────────────────────────────
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  active:  { label: "Active",  color: "#16a34a", bg: "#dcfce7" },
-  blocked: { label: "Blocked", color: "#dc2626", bg: "#fee2e2" },
+  active:  { label: "Active",  color: "#067930ff", bg: "#dcfce7" },
+  blocked: { label: "Blocked", color: "#c41010ff", bg: "#fee2e2" },
 };
 
 // ─── section label ─────────────────────────────────────────────────────────────
-function SectionLabel({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
+function SectionLabel({ children }: { readonly children: React.ReactNode }) {
   const theme = useTheme();
   return (
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.5 }}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 0.5 }}>
       <Box
         sx={{
           width: 28,
@@ -48,7 +49,7 @@ function SectionLabel({ children, icon }: { children: React.ReactNode; icon?: Re
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light ?? theme.palette.primary.main})`,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
             boxShadow: `0 0 6px ${theme.palette.primary.main}88`,
           }}
         />
@@ -124,8 +125,8 @@ export default function EditSupplierPage() {
           data.companyProfile?.commercialRegistrationNumber || "",
         taxId: data.companyProfile?.taxId || "",
       });
-    } catch (err: any) {
-      console.error("Fetch error:", err);
+    } catch (err: unknown) {
+      logger.error("Fetch error:", err);
       setError("Failed to load supplier data. Please try again.");
     } finally {
       setLoading(false);
@@ -133,7 +134,7 @@ export default function EditSupplierPage() {
   }, [idFromParams]);
 
   useEffect(() => {
-    fetchSupplier();
+    void fetchSupplier();
   }, [fetchSupplier]);
 
   const handleSubmit = async () => {
@@ -144,8 +145,9 @@ export default function EditSupplierPage() {
       await updateSupplier(idFromParams, form);
       router.push(`/admin/suppliers`);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Update failed");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Update failed";
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -206,7 +208,7 @@ export default function EditSupplierPage() {
       }}
     >
       {/* ── page heading ── */}
-      <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 4 }}>
+      <Stack direction="row" sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 4 }}>
         <Box>
           {/* breadcrumb-style label */}
           <Typography
@@ -221,7 +223,7 @@ export default function EditSupplierPage() {
           >
             Suppliers &nbsp;/&nbsp; Edit
           </Typography>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             {/* accent bar */}
             <Box
               sx={{
@@ -294,14 +296,14 @@ export default function EditSupplierPage() {
           },
         }}
       >
-        <Stack direction="row" spacing={2.5} alignItems="center">
+        <Stack direction="row" spacing={2.5} sx={{ alignItems: "center" }}>
           <Avatar
             sx={{
               width: 54,
               height: 54,
               fontWeight: 800,
               fontSize: "1.05rem",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark ?? theme.palette.primary.main})`,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
               boxShadow: `0 6px 20px ${theme.palette.primary.main}44`,
               letterSpacing: "0.04em",
             }}
@@ -342,7 +344,9 @@ export default function EditSupplierPage() {
           size="small"
           label="Status"
           value={form.status}
-          onChange={(e) => setForm({ ...form, status: e.target.value })}
+          onChange={(e) => {
+            setForm({ ...form, status: e.target.value });
+          }}
           sx={{ width: 164, ...fieldSx }}
         >
           <MenuItem value="active">Active</MenuItem>
@@ -376,7 +380,9 @@ export default function EditSupplierPage() {
               label="Company Name"
               fullWidth
               value={form.companyName}
-              onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, companyName: e.target.value });
+              }}
               sx={fieldSx}
             />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
@@ -384,16 +390,18 @@ export default function EditSupplierPage() {
                 label="Commercial Registration"
                 fullWidth
                 value={form.commercialRegistrationNumber}
-                onChange={(e) =>
-                  setForm({ ...form, commercialRegistrationNumber: e.target.value })
-                }
+                onChange={(e) => {
+                  setForm({ ...form, commercialRegistrationNumber: e.target.value });
+                }}
                 sx={fieldSx}
               />
               <TextField
                 label="Tax ID"
                 fullWidth
                 value={form.taxId}
-                onChange={(e) => setForm({ ...form, taxId: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, taxId: e.target.value });
+                }}
                 sx={fieldSx}
               />
             </Stack>
@@ -418,14 +426,18 @@ export default function EditSupplierPage() {
                 label="First Name"
                 fullWidth
                 value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, firstName: e.target.value });
+                }}
                 sx={fieldSx}
               />
               <TextField
                 label="Last Name"
                 fullWidth
                 value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, lastName: e.target.value });
+                }}
                 sx={fieldSx}
               />
             </Stack>
@@ -433,7 +445,9 @@ export default function EditSupplierPage() {
               label="Phone Number"
               fullWidth
               value={form.phoneNumber}
-              onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, phoneNumber: e.target.value });
+              }}
               sx={fieldSx}
             />
           </Stack>
@@ -457,7 +471,9 @@ export default function EditSupplierPage() {
         >
           <Button
             variant="outlined"
-            onClick={() => router.back()}
+            onClick={() => {
+              router.back();
+            }}
             sx={{
               borderRadius: 2,
               px: 3,
@@ -479,7 +495,9 @@ export default function EditSupplierPage() {
           </Button>
           <Button
             variant="contained"
-            onClick={handleSubmit}
+            onClick={() => {
+              void handleSubmit();
+            }}
             disabled={saving}
             disableElevation
             sx={{
@@ -492,7 +510,7 @@ export default function EditSupplierPage() {
               letterSpacing: "0.02em",
               background: saving
                 ? undefined
-                : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark ?? theme.palette.primary.main} 100%)`,
+                : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               boxShadow: saving
                 ? "none"
                 : `0 4px 16px ${theme.palette.primary.main}44`,
@@ -507,7 +525,7 @@ export default function EditSupplierPage() {
             }}
           >
             {saving ? (
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <CircularProgress size={16} color="inherit" />
                 <span>Saving…</span>
               </Stack>

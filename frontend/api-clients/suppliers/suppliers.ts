@@ -12,6 +12,8 @@ export interface Supplier {
   phoneNumber?: string;
   companyProfile?: {
     companyName?: string;
+    commercialRegistrationNumber?: string;
+    taxId?: string;
   };
   [key: string]: unknown;
 }
@@ -120,17 +122,9 @@ export async function deleteSupplier(id: string): Promise<Supplier> {
       accessToken: session?.accessToken,
     });
   } catch (err) {
-    console.error("Delete supplier failed", err);
+    logger.error("Delete supplier failed", err);
     throw err;
   }
 }
 
-// export async function toggleUserStatus(userId: string): Promise<UserResponse> {
-//   const session = await getSession();
-
-//   return apiFetchJson<UserResponse>(`/api/admin/users/${userId}/toggle-status`, {
-//     method: "PUT",
-//     accessToken: session?.accessToken ?? undefined,
-//   });
-// }
 
