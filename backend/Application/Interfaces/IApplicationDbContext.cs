@@ -9,6 +9,7 @@ public interface IApplicationDbContext
 {
     IQueryable<Vehicle> Vehicles { get; }
     IQueryable<Booking> Bookings { get; }
+    IQueryable<BookingPayment> Payments { get; }
     IQueryable<Review> Reviews { get; }
     IQueryable<Favorite> Favorites { get; }
     IQueryable<VehicleFeature> VehicleFeatures { get; }

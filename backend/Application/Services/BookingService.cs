@@ -91,6 +91,11 @@ public class BookingService : IBookingService
         // Requirement 4.8: Create notification for customer
         await CreateBookingNotificationAsync(userId, bookingNumber, cancellationToken);
 
+        // Supplier-facing notification — "new booking received" — fired
+        // best-effort so a notification failure cannot roll back the
+        // booking. The vehicle owner (supplier) is `vehicle.UserId`.
+        await NotifySupplierBookingReceivedAsync(vehicle, booking, cancellationToken);
+
         return new BookingResponse(
             booking.Id,
             bookingNumber,
@@ -461,6 +466,43 @@ public class BookingService : IBookingService
     }
 
     /// <summary>
+    /// Fires the supplier-facing "new booking received" notification.
+    /// Best-effort: any failure (notification service missing, DB error,
+    /// etc.) is swallowed so the booking creation always succeeds.
+    /// </summary>
+    private async Task NotifySupplierBookingReceivedAsync(
+        Vehicle vehicle,
+        Booking booking,
+        CancellationToken cancellationToken)
+    {
+        if (_notificationService is null) return;
+
+        // Defensive: a vehicle without an owner can't be notified.
+        if (vehicle.UserId == Guid.Empty) return;
+
+        var vehicleLabel = string.IsNullOrWhiteSpace(vehicle.Make) && string.IsNullOrWhiteSpace(vehicle.Model)
+            ? "your vehicle"
+            : $"{vehicle.Make} {vehicle.Model}".Trim();
+        var bookingLabel = string.IsNullOrWhiteSpace(booking.BookingNumber)
+            ? booking.Id.ToString()
+            : booking.BookingNumber!;
+
+        try
+        {
+            await _notificationService.CreateNotificationAsync(
+                vehicle.UserId,
+                "New booking received",
+                $"You received a new booking ({bookingLabel}) for {vehicleLabel}.",
+                SupplierNotificationTypes.Format(SupplierNotificationTypes.BookingReceived, booking.Id),
+                cancellationToken);
+        }
+        catch
+        {
+            // Best-effort only.
+        }
+    }
+
+    /// <summary>
     /// Creates a notification for the customer after booking creation.
     /// Requirement 4.8: Create notification for customer
     /// Wrapped in try/catch so notification failures never break the booking flow.
@@ -544,6 +586,24 @@ public class BookingService : IBookingService
                         $"You can now leave a review for booking {bookingLabel}.",
                         "ReviewAvailable",
                         cancellationToken);
+
+                    // Supplier-facing "booking completed" notification. Uses
+                    // a dedicated tag (BookingCompletedSupplier) so it can't
+                    // be confused with the customer-facing "BookingCompleted"
+                    // tag above. Skip if the booking has no related vehicle
+                    // owner (defensive — shouldn't happen for completed
+                    // bookings).
+                    if (booking.Vehicle is not null && booking.Vehicle.UserId != Guid.Empty)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            booking.Vehicle.UserId,
+                            "Booking completed",
+                            $"Booking {bookingLabel} has been completed.",
+                            SupplierNotificationTypes.Format(
+                                SupplierNotificationTypes.BookingCompletedSupplier,
+                                booking.Id),
+                            cancellationToken);
+                    }
                     break;
             }
         }

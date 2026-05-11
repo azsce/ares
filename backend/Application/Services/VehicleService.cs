@@ -16,17 +16,23 @@ public class VehicleService : IVehicleService
     private readonly IReviewRepository _reviewRepository;
     private readonly IBookingRepository _bookingRepository;
     private readonly IApplicationDbContext _context;
+    // Nullable + optional so existing unit-test wiring that doesn't pass a
+    // notification service keeps compiling; supplier-notification firing is
+    // therefore best-effort, not required.
+    private readonly INotificationService? _notificationService;
 
     public VehicleService(
         IVehicleRepository vehicleRepository,
         IReviewRepository reviewRepository,
         IBookingRepository bookingRepository,
-        IApplicationDbContext context)
+        IApplicationDbContext context,
+        INotificationService? notificationService = null)
     {
         _vehicleRepository = vehicleRepository;
         _reviewRepository = reviewRepository;
         _bookingRepository = bookingRepository;
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<PagedResult<VehicleListDto>> SearchVehiclesAsync(
@@ -597,19 +603,82 @@ public class VehicleService : IVehicleService
         if (request.Description != null)
             vehicle.Description = request.Description;
         
+        // Capture the previous status BEFORE we mutate `vehicle.Status` so we
+        // can detect a Pending → Approved / Rejected transition and fire the
+        // matching supplier notification once the save succeeds.
+        var previousStatus = vehicle.Status;
         if (!string.IsNullOrWhiteSpace(request.Status))
             vehicle.Status = request.Status;
-        
+
         if (!string.IsNullOrWhiteSpace(request.AvailabilityStatus))
             vehicle.AvailabilityStatus = request.AvailabilityStatus;
 
         await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
         await _vehicleRepository.SaveChangesAsync(cancellationToken);
 
+        // Best-effort supplier notification — never block the update path.
+        await NotifyVehicleStatusTransitionAsync(vehicle, previousStatus, cancellationToken);
+
         return new VehicleResponse(
             vehicleId,
             "Vehicle updated successfully"
         );
+    }
+
+    /// <summary>
+    /// Fires the supplier-facing notification when a vehicle's admin status
+    /// transitions to Approved or Rejected. Best-effort — wrapped in try/catch
+    /// so notification-service failures never break the underlying vehicle
+    /// update. Compares case-insensitively because Vehicle.Status is a
+    /// free-form string in the schema ("Approved" / "approved" / "Active"
+    /// all coexist in legacy data).
+    /// </summary>
+    private async Task NotifyVehicleStatusTransitionAsync(
+        Vehicle vehicle,
+        string? previousStatus,
+        CancellationToken cancellationToken)
+    {
+        if (_notificationService is null) return;
+
+        var newStatus = vehicle.Status;
+        if (string.IsNullOrWhiteSpace(newStatus)) return;
+
+        // Only notify on a real transition (don't re-send if the status
+        // didn't actually change — UpdateVehicleAsync is called on every
+        // edit).
+        var sameAsBefore = string.Equals(previousStatus, newStatus, StringComparison.OrdinalIgnoreCase);
+        if (sameAsBefore) return;
+
+        var label = string.IsNullOrWhiteSpace(vehicle.Make) && string.IsNullOrWhiteSpace(vehicle.Model)
+            ? "your vehicle"
+            : $"{vehicle.Make} {vehicle.Model}".Trim();
+
+        try
+        {
+            if (string.Equals(newStatus, "Approved", StringComparison.OrdinalIgnoreCase))
+            {
+                await _notificationService.CreateNotificationAsync(
+                    vehicle.UserId,
+                    "Vehicle approved",
+                    $"{label} has been approved and is now visible to customers.",
+                    SupplierNotificationTypes.Format(SupplierNotificationTypes.VehicleApproved, vehicle.Id),
+                    cancellationToken);
+            }
+            else if (string.Equals(newStatus, "Rejected", StringComparison.OrdinalIgnoreCase))
+            {
+                await _notificationService.CreateNotificationAsync(
+                    vehicle.UserId,
+                    "Vehicle rejected",
+                    $"{label} was rejected by an admin. Open the vehicle for details.",
+                    SupplierNotificationTypes.Format(SupplierNotificationTypes.VehicleRejected, vehicle.Id),
+                    cancellationToken);
+            }
+        }
+        catch
+        {
+            // Best-effort: never break the vehicle update because a
+            // notification couldn't be saved.
+        }
     }
 
     public async Task<VehicleResponse> DeleteVehicleAsync(

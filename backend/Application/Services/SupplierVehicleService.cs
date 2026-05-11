@@ -38,17 +38,23 @@ public class SupplierVehicleService : ISupplierVehicleService
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IBookingRepository _bookingRepository;
     private readonly ILogger<SupplierVehicleService> _logger;
+    // Nullable / optional: supplier-notification firing is best-effort, and
+    // unit-test wiring that doesn't supply a notification service must keep
+    // compiling.
+    private readonly INotificationService? _notificationService;
 
     public SupplierVehicleService(
         IApplicationDbContext context,
         IVehicleRepository vehicleRepository,
         IBookingRepository bookingRepository,
-        ILogger<SupplierVehicleService> logger)
+        ILogger<SupplierVehicleService> logger,
+        INotificationService? notificationService = null)
     {
         _context = context;
         _vehicleRepository = vehicleRepository;
         _bookingRepository = bookingRepository;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <inheritdoc />
@@ -258,6 +264,30 @@ public class SupplierVehicleService : ISupplierVehicleService
         _logger.LogInformation(
             "Supplier {SupplierId} created vehicle {VehicleId} (Pending)",
             supplierId, created.Id);
+
+        // Best-effort "pending review" notification — wrapped in try/catch
+        // so a notification-service failure can never cause the create
+        // request to roll back. Mirrors the pattern used in BookingService.
+        if (_notificationService is not null)
+        {
+            try
+            {
+                var label = string.IsNullOrWhiteSpace(created.Make) && string.IsNullOrWhiteSpace(created.Model)
+                    ? "Your vehicle"
+                    : $"{created.Make} {created.Model}".Trim();
+
+                await _notificationService.CreateNotificationAsync(
+                    supplierId,
+                    "Vehicle pending review",
+                    $"{label} has been submitted and is pending admin review.",
+                    SupplierNotificationTypes.Format(SupplierNotificationTypes.VehiclePendingReview, created.Id),
+                    cancellationToken);
+            }
+            catch
+            {
+                // Best-effort only.
+            }
+        }
 
         return new VehicleResponse(created.Id, "Vehicle created successfully");
     }

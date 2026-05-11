@@ -119,6 +119,9 @@ builder.Services.AddScoped<IPublicDestinationService, PublicDestinationService>(
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ISupplierDashboardService, SupplierDashboardService>();
 builder.Services.AddScoped<ISupplierVehicleService, SupplierVehicleService>();
+builder.Services.AddScoped<ISupplierBookingService, SupplierBookingService>();
+builder.Services.AddScoped<ISupplierEarningsService, SupplierEarningsService>();
+builder.Services.AddScoped<ISupplierNotificationService, SupplierNotificationService>();
 builder.Services.AddScoped<Backend.Application.Services.ISettingsService, Backend.Infrastructure.Services.SettingsService>();
 builder.Services.AddHostedService<Backend.Infrastructure.Services.BookingStatusUpdateService>();
 

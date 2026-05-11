@@ -45,6 +45,7 @@ namespace Backend.Infrastructure.Data
         // Explicit interface implementation for IApplicationDbContext
         IQueryable<Vehicle> IApplicationDbContext.Vehicles => Vehicles;
         IQueryable<Booking> IApplicationDbContext.Bookings => Bookings;
+        IQueryable<BookingPayment> IApplicationDbContext.Payments => Payments;
         IQueryable<Review> IApplicationDbContext.Reviews => Reviews;
         IQueryable<Favorite> IApplicationDbContext.Favorites => Favorites;
         IQueryable<VehicleFeature> IApplicationDbContext.VehicleFeatures => VehicleFeatures;
