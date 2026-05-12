@@ -530,6 +530,21 @@ public class BookingService : IBookingService
         {
             // Swallow — notifications are best-effort and must not break the booking flow.
         }
+
+        // Fan-out to admins so the admin notification bell reflects real
+        // platform activity. Best-effort — already wrapped internally.
+        try
+        {
+            await _notificationService.NotifyAdminsAsync(
+                "New booking created",
+                $"A new booking {bookingNumber} has been created and is awaiting confirmation.",
+                "BookingPending",
+                cancellationToken);
+        }
+        catch
+        {
+            // Best-effort only.
+        }
     }
 
     /// <summary>
@@ -560,6 +575,11 @@ public class BookingService : IBookingService
                         $"Your booking {bookingLabel} has been approved. Get ready for your trip!",
                         "BookingApproved",
                         cancellationToken);
+                    await _notificationService.NotifyAdminsAsync(
+                        "Booking approved",
+                        $"Booking {bookingLabel} has been approved.",
+                        "BookingApproved",
+                        cancellationToken);
                     break;
 
                 case Backend.Domain.Entities.Enums.BookingStatus.Cancelled:
@@ -567,6 +587,11 @@ public class BookingService : IBookingService
                         booking.UserId,
                         "Booking Rejected",
                         $"Your booking {bookingLabel} has been rejected or cancelled. Please review your bookings for details.",
+                        "BookingRejected",
+                        cancellationToken);
+                    await _notificationService.NotifyAdminsAsync(
+                        "Booking rejected",
+                        $"Booking {bookingLabel} has been rejected or cancelled.",
                         "BookingRejected",
                         cancellationToken);
                     break;
@@ -604,6 +629,12 @@ public class BookingService : IBookingService
                                 booking.Id),
                             cancellationToken);
                     }
+
+                    await _notificationService.NotifyAdminsAsync(
+                        "Booking completed",
+                        $"Booking {bookingLabel} has been completed.",
+                        "BookingCompleted",
+                        cancellationToken);
                     break;
             }
         }

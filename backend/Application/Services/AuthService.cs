@@ -19,6 +19,9 @@ public class AuthService : IAuthService
     private readonly IApplicationDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    // Optional + nullable so existing unit/property tests keep compiling
+    // without a notification mock. Admin fan-out is best-effort.
+    private readonly INotificationService? _notificationService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -27,7 +30,8 @@ public class AuthService : IAuthService
         ILogger<AuthService> logger,
         IApplicationDbContext context,
         IConfiguration configuration,
-        IEmailService emailService)
+        IEmailService emailService,
+        INotificationService? notificationService = null)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -36,6 +40,7 @@ public class AuthService : IAuthService
         _context = context;
         _configuration = configuration;
         _emailService = emailService;
+        _notificationService = notificationService;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -101,6 +106,27 @@ public class AuthService : IAuthService
         await _emailService.SendEmailAsync(user.Email, subject, message);
 
         _logger.LogInformation("User registered successfully: {UserId}, Email: {Email}. Verification email sent.", user.Id, user.Email);
+
+        // Fan-out to admins so the admin notification feed reflects real
+        // user signups (treated as the "verification request submitted"
+        // event in this project — registration triggers email verification).
+        if (_notificationService is not null)
+        {
+            try
+            {
+                var displayName = $"{user.FirstName} {user.LastName}".Trim();
+                if (string.IsNullOrWhiteSpace(displayName)) displayName = user.Email!;
+                await _notificationService.NotifyAdminsAsync(
+                    "New user registered",
+                    $"{displayName} ({user.Email}) signed up and is pending email verification.",
+                    "UserRegistered",
+                    cancellationToken);
+            }
+            catch
+            {
+                // Best-effort only.
+            }
+        }
 
         return new AuthResponse(
             UserId: user.Id,
@@ -293,6 +319,27 @@ public class AuthService : IAuthService
         }
 
         _logger.LogInformation("Email verified successfully for user: {UserId}", userId);
+
+        // Fan-out to admins — this is the closest event the codebase has to
+        // a "verification approved" moment for a user. Best-effort.
+        if (_notificationService is not null)
+        {
+            try
+            {
+                var displayName = $"{user.FirstName} {user.LastName}".Trim();
+                if (string.IsNullOrWhiteSpace(displayName)) displayName = user.Email ?? userId;
+                await _notificationService.NotifyAdminsAsync(
+                    "User email verified",
+                    $"{displayName} verified their email address.",
+                    "UserVerified",
+                    cancellationToken);
+            }
+            catch
+            {
+                // Best-effort only.
+            }
+        }
+
         return true;
     }
 

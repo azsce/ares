@@ -19,19 +19,24 @@ public class SupplierService : ISupplierService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly ILogger<SupplierService> _logger;
+    // Optional + nullable so existing unit tests keep compiling without
+    // a notification-service mock. Admin fan-out is best-effort.
+    private readonly INotificationService? _notificationService;
 
     public SupplierService(
         ISupplierRepository supplierRepository,
         IUserRepository userRepository,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
-        ILogger<SupplierService> logger)
+        ILogger<SupplierService> logger,
+        INotificationService? notificationService = null)
     {
         _supplierRepository = supplierRepository;
         _userRepository = userRepository;
         _userManager = userManager;
         _roleManager = roleManager;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -278,6 +283,27 @@ public class SupplierService : ISupplierService
         await _supplierRepository.UpsertCompanyProfileAsync(companyProfile, cancellationToken);
 
         _logger.LogInformation("Successfully created supplier {SupplierId} with email {Email}", supplier.Id, request.Email);
+
+        // Fan-out to other admins so the admin notification feed reflects
+        // real platform activity. Best-effort — never roll back the create.
+        if (_notificationService is not null)
+        {
+            try
+            {
+                var companyLabel = string.IsNullOrWhiteSpace(request.CompanyName)
+                    ? $"{request.FirstName} {request.LastName}".Trim()
+                    : request.CompanyName!;
+                await _notificationService.NotifyAdminsAsync(
+                    "New supplier registered",
+                    $"{companyLabel} ({request.Email}) was registered as a supplier.",
+                    "SupplierRegistered",
+                    cancellationToken);
+            }
+            catch
+            {
+                // Best-effort only.
+            }
+        }
 
         return new SupplierManagementResponse(
             Success: true,

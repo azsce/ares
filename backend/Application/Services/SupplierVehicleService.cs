@@ -282,6 +282,13 @@ public class SupplierVehicleService : ISupplierVehicleService
                     $"{label} has been submitted and is pending admin review.",
                     SupplierNotificationTypes.Format(SupplierNotificationTypes.VehiclePendingReview, created.Id),
                     cancellationToken);
+
+                // Notify admins so they can review the new submission.
+                await _notificationService.NotifyAdminsAsync(
+                    "New vehicle pending review",
+                    $"{label} was submitted by a supplier and is awaiting review.",
+                    "VehiclePendingReview",
+                    cancellationToken);
             }
             catch
             {

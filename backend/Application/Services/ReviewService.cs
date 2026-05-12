@@ -17,17 +17,22 @@ public class ReviewService : IReviewService
     private readonly IBookingRepository _bookingRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IApplicationDbContext _context;
+    // Optional + nullable so existing unit tests that don't pass a notification
+    // service keep compiling. Admin fan-out below is therefore best-effort.
+    private readonly INotificationService? _notificationService;
 
     public ReviewService(
         IReviewRepository reviewRepository,
         IBookingRepository bookingRepository,
         IVehicleRepository vehicleRepository,
-        IApplicationDbContext context)
+        IApplicationDbContext context,
+        INotificationService? notificationService = null)
     {
         _reviewRepository = reviewRepository;
         _bookingRepository = bookingRepository;
         _vehicleRepository = vehicleRepository;
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<PagedResult<ReviewDto>> GetVehicleReviewsAsync(
@@ -128,6 +133,27 @@ public class ReviewService : IReviewService
 
         var createdReview = await _reviewRepository.AddAsync(review, cancellationToken);
         await _reviewRepository.SaveChangesAsync(cancellationToken);
+
+        // Fan-out to admins so the admin notification feed reflects real
+        // platform activity. Best-effort — never roll back the review save.
+        if (_notificationService is not null)
+        {
+            try
+            {
+                var vehicleLabel = string.IsNullOrWhiteSpace(vehicle.Make) && string.IsNullOrWhiteSpace(vehicle.Model)
+                    ? "a vehicle"
+                    : $"{vehicle.Make} {vehicle.Model}".Trim();
+                await _notificationService.NotifyAdminsAsync(
+                    "New review submitted",
+                    $"A customer submitted a {request.Rating}-star review for {vehicleLabel}.",
+                    "ReviewSubmitted",
+                    cancellationToken);
+            }
+            catch
+            {
+                // Best-effort only.
+            }
+        }
 
         return new ReviewResponse(
             createdReview.Id,
