@@ -77,7 +77,7 @@ export default function AdminVerificationsPage() {
     try {
       setLoading(true);
       const data = await getAdminVerifications(page, PAGE_SIZE, statusFilter);
-      setVerifications(data.data || []);
+      setVerifications(data.data);
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
     } catch (err) {
@@ -189,8 +189,8 @@ export default function AdminVerificationsPage() {
                         flexShrink: 0,
                       }}
                     >
-                      {v.userFirstName?.[0]}
-                      {v.userLastName?.[0]}
+                      {v.userFirstName[0]}
+                      {v.userLastName[0]}
                     </Avatar>
                     <Box sx={{ minWidth: 0 }}>
                       <Typography noWrap sx={{ fontWeight: 600, fontSize: 14 }}>
@@ -225,7 +225,13 @@ export default function AdminVerificationsPage() {
                 </Typography>
 
                 <Stack direction="row" spacing={1}>
-                  <Button size="small" variant="outlined" onClick={() => { openViewModal(v); }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      openViewModal(v);
+                    }}
+                  >
                     View
                   </Button>
                   {status === "pending" && (
@@ -234,12 +240,19 @@ export default function AdminVerificationsPage() {
                         size="small"
                         variant="contained"
                         color="success"
-                        onClick={() => handleApprove(v.id)}
+                        onClick={() => void handleApprove(v.id)}
                         sx={{ color: "common.white" }}
                       >
                         Approve
                       </Button>
-                      <Button size="small" variant="contained" color="error" onClick={() => { openRejectModal(v); }}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="error"
+                        onClick={() => {
+                          openRejectModal(v);
+                        }}
+                      >
                         Reject
                       </Button>
                     </>
@@ -249,7 +262,14 @@ export default function AdminVerificationsPage() {
             );
           })}
           <Stack direction="column" spacing={1} sx={{ alignItems: "center", mt: 2, mb: 1 }}>
-            <Pagination count={totalPages} page={page} onChange={(_, v) => { setPage(v); }} size="small" />
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, v) => {
+                setPage(v);
+              }}
+              size="small"
+            />
           </Stack>
         </Box>
       );
@@ -287,8 +307,8 @@ export default function AdminVerificationsPage() {
                             fontSize: 16,
                           }}
                         >
-                          {v.userFirstName?.[0]}
-                          {v.userLastName?.[0]}
+                          {v.userFirstName[0]}
+                          {v.userLastName[0]}
                         </Avatar>
                         <Box>
                           <Typography sx={{ fontWeight: 600, fontSize: 15 }}>
@@ -328,7 +348,12 @@ export default function AdminVerificationsPage() {
                     <TableCell align="right">
                       <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
                         <Tooltip title="View Details">
-                          <IconButton onClick={() => { openViewModal(v); }} size="small">
+                          <IconButton
+                            onClick={() => {
+                              openViewModal(v);
+                            }}
+                            size="small"
+                          >
                             <VisibilityOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -336,12 +361,18 @@ export default function AdminVerificationsPage() {
                         {status === "pending" && (
                           <>
                             <Tooltip title="Approve">
-                              <IconButton onClick={() => handleApprove(v.id)} size="small" color="success">
+                              <IconButton onClick={() => void handleApprove(v.id)} size="small" color="success">
                                 <CheckCircleIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Reject">
-                              <IconButton onClick={() => { openRejectModal(v); }} size="small" color="error">
+                              <IconButton
+                                onClick={() => {
+                                  openRejectModal(v);
+                                }}
+                                size="small"
+                                color="error"
+                              >
                                 <CloseIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
@@ -361,7 +392,14 @@ export default function AdminVerificationsPage() {
           sx={{ gap: 1, justifyContent: "space-between", alignItems: "center", p: 2 }}
         >
           <Typography variant="caption">Total Records: {totalCount}</Typography>
-          <Pagination count={totalPages} page={page} onChange={(_, v) => { setPage(v); }} size="small" />
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, v) => {
+              setPage(v);
+            }}
+            size="small"
+          />
         </Stack>
       </Paper>
     );
@@ -407,7 +445,14 @@ export default function AdminVerificationsPage() {
       {renderContent()}
 
       {/* VIEW MODAL */}
-      <Dialog open={viewModalOpen} onClose={() => { setViewModalOpen(false); }} maxWidth="sm" fullWidth>
+      <Dialog
+        open={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>Verification Details</DialogTitle>
         <DialogContent dividers>
           {selectedVerification && (
@@ -496,7 +541,13 @@ export default function AdminVerificationsPage() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setViewModalOpen(false); }}>Close</Button>
+          <Button
+            onClick={() => {
+              setViewModalOpen(false);
+            }}
+          >
+            Close
+          </Button>
           {selectedVerification?.status.toLowerCase() === "pending" && (
             <>
               <Button
@@ -526,7 +577,14 @@ export default function AdminVerificationsPage() {
       </Dialog>
 
       {/* REJECT MODAL */}
-      <Dialog open={rejectModalOpen} onClose={() => { setRejectModalOpen(false); }} maxWidth="xs" fullWidth>
+      <Dialog
+        open={rejectModalOpen}
+        onClose={() => {
+          setRejectModalOpen(false);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>Reject Verification</DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2" sx={{ mb: 2 }}>
@@ -538,14 +596,21 @@ export default function AdminVerificationsPage() {
             rows={3}
             label="Rejection Reason"
             value={rejectReason}
-            onChange={e => { setRejectReason(e.target.value); }}
+            onChange={e => {
+              setRejectReason(e.target.value);
+            }}
             required
             error={rejectReason.trim() === ""}
             helperText={rejectReason.trim() === "" ? "Reason is required" : ""}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setRejectModalOpen(false); }} disabled={rejectLoading}>
+          <Button
+            onClick={() => {
+              setRejectModalOpen(false);
+            }}
+            disabled={rejectLoading}
+          >
             Cancel
           </Button>
           <Button
@@ -563,10 +628,18 @@ export default function AdminVerificationsPage() {
       <Snackbar
         open={toast.open}
         autoHideDuration={6000}
-        onClose={() => { setToast({ ...toast, open: false }); }}
+        onClose={() => {
+          setToast({ ...toast, open: false });
+        }}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert onClose={() => { setToast({ ...toast, open: false }); }} severity={toast.severity} sx={{ width: "100%" }}>
+        <Alert
+          onClose={() => {
+            setToast({ ...toast, open: false });
+          }}
+          severity={toast.severity}
+          sx={{ width: "100%" }}
+        >
           {toast.message}
         </Alert>
       </Snackbar>

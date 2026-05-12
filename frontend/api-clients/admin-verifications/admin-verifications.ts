@@ -35,7 +35,7 @@ export async function getAdminVerifications(
 ): Promise<PagedResult<AdminVerificationDto>> {
   const session = await getSession();
 
-  let url = `/api/admin/verifications?page=${page}&pageSize=${pageSize}`;
+  let url = `/api/admin/verifications?page=${String(page)}&pageSize=${String(pageSize)}`;
   if (status && status !== "all") {
     url += `&status=${status}`;
   }
