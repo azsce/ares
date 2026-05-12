@@ -130,3 +130,10 @@ Server=mssql,1433;Database=ares;User=sa;Password=...;TrustServerCertificate=True
 ```
 
 Outside the devcontainer, replace `mssql` with `localhost`.
+
+## Core Services
+
+### Notification Service
+The `NotificationService` handles both user-facing notifications and platform-wide admin alerts.
+- **Admin Fan-out**: Automatically alerts all administrators when key platform events occur (e.g., new user registration, new supplier submission, vehicle pending review).
+- **Extensible**: Integrates with other services via `INotificationService` using a best-effort, non-blocking approach to ensure primary operations remain performant.
