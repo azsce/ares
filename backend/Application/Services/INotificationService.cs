@@ -41,4 +41,17 @@ public interface INotificationService
         string message,
         string? type,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates the same notification for every user in the "Admin" role.
+    /// Used to fan-out real system events (new booking, booking status change,
+    /// vehicle submitted, etc.) so admins see them in the admin notification
+    /// bell / page. Implementation is best-effort and must not throw if no
+    /// admins are configured or if user-role lookup is unavailable.
+    /// </summary>
+    Task NotifyAdminsAsync(
+        string title,
+        string message,
+        string? type,
+        CancellationToken cancellationToken = default);
 }

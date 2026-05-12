@@ -1,6 +1,7 @@
 using Backend.Application.DTOs.Notification;
 using Backend.Application.Interfaces;
 using Backend.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace Backend.Application.Services;
@@ -12,10 +13,22 @@ namespace Backend.Application.Services;
 public class NotificationService : INotificationService
 {
     private readonly INotificationRepository _notificationRepository;
+    private readonly UserManager<ApplicationUser>? _userManager;
 
+    // Kept for backwards compatibility with existing unit tests that only mock
+    // the repository. DI will prefer the richer constructor below at runtime.
     public NotificationService(INotificationRepository notificationRepository)
     {
         _notificationRepository = notificationRepository;
+        _userManager = null;
+    }
+
+    public NotificationService(
+        INotificationRepository notificationRepository,
+        UserManager<ApplicationUser> userManager)
+    {
+        _notificationRepository = notificationRepository;
+        _userManager = userManager;
     }
 
     public async Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(
@@ -93,5 +106,66 @@ public class NotificationService : INotificationService
         CancellationToken cancellationToken = default)
     {
         return await _notificationRepository.GetUnreadCountAsync(userId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Fan-out helper: writes the same notification for every user in the
+    /// "Admin" role. Best-effort — silently no-ops if the role lookup is
+    /// unavailable (e.g. tests that use the legacy single-arg constructor)
+    /// or if no admins are configured. Per-admin failures are swallowed so
+    /// one bad row never aborts the rest.
+    /// </summary>
+    public async Task NotifyAdminsAsync(
+        string title,
+        string message,
+        string? type,
+        CancellationToken cancellationToken = default)
+    {
+        if (_userManager is null) return;
+
+        IList<ApplicationUser> admins;
+        try
+        {
+            admins = await _userManager.GetUsersInRoleAsync("Admin");
+        }
+        catch
+        {
+            // Identity store unavailable — best-effort, swallow.
+            return;
+        }
+
+        if (admins.Count == 0) return;
+
+        foreach (var admin in admins)
+        {
+            try
+            {
+                var notification = new Notification
+                {
+                    UserId = admin.Id,
+                    Title = title,
+                    Message = message,
+                    Type = type,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _notificationRepository.AddAsync(notification, cancellationToken);
+            }
+            catch
+            {
+                // Skip this admin and continue with the rest.
+            }
+        }
+
+        try
+        {
+            await _notificationRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            // Best-effort save — swallow so the calling business operation
+            // (booking creation, vehicle submission, …) never rolls back.
+        }
     }
 }
