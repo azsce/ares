@@ -87,7 +87,7 @@ export interface CarPayload {
 }
 
 export const createCar = async (accessToken: string, payload: CarPayload) => {
-  const res = await fetch(toApiUrl("/api/admin/cars/create"), {
+  const res = await fetch(toApiUrl("/api/admin/vehicles/create"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export const deleteCar = async (accessToken: string, carId: string) => {
 // Update car
 
 export const updateCar = async (accessToken: string, carId: string, payload: CarPayload) => {
-  const res = await fetch(toApiUrl(`/api/admin/cars/${carId}/edit`), {
+  const res = await fetch(toApiUrl(`/api/admin/vehicles/${carId}/edit`), {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

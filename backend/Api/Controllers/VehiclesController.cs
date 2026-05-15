@@ -326,7 +326,7 @@ public class VehiclesController : ControllerBase
     /// <param name="request">Vehicle creation request</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Vehicle creation response</returns>
-    [HttpPost("/api/admin/cars/create")]
+    [HttpPost("/api/admin/vehicles/create")]
     [Authorize(Roles = "Admin,Supplier")]
     [ProducesResponseType(typeof(VehicleResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -365,7 +365,7 @@ public class VehiclesController : ControllerBase
     /// <param name="request">Vehicle update request</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Vehicle update response</returns>
-    [HttpPut("/api/admin/cars/{id}/edit")]
+    [HttpPut("/api/admin/vehicles/{id}/edit")]
     [Authorize(Roles = "Admin,Supplier")]
     [ProducesResponseType(typeof(VehicleResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -414,7 +414,7 @@ public class VehiclesController : ControllerBase
     /// <param name="id">Vehicle ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Vehicle deletion response</returns>
-    [HttpDelete("/api/admin/cars/{id}/delete")]
+    [HttpDelete("/api/admin/vehicles/{id}/delete")]
     [Authorize(Roles = "Admin,Supplier")]
     [ProducesResponseType(typeof(VehicleResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -445,7 +445,7 @@ public class VehiclesController : ControllerBase
     /// <param name="id">Vehicle ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Boolean indicating if vehicle has active bookings</returns>
-    [HttpGet("/api/admin/cars/{id}/check-bookings")]
+    [HttpGet("/api/admin/vehicles/{id}/check-bookings")]
     [Authorize(Roles = "Admin,Supplier")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
