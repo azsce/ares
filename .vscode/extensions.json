@@ -10,6 +10,7 @@
         "esbenp.prettier-vscode",
         "maciejdems.add-to-gitignore",
         "ms-mssql.mssql",
-        "humao.rest-client"
+        "humao.rest-client",
+        "emilast.logfilehighlighter"
     ]
 }
