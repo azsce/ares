@@ -18,10 +18,12 @@ public interface IApplicationDbContext
     IQueryable<UserAddress> UserAddresses { get; }
     IQueryable<Verification> Verifications { get; }
     IQueryable<Notification> Notifications { get; }
-    IQueryable<SystemSetting> SystemSettings { get; }    
+    IQueryable<SystemSetting> SystemSettings { get; }
+    IQueryable<Driver> Drivers { get; }
     void AddFavorite(Favorite favorite);
     void AddBookingCancellation(BookingCancellation cancellation);
     void AddUserAddress(UserAddress userAddress);
     void AddVerification(Verification verification);
+    void AddDriver(Driver driver);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

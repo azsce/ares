@@ -55,6 +55,7 @@ namespace Backend.Infrastructure.Data
         IQueryable<Verification> IApplicationDbContext.Verifications => Verifications;
         IQueryable<Notification> IApplicationDbContext.Notifications => Notifications;
         IQueryable<SystemSetting> IApplicationDbContext.SystemSettings => SystemSettings;
+        IQueryable<Driver> IApplicationDbContext.Drivers => Drivers;
 
         public void AddFavorite(Favorite favorite)
         {
@@ -74,6 +75,11 @@ namespace Backend.Infrastructure.Data
         public void AddVerification(Verification verification)
         {
             Verifications.Add(verification);
+        }
+
+        public void AddDriver(Driver driver)
+        {
+            Drivers.Add(driver);
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
