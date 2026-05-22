@@ -1,28 +1,16 @@
 import { Metadata } from "next";
-
-/**
- * Supplier Booking Details — placeholder.
- *
- * The backend endpoint (`GET /api/supplier/bookings/{id}`) is already
- * implemented and ownership-scoped (returns 404 when the booking
- * belongs to another supplier). This page intentionally renders only a
- * title; the actual details UI will be implemented in a follow-up
- * iteration.
- *
- * See `./README.md` for the planned features, expected payload shape,
- * and security rules.
- */
+import SupplierBookingDetailsClient from "./_components/SupplierBookingDetailsClient";
 
 export const metadata: Metadata = {
   title: "Booking Details | ARES Supplier",
-  description: "Supplier Booking Details — placeholder page (UI pending).",
+  description: "Supplier Booking Details.",
 };
 
-export default function SupplierBookingDetailsPage() {
-  return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Supplier Booking Details Page</h1>
-      <p>This page is a placeholder. The booking details UI will be implemented in a future iteration.</p>
-    </main>
-  );
+export default async function SupplierBookingDetailsPage({
+  params,
+}: {
+  readonly params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <SupplierBookingDetailsClient bookingId={id} />;
 }
