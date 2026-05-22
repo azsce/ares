@@ -17,10 +17,10 @@ namespace Backend.Infrastructure.Data;
 public static class VehicleSeeder
 {
     // Distribute vehicles across the four demo suppliers
-    private static readonly Guid SupplierId      = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-    private static readonly Guid SupplierTwoId   = Guid.Parse("abababab-abab-abab-abab-abababababab");
+    private static readonly Guid SupplierId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    private static readonly Guid SupplierTwoId = Guid.Parse("abababab-abab-abab-abab-abababababab");
     private static readonly Guid SupplierThreeId = Guid.Parse("cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd");
-    private static readonly Guid SupplierFourId  = Guid.Parse("efefefef-efef-efef-efef-efefefefefef");
+    private static readonly Guid SupplierFourId = Guid.Parse("efefefef-efef-efef-efef-efefefefefef");
 
     // Images are stored locally under wwwroot/uploads/seed/vehicles/<make>-<model>-<year>/img-N.jpg
     // Downloaded by: backend/Infrastructure/Data/SeedData/download-car-images.ts
@@ -118,44 +118,44 @@ public static class VehicleSeeder
             if (existing != null)
             {
                 // Update in place
-                existing.UserId           = supplierId;
-                existing.Make             = def.Make;
-                existing.Model            = def.Model;
-                existing.Year             = def.Year;
-                existing.Color            = def.Color;
-                existing.LicensePlate     = GeneratePlate(def.Make, def.Year, i);
-                existing.Transmission     = def.Transmission;
-                existing.FuelType         = def.FuelType;
-                existing.Seats            = def.Seats;
-                existing.PricePerDay      = def.PricePerDay;
-                existing.LocationCity     = def.City;
-                existing.Description      = BuildDescription(def.Make, def.Model, def.Year, def.Category);
-                existing.Status           = def.Category;
+                existing.UserId = supplierId;
+                existing.Make = def.Make;
+                existing.Model = def.Model;
+                existing.Year = def.Year;
+                existing.Color = def.Color;
+                existing.LicensePlate = GeneratePlate(def.Make, def.Year, i);
+                existing.Transmission = def.Transmission;
+                existing.FuelType = def.FuelType;
+                existing.Seats = def.Seats;
+                existing.PricePerDay = def.PricePerDay;
+                existing.LocationCity = def.City;
+                existing.Description = BuildDescription(def.Make, def.Model, def.Year, def.Category);
+                existing.Status = def.Category;
                 existing.AvailabilityStatus = "Available";
-                existing.IsActive         = true;
+                existing.IsActive = true;
                 vehicle = existing;
             }
             else
             {
                 vehicle = new Vehicle
                 {
-                    Id                  = vehicleId,
-                    UserId              = supplierId,
-                    Make                = def.Make,
-                    Model               = def.Model,
-                    Year                = def.Year,
-                    Color               = def.Color,
-                    LicensePlate        = GeneratePlate(def.Make, def.Year, i),
-                    Transmission        = def.Transmission,
-                    FuelType            = def.FuelType,
-                    Seats               = def.Seats,
-                    PricePerDay         = def.PricePerDay,
-                    LocationCity        = def.City,
-                    Description         = BuildDescription(def.Make, def.Model, def.Year, def.Category),
-                    Status              = def.Category,
-                    AvailabilityStatus  = "Available",
-                    IsActive            = true,
-                    ApprovedAt          = approvedBase.AddDays(i),
+                    Id = vehicleId,
+                    UserId = supplierId,
+                    Make = def.Make,
+                    Model = def.Model,
+                    Year = def.Year,
+                    Color = def.Color,
+                    LicensePlate = GeneratePlate(def.Make, def.Year, i),
+                    Transmission = def.Transmission,
+                    FuelType = def.FuelType,
+                    Seats = def.Seats,
+                    PricePerDay = def.PricePerDay,
+                    LocationCity = def.City,
+                    Description = BuildDescription(def.Make, def.Model, def.Year, def.Category),
+                    Status = def.Category,
+                    AvailabilityStatus = "Available",
+                    IsActive = true,
+                    ApprovedAt = approvedBase.AddDays(i),
                 };
                 await context.Vehicles.AddAsync(vehicle);
             }
@@ -188,11 +188,11 @@ public static class VehicleSeeder
         // 3 images per vehicle: img-1.jpg (primary), img-2.jpg, img-3.jpg
         for (var slot = 0; slot < 3; slot++)
         {
-            var fileName  = $"img-{slot + 1}.jpg";
-            var imageUrl  = $"uploads/seed/vehicles/{slug}/{fileName}";
-            var thumbUrl  = imageUrl; // same file; frontend can resize as needed
+            var fileName = $"img-{slot + 1}.jpg";
+            var imageUrl = $"uploads/seed/vehicles/{slug}/{fileName}";
+            var thumbUrl = imageUrl; // same file; frontend can resize as needed
             var isPrimary = slot == 0;
-            var order     = slot + 1;
+            var order = slot + 1;
 
             var imageId = DeterministicGuid($"image:{vehicleId}:{slot}");
 
@@ -201,20 +201,20 @@ public static class VehicleSeeder
 
             if (existing != null)
             {
-                existing.ImageUrl     = imageUrl;
+                existing.ImageUrl = imageUrl;
                 existing.ThumbnailUrl = thumbUrl;
-                existing.IsPrimary    = isPrimary;
+                existing.IsPrimary = isPrimary;
                 existing.DisplayOrder = order;
             }
             else
             {
                 await context.VehicleImages.AddAsync(new VehicleImage
                 {
-                    Id           = imageId,
-                    VehicleId    = vehicleId,
-                    ImageUrl     = imageUrl,
+                    Id = imageId,
+                    VehicleId = vehicleId,
+                    ImageUrl = imageUrl,
                     ThumbnailUrl = thumbUrl,
-                    IsPrimary    = isPrimary,
+                    IsPrimary = isPrimary,
                     DisplayOrder = order,
                 });
             }
@@ -240,18 +240,18 @@ public static class VehicleSeeder
 
             if (existing != null)
             {
-                existing.FeatureCategory   = featureCat;
-                existing.FeatureName       = name;
+                existing.FeatureCategory = featureCat;
+                existing.FeatureName = name;
                 existing.FeatureDescription = desc;
             }
             else
             {
                 await context.VehicleFeatures.AddAsync(new VehicleFeature
                 {
-                    Id                 = featureId,
-                    VehicleId          = vehicleId,
-                    FeatureCategory    = featureCat,
-                    FeatureName        = name,
+                    Id = featureId,
+                    VehicleId = vehicleId,
+                    FeatureCategory = featureCat,
+                    FeatureName = name,
                     FeatureDescription = desc,
                 });
             }
@@ -289,10 +289,10 @@ public static class VehicleSeeder
 
         return category switch
         {
-            "Compact"  => $"{ageNote} — perfect for budget-conscious travelers. The {year} {make} {model} offers excellent fuel economy and easy city parking.",
+            "Compact" => $"{ageNote} — perfect for budget-conscious travelers. The {year} {make} {model} offers excellent fuel economy and easy city parking.",
             "Standard" => $"{ageNote} — a solid choice for business or leisure. The {year} {make} {model} combines comfort with everyday practicality.",
-            "Premium"  => $"{ageNote} — delivering premium comfort and refined performance. The {year} {make} {model} is an exceptional driving experience.",
-            _          => $"The {year} {make} {model} is an excellent choice for your rental needs.",
+            "Premium" => $"{ageNote} — delivering premium comfort and refined performance. The {year} {make} {model} is an exceptional driving experience.",
+            _ => $"The {year} {make} {model} is an excellent choice for your rental needs.",
         };
     }
 }

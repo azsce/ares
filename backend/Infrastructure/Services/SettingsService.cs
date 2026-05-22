@@ -27,7 +27,7 @@ public class SettingsService : ISettingsService
 
             var json = await File.ReadAllTextAsync(_settingsFilePath, cancellationToken);
             var settings = JsonSerializer.Deserialize<SettingsDto>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
+
             return settings ?? new SettingsDto { Language = "en", Currency = "USD" };
         }
         catch (Exception)

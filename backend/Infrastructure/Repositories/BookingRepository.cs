@@ -53,7 +53,7 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
                 .Where(s => s.HasValue)
                 .Select(s => s!.Value)
                 .ToList();
-                
+
             if (enumStatuses.Any())
             {
                 query = query.Where(b => enumStatuses.Contains(b.Status));
@@ -99,10 +99,10 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         Guid vehicleId,
         CancellationToken cancellationToken = default)
     {
-        var activeStatuses = new[] { 
-            BookingStatus.Pending, 
-            BookingStatus.Confirmed, 
-            BookingStatus.Active 
+        var activeStatuses = new[] {
+            BookingStatus.Pending,
+            BookingStatus.Confirmed,
+            BookingStatus.Active
         };
         return await _dbSet
             .AnyAsync(b =>
@@ -173,7 +173,7 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
                 .Where(s => s.HasValue)
                 .Select(s => s!.Value)
                 .ToList();
-                
+
             if (enumStatuses.Any())
             {
                 query = query.Where(b => enumStatuses.Contains(b.Status));
