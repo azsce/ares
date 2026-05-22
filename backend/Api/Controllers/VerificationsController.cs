@@ -38,11 +38,11 @@ namespace Backend.Api.Controllers
             }
 
             var userId = Guid.Parse(userIdClaim.Value);
-            
+
             _logger.LogInformation("User {UserId} submitting verification request", userId);
 
             var result = await _verificationService.SubmitVerificationAsync(userId, request);
-            
+
             return Ok(result);
         }
 
@@ -63,7 +63,7 @@ namespace Backend.Api.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
 
             var result = await _verificationService.GetMyVerificationAsync(userId);
-            
+
             if (result == null)
             {
                 return NotFound(new { Message = "No verification request found for this user." });

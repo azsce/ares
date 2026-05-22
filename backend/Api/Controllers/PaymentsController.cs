@@ -54,7 +54,7 @@ public class PaymentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
-        
+
         // Get payment and verify ownership
         var payments = await _paymentService.GetPaymentHistoryAsync(
             userId,
@@ -62,7 +62,7 @@ public class PaymentsController : ControllerBase
             cancellationToken);
 
         var payment = payments.Data.FirstOrDefault(p => p.TransactionId == transactionId);
-        
+
         if (payment == null)
         {
             return NotFound(new { message = "Payment transaction not found" });
@@ -94,7 +94,7 @@ public class PaymentsController : ControllerBase
             cancellationToken);
 
         var payment = payments.Data.FirstOrDefault(p => p.TransactionId == transactionId);
-        
+
         if (payment == null)
         {
             return NotFound(new { message = "Payment transaction not found" });
@@ -110,7 +110,7 @@ public class PaymentsController : ControllerBase
         var contentType = format.ToLowerInvariant() == "pdf"
             ? "application/pdf"
             : "text/html";
-        
+
         var fileExtension = format.ToLowerInvariant() == "pdf" ? "pdf" : "html";
         var fileName = $"receipt_{transactionId}.{fileExtension}";
 
@@ -128,7 +128,7 @@ public class PaymentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
-        
+
         var request = new PaymentHistoryRequest
         {
             Status = "Pending",
@@ -153,7 +153,7 @@ public class PaymentsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
-        
+
         var request = new PaymentHistoryRequest
         {
             Status = "Failed",
@@ -201,9 +201,9 @@ public class PaymentCreationController : ControllerBase
         CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value!);
-        
+
         var result = await _paymentService.ProcessPaymentAsync(request, userId, cancellationToken);
-        
+
         if (result.Status == "Failed")
         {
             return BadRequest(result);
