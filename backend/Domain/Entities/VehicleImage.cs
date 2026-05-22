@@ -7,7 +7,7 @@ namespace Backend.Domain.Entities
     {
         [Required]
         public Guid VehicleId { get; set; }
-        
+
         [ForeignKey(nameof(VehicleId))]
         public Vehicle? Vehicle { get; set; }
 
@@ -15,6 +15,6 @@ namespace Backend.Domain.Entities
         public string ThumbnailUrl { get; set; } = string.Empty;
         public bool IsPrimary { get; set; } = false;
         public int DisplayOrder { get; set; } = 0;
-        
+
     }
 }

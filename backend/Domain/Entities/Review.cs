@@ -9,19 +9,19 @@ namespace Backend.Domain.Entities
     {
         [Required]
         public Guid BookingId { get; set; }
-        
+
         [ForeignKey(nameof(BookingId))]
         public Booking? Booking { get; set; }
 
         [Required]
         public Guid UserId { get; set; }
-        
+
         [ForeignKey(nameof(UserId))]
         public ApplicationUser? User { get; set; }
 
         [Required]
         public Guid VehicleId { get; set; }
-        
+
         [ForeignKey(nameof(VehicleId))]
         public Vehicle? Vehicle { get; set; }
 

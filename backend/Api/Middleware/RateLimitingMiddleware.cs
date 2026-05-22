@@ -6,7 +6,7 @@ public class RateLimitingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RateLimitingMiddleware> _logger;
-    
+
     // Store: IP -> Endpoint -> (RequestCount, WindowStart)
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, (int Count, DateTime WindowStart)>> _requestStore = new();
 
@@ -23,25 +23,25 @@ public class RateLimitingMiddleware
 
         // Define rate limits for specific endpoints
         var rateLimitConfig = GetRateLimitConfig(endpoint);
-        
+
         if (rateLimitConfig != null)
         {
             var (maxRequests, windowMinutes) = rateLimitConfig.Value;
-            
+
             if (!IsRequestAllowed(ipAddress, endpoint, maxRequests, windowMinutes))
             {
                 _logger.LogWarning("Rate limit exceeded for IP {IpAddress} on endpoint {Endpoint}", ipAddress, endpoint);
-                
+
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.Response.ContentType = "application/json";
-                
+
                 await context.Response.WriteAsJsonAsync(new
                 {
                     StatusCode = 429,
                     Message = "Too many requests. Please try again later.",
                     RetryAfter = $"{windowMinutes} minutes"
                 });
-                
+
                 return;
             }
         }
@@ -56,7 +56,7 @@ public class RateLimitingMiddleware
         {
             return (5, 15);
         }
-        
+
         // Registration: 5 attempts per 60 minutes (1 hour)
         if (endpoint.Contains("/api/auth/register"))
         {
