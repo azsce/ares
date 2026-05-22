@@ -1,8 +1,6 @@
 # Supplier Booking Details — Page
 
-Placeholder page for the Supplier portal booking details view. The
-backend is implemented and ready; this page is intentionally minimal
-until the UI work is scheduled.
+The UI for the Supplier portal booking details view is now implemented. It allows the supplier to view all details of a single booking made against one of their vehicles.
 
 ## Purpose
 
