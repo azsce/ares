@@ -54,7 +54,7 @@ public class BookingStatusUpdateService : BackgroundService
         // 1. Confirmed -> Active (Pickup date reached)
         var bookingsToActivate = await context.Bookings
             .Where(b => b.Status == BookingStatus.Confirmed &&
-                        b.PickupDate.HasValue && 
+                        b.PickupDate.HasValue &&
                         b.PickupDate.Value <= now)
             .ToListAsync(cancellationToken);
 
@@ -68,7 +68,7 @@ public class BookingStatusUpdateService : BackgroundService
         // 2. Active -> Completed (Return date reached)
         var bookingsToComplete = await context.Bookings
             .Where(b => b.Status == BookingStatus.Active &&
-                        b.ReturnDate.HasValue && 
+                        b.ReturnDate.HasValue &&
                         b.ReturnDate.Value <= now)
             .ToListAsync(cancellationToken);
 
@@ -82,7 +82,7 @@ public class BookingStatusUpdateService : BackgroundService
         // 3. Pending -> Cancelled (Pickup date passed but never confirmed)
         var pendingToCancel = await context.Bookings
             .Where(b => b.Status == BookingStatus.Pending &&
-                        b.PickupDate.HasValue && 
+                        b.PickupDate.HasValue &&
                         b.PickupDate.Value <= now.AddHours(-1)) // Give 1 hour grace period
             .ToListAsync(cancellationToken);
 

@@ -27,139 +27,139 @@ try
 {
     Log.Information("Starting web application");
 
-var builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(args);
 
-// Add Serilog
-builder.Host.UseSerilog();
+    // Add Serilog
+    builder.Host.UseSerilog();
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "ConnectionStrings:DefaultConnection is not set. " +
-        "Add it to backend/.env as: ConnectionStrings__DefaultConnection=<your-connection-string>");
+    // Add services to the container.
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException(
+            "ConnectionStrings:DefaultConnection is not set. " +
+            "Add it to backend/.env as: ConnectionStrings__DefaultConnection=<your-connection-string>");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(connectionString));
 
-// Register IApplicationDbContext
-builder.Services.AddScoped<IApplicationDbContext>(provider => 
-    provider.GetRequiredService<ApplicationDbContext>());
+    // Register IApplicationDbContext
+    builder.Services.AddScoped<IApplicationDbContext>(provider =>
+        provider.GetRequiredService<ApplicationDbContext>());
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+    builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options => options.SignIn.RequireConfirmedAccount = true)
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
-// Configure JWT Authentication
-var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] 
-    ?? throw new InvalidOperationException("JWT SecretKey is not configured");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] 
-    ?? throw new InvalidOperationException("JWT Issuer is not configured");
-var jwtAudience = builder.Configuration["Jwt:Audience"] 
-    ?? throw new InvalidOperationException("JWT Audience is not configured");
+    // Configure JWT Authentication
+    var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+        ?? throw new InvalidOperationException("JWT SecretKey is not configured");
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+        ?? throw new InvalidOperationException("JWT Issuer is not configured");
+    var jwtAudience = builder.Configuration["Jwt:Audience"]
+        ?? throw new InvalidOperationException("JWT Audience is not configured");
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.SaveToken = true;
-    options.RequireHttpsMetadata = false; // Set to true in production
-    options.TokenValidationParameters = new TokenValidationParameters
+    builder.Services.AddAuthentication(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
-        ClockSkew = TimeSpan.Zero
-    };
-});
-
-// Register JWT Token Service
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-
-
-// Register Generic Repositories
-builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IRepository<>), typeof(Backend.Infrastructure.Repositories.Repository<>));
-builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IPaginatedRepository<>), typeof(Backend.Infrastructure.Repositories.PaginatedRepository<>));
-
-// Register Specific Repositories
-builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
-
-
-
-
-// Register Application Services
-//builder.Services.AddScoped<IEmailService, DevelopmentEmailService>();
-// Add Email Service
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ILocationService, LocationService>();
-builder.Services.AddScoped<IVehicleService, VehicleService>();
-builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<IUserProfileService, UserProfileService>();
-builder.Services.AddScoped<IVerificationService, VerificationService>();
-builder.Services.AddScoped<IDriverLicenseService, DriverLicenseService>();
-builder.Services.AddScoped<IUserManagementService, UserManagementService>();
-builder.Services.AddScoped<ISupplierService, SupplierService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IPublicDestinationService, PublicDestinationService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<ISupplierDashboardService, SupplierDashboardService>();
-builder.Services.AddScoped<ISupplierVehicleService, SupplierVehicleService>();
-builder.Services.AddScoped<ISupplierBookingService, SupplierBookingService>();
-builder.Services.AddScoped<ISupplierEarningsService, SupplierEarningsService>();
-builder.Services.AddScoped<ISupplierNotificationService, SupplierNotificationService>();
-// ─── Inspector / Inspection workflow ──────────────────────────────────
-builder.Services.AddScoped<IInspectorManagementService, InspectorManagementService>();
-builder.Services.AddScoped<IInspectionService, InspectionService>();
-builder.Services.AddScoped<Backend.Application.Services.ISettingsService, Backend.Infrastructure.Services.SettingsService>();
-builder.Services.AddHostedService<Backend.Infrastructure.Services.BookingStatusUpdateService>();
-
-// Register FluentValidation
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
-
-// Register AutoMapper
-builder.Services.AddAutoMapper(cfg => { }, typeof(Backend.Application.Mappings.AuthMappingProfile));
-
-// Configure CORS
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
-    ?? new[] { "http://localhost:3000" };
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        options.SaveToken = true;
+        options.RequireHttpsMetadata = false; // Set to true in production
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ClockSkew = TimeSpan.Zero
+        };
     });
-});
 
-// Configure Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
+    // Register JWT Token Service
+    builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+
+    // Register Generic Repositories
+    builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IRepository<>), typeof(Backend.Infrastructure.Repositories.Repository<>));
+    builder.Services.AddScoped(typeof(Backend.Application.Interfaces.IPaginatedRepository<>), typeof(Backend.Infrastructure.Repositories.PaginatedRepository<>));
+
+    // Register Specific Repositories
+    builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+    builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+    builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+    builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+    builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+    builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+
+
+
+
+    // Register Application Services
+    //builder.Services.AddScoped<IEmailService, DevelopmentEmailService>();
+    // Add Email Service
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<ILocationService, LocationService>();
+    builder.Services.AddScoped<IVehicleService, VehicleService>();
+    builder.Services.AddScoped<IBookingService, BookingService>();
+    builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+    builder.Services.AddScoped<IVerificationService, VerificationService>();
+    builder.Services.AddScoped<IDriverLicenseService, DriverLicenseService>();
+    builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+    builder.Services.AddScoped<ISupplierService, SupplierService>();
+    builder.Services.AddScoped<IPaymentService, PaymentService>();
+    builder.Services.AddScoped<IReviewService, ReviewService>();
+    builder.Services.AddScoped<INotificationService, NotificationService>();
+    builder.Services.AddScoped<IPublicDestinationService, PublicDestinationService>();
+    builder.Services.AddScoped<IDashboardService, DashboardService>();
+    builder.Services.AddScoped<ISupplierDashboardService, SupplierDashboardService>();
+    builder.Services.AddScoped<ISupplierVehicleService, SupplierVehicleService>();
+    builder.Services.AddScoped<ISupplierBookingService, SupplierBookingService>();
+    builder.Services.AddScoped<ISupplierEarningsService, SupplierEarningsService>();
+    builder.Services.AddScoped<ISupplierNotificationService, SupplierNotificationService>();
+    // ─── Inspector / Inspection workflow ──────────────────────────────────
+    builder.Services.AddScoped<IInspectorManagementService, InspectorManagementService>();
+    builder.Services.AddScoped<IInspectionService, InspectionService>();
+    builder.Services.AddScoped<Backend.Application.Services.ISettingsService, Backend.Infrastructure.Services.SettingsService>();
+    builder.Services.AddHostedService<Backend.Infrastructure.Services.BookingStatusUpdateService>();
+
+    // Register FluentValidation
+    builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+    // Register AutoMapper
+    builder.Services.AddAutoMapper(cfg => { }, typeof(Backend.Application.Mappings.AuthMappingProfile));
+
+    // Configure CORS
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? new[] { "http://localhost:3000" };
+
+    builder.Services.AddCors(options =>
     {
-        Title = "Ares Car Rental API",
-        Version = "v1",
-        Description = @"
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
+    });
+
+    // Configure Swagger/OpenAPI
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "Ares Car Rental API",
+            Version = "v1",
+            Description = @"
 ## Ares Car Rental Backend API
 
 A comprehensive RESTful API for car rental application built with ASP.NET Core 8.0 and Clean Architecture.
@@ -202,35 +202,35 @@ List endpoints support pagination with the following query parameters:
 ### Filtering and Sorting
 Many endpoints support filtering and sorting. Check individual endpoint documentation for available options.
 ",
-        Contact = new OpenApiContact
+            Contact = new OpenApiContact
+            {
+                Name = "Ares Car Rental API Support",
+                Email = "support@arescarrental.com"
+            },
+            License = new OpenApiLicense
+            {
+                Name = "MIT License",
+                Url = new Uri("https://opensource.org/licenses/MIT")
+            }
+        });
+
+        // Add JWT authentication to Swagger
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            Name = "Ares Car Rental API Support",
-            Email = "support@arescarrental.com"
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT License",
-            Url = new Uri("https://opensource.org/licenses/MIT")
-        }
-    });
-    
-    // Add JWT authentication to Swagger
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = @"JWT Authorization header using the Bearer scheme. 
+            Description = @"JWT Authorization header using the Bearer scheme. 
 
 Enter 'Bearer' [space] and then your token in the text input below.
 
 Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT"
-    });
-    
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
+            BearerFormat = "JWT"
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
         {
             new OpenApiSecurityScheme
             {
@@ -242,105 +242,105 @@ Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
             },
             Array.Empty<string>()
         }
+        });
+
+        // Include XML comments from all assemblies
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            options.IncludeXmlComments(xmlPath);
+        }
+
+        // Include XML comments from Application layer if available
+        var applicationXmlFile = "Application.xml";
+        var applicationXmlPath = Path.Combine(AppContext.BaseDirectory, applicationXmlFile);
+        if (File.Exists(applicationXmlPath))
+        {
+            options.IncludeXmlComments(applicationXmlPath);
+        }
+
+        // Configure Swagger UI options
+        options.DescribeAllParametersInCamelCase();
+        options.UseInlineDefinitionsForEnums();
+
+        // Add custom operation filters for better documentation
+        options.OperationFilter<AuthenticationRequirementOperationFilter>();
+        options.OperationFilter<RateLimitOperationFilter>();
     });
-    
-    // Include XML comments from all assemblies
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
+
+    builder.Services.AddControllers();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+
+    // Enable Swagger in all environments for development
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
     {
-        options.IncludeXmlComments(xmlPath);
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Ares Car Rental API v1");
+        options.RoutePrefix = "swagger";
+    });
+
+    // Add global exception handling middleware (must be first)
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // Add rate limiting middleware (before authentication)
+    app.UseMiddleware<RateLimitingMiddleware>();
+
+    // Add Serilog request logging
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+            diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+        };
+    });
+
+    // Enable CORS
+    app.UseCors("AllowFrontend");
+
+    app.UseStaticFiles();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+    app.MapGet("/", () => "Ares Car Rental API - Visit /swagger for API documentation");
+
+    var seedOnly = args.Any(arg => string.Equals(arg, "--seed-only", StringComparison.OrdinalIgnoreCase));
+    var seedDemoData = string.Equals(Environment.GetEnvironmentVariable("SEED_DEMO_DATA"), "true", StringComparison.OrdinalIgnoreCase);
+
+    // Initialize database and seed roles
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            // Apply any pending migrations (creates the DB if it doesn't exist)
+            var db = services.GetRequiredService<ApplicationDbContext>();
+            await db.Database.MigrateAsync();
+
+            await DbInitializer.InitializeAsync(services, seedDemoData);
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while initializing the database");
+        }
     }
-    
-    // Include XML comments from Application layer if available
-    var applicationXmlFile = "Application.xml";
-    var applicationXmlPath = Path.Combine(AppContext.BaseDirectory, applicationXmlFile);
-    if (File.Exists(applicationXmlPath))
+
+    if (seedOnly)
     {
-        options.IncludeXmlComments(applicationXmlPath);
+        Log.Information("Seed-only mode completed successfully.");
+        return;
     }
-    
-    // Configure Swagger UI options
-    options.DescribeAllParametersInCamelCase();
-    options.UseInlineDefinitionsForEnums();
-    
-    // Add custom operation filters for better documentation
-    options.OperationFilter<AuthenticationRequirementOperationFilter>();
-    options.OperationFilter<RateLimitOperationFilter>();
-});
 
-builder.Services.AddControllers();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-// Enable Swagger in all environments for development
-app.UseSwagger();
-app.UseSwaggerUI(options =>
-{
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Ares Car Rental API v1");
-    options.RoutePrefix = "swagger";
-});
-
-// Add global exception handling middleware (must be first)
-app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
-// Add rate limiting middleware (before authentication)
-app.UseMiddleware<RateLimitingMiddleware>();
-
-// Add Serilog request logging
-app.UseSerilogRequestLogging(options =>
-{
-    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-    {
-        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
-    };
-});
-
-// Enable CORS
-app.UseCors("AllowFrontend");
-
-app.UseStaticFiles();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-app.MapGet("/", () => "Ares Car Rental API - Visit /swagger for API documentation");
-
-var seedOnly = args.Any(arg => string.Equals(arg, "--seed-only", StringComparison.OrdinalIgnoreCase));
-var seedDemoData = string.Equals(Environment.GetEnvironmentVariable("SEED_DEMO_DATA"), "true", StringComparison.OrdinalIgnoreCase);
-
-// Initialize database and seed roles
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        // Apply any pending migrations (creates the DB if it doesn't exist)
-        var db = services.GetRequiredService<ApplicationDbContext>();
-        await db.Database.MigrateAsync();
-
-        await DbInitializer.InitializeAsync(services, seedDemoData);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while initializing the database");
-    }
-}
-
-if (seedOnly)
-{
-    Log.Information("Seed-only mode completed successfully.");
-    return;
-}
-
-app.Run();
+    app.Run();
 }
 catch (Microsoft.Extensions.Hosting.HostAbortedException)
 {

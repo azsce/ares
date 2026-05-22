@@ -10,13 +10,13 @@ public class Favorite : AuditableEntity
 {
     [Required]
     public Guid UserId { get; set; }
-    
+
     [ForeignKey(nameof(UserId))]
     public ApplicationUser? User { get; set; }
 
     [Required]
     public Guid VehicleId { get; set; }
-    
+
     [ForeignKey(nameof(VehicleId))]
     public Vehicle? Vehicle { get; set; }
 }

@@ -35,7 +35,8 @@ namespace Backend.Domain.Entities
 
         public short? ExpirationYear { get; set; }
 
-        public Guid? BillingAddressId { get; set; }[ForeignKey(nameof(BillingAddressId))]
+        public Guid? BillingAddressId { get; set; }
+        [ForeignKey(nameof(BillingAddressId))]
         public UserAddress? BillingAddress { get; set; }
 
         public bool IsDefault { get; set; } = false;
