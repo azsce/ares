@@ -787,11 +787,7 @@ function ReviewTableRow({ row, onView, onReply, onReport }: ReviewTableRowProps)
               }}
             />
             {row.supplierReply && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ display: { xs: "none", md: "block" } }}
-              >
+              <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", md: "block" } }}>
                 {truncate(row.supplierReply, 60)}
               </Typography>
             )}

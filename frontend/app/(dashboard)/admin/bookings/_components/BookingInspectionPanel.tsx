@@ -23,10 +23,7 @@ import {
 } from "@mui/material";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import { listInspectors, type Inspector } from "@/api-clients/inspectors/inspectors";
-import {
-  assignInspectorToBooking,
-  type InspectionDetails,
-} from "@/api-clients/inspections/inspections";
+import { assignInspectorToBooking, type InspectionDetails } from "@/api-clients/inspections/inspections";
 import { ApiError } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
@@ -53,11 +50,7 @@ function statusChipProps(status: string | null | undefined, theme: Theme) {
  * inspection status, lets the admin pick an inspector and assign, and shows
  * the resulting assignment once made.
  */
-export default function BookingInspectionPanel({
-  bookingId,
-  initialInspectorId,
-  initialInspectionStatus,
-}: Props) {
+export default function BookingInspectionPanel({ bookingId, initialInspectorId, initialInspectionStatus }: Props) {
   const theme = useTheme();
 
   const [inspectors, setInspectors] = useState<Inspector[]>([]);
@@ -70,7 +63,8 @@ export default function BookingInspectionPanel({
 
   // Initial label for the badge — kept in sync with the assignment.
   const inspectionStatus =
-    inspection?.status ?? (initialInspectionStatus && initialInspectionStatus !== "NotRequired" ? initialInspectionStatus : null);
+    inspection?.status ??
+    (initialInspectionStatus && initialInspectionStatus !== "NotRequired" ? initialInspectionStatus : null);
 
   useEffect(() => {
     const loadInspectors = async () => {
@@ -122,10 +116,7 @@ export default function BookingInspectionPanel({
   const chip = statusChipProps(inspectionStatus, theme);
 
   return (
-    <Paper
-      elevation={0}
-      sx={{ p: 3, borderRadius: 2, border: "1px solid", borderColor: "divider" }}
-    >
+    <Paper elevation={0} sx={{ p: 3, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
         <AssignmentIndIcon color="primary" />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -184,9 +175,7 @@ export default function BookingInspectionPanel({
       )}
 
       {inspection?.isSubmitted ? (
-        <Alert severity="info">
-          Inspection has been submitted and is locked. Cannot reassign at this stage.
-        </Alert>
+        <Alert severity="info">Inspection has been submitted and is locked. Cannot reassign at this stage.</Alert>
       ) : (
         <>
           <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>

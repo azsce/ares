@@ -116,9 +116,7 @@ function FieldRow({ label, value }: FieldRowProps) {
       >
         {label}
       </Typography>
-      <Box sx={{ typography: "body2", fontWeight: 600, textAlign: "right" }}>
-        {value ?? "—"}
-      </Box>
+      <Box sx={{ typography: "body2", fontWeight: 600, textAlign: "right" }}>{value ?? "—"}</Box>
     </Stack>
   );
 }
@@ -146,7 +144,7 @@ export default function SupplierBookingDetailsClient({ bookingId }: { readonly b
         if (err.response?.status === 404 || err.status === 404) {
           setError("Booking not found, or you don't have permission to view it.");
         } else {
-          setError(e instanceof Error ? e.message : err.message ?? "Failed to load booking details.");
+          setError(e instanceof Error ? e.message : (err.message ?? "Failed to load booking details."));
         }
       } finally {
         setLoading(false);

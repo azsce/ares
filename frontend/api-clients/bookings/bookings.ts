@@ -180,10 +180,11 @@ export async function searchCustomersPicker(
   const params = new URLSearchParams();
   if (search.trim()) params.set("search", search.trim());
   params.set("limit", String(limit));
-  return apiFetchJson<CustomerPickerItem[]>(
-    `/api/admin/bookings/pickers/customers?${params.toString()}`,
-    { method: "GET", accessToken, signal }
-  );
+  return apiFetchJson<CustomerPickerItem[]>(`/api/admin/bookings/pickers/customers?${params.toString()}`, {
+    method: "GET",
+    accessToken,
+    signal,
+  });
 }
 
 /**
@@ -206,19 +207,17 @@ export async function searchAvailableVehiclesPicker(
   if (args.pickupDate) params.set("pickupDate", args.pickupDate);
   if (args.returnDate) params.set("returnDate", args.returnDate);
   params.set("limit", String(args.limit ?? 20));
-  return apiFetchJson<VehiclePickerItem[]>(
-    `/api/admin/bookings/pickers/vehicles?${params.toString()}`,
-    { method: "GET", accessToken, signal }
-  );
+  return apiFetchJson<VehiclePickerItem[]>(`/api/admin/bookings/pickers/vehicles?${params.toString()}`, {
+    method: "GET",
+    accessToken,
+    signal,
+  });
 }
 
 /**
  * Fetch a single booking's details (admin view).
  */
-export async function getAdminBookingDetails(
-  accessToken: string,
-  bookingId: string
-): Promise<Booking> {
+export async function getAdminBookingDetails(accessToken: string, bookingId: string): Promise<Booking> {
   return apiFetchJson<Booking>(`/api/admin/bookings/${bookingId}`, {
     method: "GET",
     accessToken,
@@ -267,10 +266,7 @@ export async function updateBookingStatus(
 /**
  * Delete one or more bookings via the bulk-delete endpoint.
  */
-export async function deleteBookings(
-  accessToken: string,
-  ids: string[]
-): Promise<void> {
+export async function deleteBookings(accessToken: string, ids: string[]): Promise<void> {
   await apiFetchJson(`/api/admin/bookings/delete-bookings`, {
     method: "POST",
     accessToken,
@@ -330,13 +326,10 @@ export const useAdminBookingStats = (
 
       setLoading(true);
       try {
-        const responseData = await apiFetchJson<AdminBookingStats>(
-          `/api/admin/bookings/stats`,
-          {
-            method: "GET",
-            accessToken: accessToken,
-          }
-        );
+        const responseData = await apiFetchJson<AdminBookingStats>(`/api/admin/bookings/stats`, {
+          method: "GET",
+          accessToken: accessToken,
+        });
         setStats(responseData);
       } catch (error) {
         logger.error("Error fetching admin booking stats", error);

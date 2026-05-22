@@ -114,7 +114,11 @@ interface FieldRowProps {
 function FieldRow({ label, value }: FieldRowProps) {
   return (
     <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.3 }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.3 }}
+      >
         {label}
       </Typography>
       <Typography variant="body2" component="div" sx={{ fontWeight: 600, textAlign: "right" }}>
@@ -284,10 +288,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
       >
         {/* Customer */}
         <SectionCard icon={<PersonIcon />} title="Customer Information">
-          <FieldRow
-            label="Name"
-            value={booking.customer?.fullName ?? booking.customerName ?? "—"}
-          />
+          <FieldRow label="Name" value={booking.customer?.fullName ?? booking.customerName ?? "—"} />
           <FieldRow label="Email" value={booking.customer?.email ?? "—"} />
           <FieldRow label="Phone" value={booking.customer?.phone ?? "—"} />
         </SectionCard>
@@ -318,20 +319,14 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
             </Box>
           </Stack>
           <Divider />
-          <FieldRow
-            label="Daily Rate"
-            value={formatCurrency(booking.car?.dailyRate ?? booking.dailyRate ?? null)}
-          />
+          <FieldRow label="Daily Rate" value={formatCurrency(booking.car?.dailyRate ?? booking.dailyRate ?? null)} />
         </SectionCard>
 
         {/* Booking */}
         <SectionCard icon={<EventIcon />} title="Booking Information">
           <FieldRow label="Pickup Date" value={formatDateLong(booking.from)} />
           <FieldRow label="Return Date" value={formatDateLong(booking.to)} />
-          <FieldRow
-            label="Total Days"
-            value={booking.totalDays != null ? `${String(booking.totalDays)} days` : "—"}
-          />
+          <FieldRow label="Total Days" value={booking.totalDays != null ? `${String(booking.totalDays)} days` : "—"} />
           <Divider />
           <FieldRow
             label="Pickup Location"
@@ -391,18 +386,9 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
                   />
                 }
               />
-              <FieldRow
-                label="Assigned Inspector"
-                value={booking.inspection.assignedInspectorName ?? "—"}
-              />
-              <FieldRow
-                label="Pre-Inspection Date"
-                value={formatDateLong(booking.inspection.preInspectionDate)}
-              />
-              <FieldRow
-                label="Post-Inspection Date"
-                value={formatDateLong(booking.inspection.postInspectionDate)}
-              />
+              <FieldRow label="Assigned Inspector" value={booking.inspection.assignedInspectorName ?? "—"} />
+              <FieldRow label="Pre-Inspection Date" value={formatDateLong(booking.inspection.preInspectionDate)} />
+              <FieldRow label="Post-Inspection Date" value={formatDateLong(booking.inspection.postInspectionDate)} />
             </>
           ) : (
             <Typography variant="body2" color="text.secondary">
@@ -422,7 +408,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
           setStatusModalOpen(false);
         }}
         onSuccess={newStatus => {
-          setBooking(prev => (prev ? { ...prev, status: newStatus } : prev))
+          setBooking(prev => (prev ? { ...prev, status: newStatus } : prev));
         }}
       />
     </Box>
