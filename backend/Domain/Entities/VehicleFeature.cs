@@ -4,7 +4,7 @@ namespace Backend.Domain.Entities
 {
     public class VehicleFeature : AuditableEntity
     {
-        
+
         public Guid VehicleId { get; set; }
         public Vehicle? Vehicle { get; set; }
 

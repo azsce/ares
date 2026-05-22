@@ -13,18 +13,19 @@ namespace Backend.Domain.Entities
         public ApplicationUser? CancelledByUser { get; set; }
 
         public PolicyType PolicyType { get; set; }
-        
+
         public decimal RefundPercentage { get; set; }
         public decimal OriginalAmount { get; set; }
         public decimal CancellationFee { get; set; }
-        
+
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public decimal RefundAmount => OriginalAmount - CancellationFee;
-        
+
         public string Currency { get; set; } = "USD";
 
         public RefundStatus RefundStatus { get; set; } = RefundStatus.Pending;
-        public Guid? RefundTransactionId { get; set; }public DateTime? RefundProcessedAt { get; set; }
+        public Guid? RefundTransactionId { get; set; }
+        public DateTime? RefundProcessedAt { get; set; }
         public string? RefundMethod { get; set; }
 
         public string? Reason { get; set; }
