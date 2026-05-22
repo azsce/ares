@@ -27,7 +27,7 @@ public class AuthenticationRequirementOperationFilter : IOperationFilter
         {
             // Add authentication requirement to operation description
             var authInfo = GetAuthenticationInfo(context);
-            
+
             if (!string.IsNullOrEmpty(authInfo))
             {
                 operation.Description = $"{operation.Description}\n\n**Authentication Required**: {authInfo}";

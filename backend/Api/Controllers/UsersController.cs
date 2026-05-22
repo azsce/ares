@@ -396,7 +396,7 @@ public class AdminUsersController : ControllerBase
         }
 
         var newStatus = user.Status == "Active" ? "Blocked" : "Active";
-        
+
         var request = new UpdateUserRequest(
             FirstName: user.FirstName,
             LastName: user.LastName,
@@ -406,9 +406,9 @@ public class AdminUsersController : ControllerBase
         );
 
         await _userManagementService.UpdateUserAsync(id, request, cancellationToken);
-        
+
         _logger.LogInformation("Successfully toggled status for user {UserId} to {NewStatus}", id, newStatus);
-        
+
         return Ok(new { Message = $"User status changed to {newStatus}", Status = newStatus });
     }
 }
