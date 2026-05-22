@@ -35,6 +35,21 @@ namespace Backend.Infrastructure.Data.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(50);
 
+            // ─── Inspection workflow ─────────────────────────────────────
+            builder
+                .HasOne(b => b.AssignedInspector)
+                .WithMany()
+                .HasForeignKey(b => b.AssignedInspectorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .Property(b => b.InspectionStatus)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasDefaultValue(Backend.Domain.Entities.Enums.BookingInspectionStatus.NotRequired);
+
+            builder
+                .HasIndex(b => b.AssignedInspectorId);
         }
     }
 }

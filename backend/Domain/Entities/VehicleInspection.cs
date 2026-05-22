@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Backend.Domain.Entities.Enums;
 
 namespace Backend.Domain.Entities
 {
@@ -42,5 +44,18 @@ namespace Backend.Domain.Entities
 
         public string? Notes { get; set; }
 
+        // ─── Inspection workflow extensions ──────────────────────────────
+        public InspectionStatus Status { get; set; } = InspectionStatus.Pending;
+
+        public DateTime? SubmittedAt { get; set; }
+
+        // True once the inspector has finalised the report. After this point
+        // notes / images / decision become immutable.
+        public bool IsSubmitted { get; set; } = false;
+
+        // Images uploaded by the inspector for this inspection (the
+        // photographic evidence). Distinct from the older InspectionPhoto
+        // entity which is kept for backwards compatibility.
+        public virtual ICollection<InspectionImage> Images { get; set; } = new List<InspectionImage>();
     }
 }

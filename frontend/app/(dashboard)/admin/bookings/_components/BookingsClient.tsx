@@ -20,7 +20,6 @@ import {
   CircularProgress,
   InputAdornment,
   Pagination,
-  Tooltip,
   useTheme,
   alpha,
   Dialog,
@@ -28,121 +27,182 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Menu,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Divider,
 } from "@mui/material";
 import {
-  EditRounded as EditIcon,
-  AddRounded as AddIcon,
-  DeleteOutlineRounded as DeleteIcon,
   SearchRounded as SearchIcon,
   DirectionsCarFilledTwoTone as CarIcon,
   PersonOutlineTwoTone as PersonIcon,
-  LocationOnTwoTone as LocationIcon,
-  DateRangeTwoTone as DateIcon,
+  MoreVertRounded as MoreVertIcon,
+  LocalOfferTwoTone as PriceIcon,
+  CreditCardTwoTone as PaymentIcon,
+  AddRounded as AddIcon,
+  VisibilityOutlined as ViewIcon,
+  EditOutlined as EditIcon,
+  SyncAltOutlined as ChangeStatusIcon,
+  DeleteOutlined as DeleteIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useBookings, type Booking } from "@/api-clients/bookings/bookings";
-import { apiFetchJson } from "@/utils/api-client";
+import {
+  useBookings,
+  useAdminBookingStats,
+  type Booking,
+  deleteBookings as deleteBookingsApi,
+} from "@/api-clients/bookings/bookings";
 import { toImageUrl } from "@/utils/image-url";
 import { logger } from "@/utils/logger";
 import Link from "next/link";
+import ChangeStatusModal from "./ChangeStatusModal";
 
-// ── CONSTANTS & HELPERS ──
+// ── CONSTANTS & HELPERS ─────────────────────────────────────────────────
 const getStatusConfig = (status?: string) => {
-  const s = status?.toLowerCase() || "";
-  // Map various status strings to color schemes
-  if (s === "confirmed" || s === "active" || s === "pickup")
-    return { label: status || "Confirmed", colorKey: "success" as const };
-  if (s === "completed") return { label: status || "Completed", colorKey: "info" as const };
-  if (s === "cancelled" || s === "returned") return { label: status || "Cancelled", colorKey: "error" as const };
-  return { label: status || "Pending", colorKey: "warning" as const };
+  const s = status?.toLowerCase() ?? "";
+  if (s === "active" || s === "confirmed" || s === "pickup")
+    return { label: status ?? "Active", colorKey: "success" as const };
+  if (s === "completed") return { label: status ?? "Completed", colorKey: "info" as const };
+  if (s === "cancelled" || s === "returned") return { label: status ?? "Cancelled", colorKey: "error" as const };
+  return { label: status ?? "Pending", colorKey: "warning" as const };
 };
 
-const formatDate = (dateString: string) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const formatCompactDate = (dateString: string) => {
+  if (!dateString) return "—";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
-// ── MAIN PAGE COMPONENT ──
+// ── MAIN PAGE COMPONENT ─────────────────────────────────────────────────
 export default function BookingsClient() {
   const theme = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
 
-  // States
+  // Filters / paging
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(0);
   const size = 10;
 
+  // Delete dialog
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false); // ضفنا State عشان الـ Loading بتاع الحذف
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // استخراج اليوزر من الجلسة - useMemo prevents a new object reference on every render
+  // Actions menu
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
+
+  // Change status modal
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusBooking, setStatusBooking] = useState<{ id: string; status: string } | null>(null);
+
+  // Local optimistic patch — after a successful status change, reflect the
+  // new value in-table without waiting for the next refetch.
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
+
   const user = useMemo(
     () => (session?.user ? { id: session.user.id, role: session.user.roles[0] || "Admin" } : undefined),
     [session?.user]
   );
 
-  // Fetch Data using our custom hook
-  const { bookings, loading, totalPages, totalCount } = useBookings(session?.accessToken, user, page, size, search);
+  const { bookings, loading, totalPages, totalCount } = useBookings(
+    session?.accessToken,
+    user,
+    page,
+    size,
+    search,
+    statusFilter,
+    fromDate ? new Date(fromDate).toISOString() : null,
+    toDate ? new Date(toDate).toISOString() : null
+  );
 
-  // Handlers
+  const { stats, loading: statsLoading } = useAdminBookingStats(session?.accessToken, user);
+
+  // ── Handlers ─────────────────────────────────────────────────────────
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setPage(0); // Reset to first page on search
+    setPage(0);
   };
 
-  const handleDeleteClick = (id: string) => {
-    setDeleteId(id);
+  const handleOpenMenu = (e: React.MouseEvent<HTMLElement>, booking: Booking) => {
+    setAnchorEl(e.currentTarget);
+    setActiveBooking(booking);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setActiveBooking(null);
+  };
+
+  const handleViewDetails = () => {
+    if (!activeBooking) return;
+    router.push(`/admin/bookings/${activeBooking.id}`);
+    handleCloseMenu();
+  };
+
+  const handleEdit = () => {
+    if (!activeBooking) return;
+    router.push(`/admin/bookings/${activeBooking.id}/edit`);
+    handleCloseMenu();
+  };
+
+  const handleChangeStatus = () => {
+    if (!activeBooking) return;
+    setStatusBooking({ id: activeBooking.id, status: activeBooking.status });
+    setStatusModalOpen(true);
+    handleCloseMenu();
+  };
+
+  const handleDeleteClick = () => {
+    if (!activeBooking) return;
+    setDeleteId(activeBooking.id);
     setOpenDelete(true);
+    handleCloseMenu();
   };
 
-  const confirmDelete = async () => {
-    if (!deleteId || !session?.accessToken) return;
-
-    setIsDeleting(true);
-    try {
-      await apiFetchJson(`/api/admin/bookings/delete-bookings`, {
-        method: "POST",
-        accessToken: session.accessToken,
-        body: JSON.stringify({ ids: [deleteId] }),
-      });
-
-      setOpenDelete(false);
-      setDeleteId(null);
-
-      window.location.reload();
-    } catch (error) {
-      logger.error("Error deleting booking", error);
-      alert("Failed to delete the booking. Please try again.");
-    } finally {
-      setIsDeleting(false);
-    }
+  const confirmDelete = () => {
+    void (async () => {
+      if (!deleteId || !session?.accessToken) return;
+      setIsDeleting(true);
+      try {
+        await deleteBookingsApi(session.accessToken, [deleteId]);
+        setOpenDelete(false);
+        setDeleteId(null);
+        // Refresh by toggling page state (forces re-fetch via dependency)
+        router.refresh();
+        window.location.reload();
+      } catch (error) {
+        logger.error("Error deleting booking", error);
+      } finally {
+        setIsDeleting(false);
+      }
+    })();
   };
 
-  const renderTableContent = () => {
+  // ── Renderers ────────────────────────────────────────────────────────
+  const renderTableBody = () => {
     if (loading) {
-      return (
-        <TableRow>
-          <TableCell colSpan={5} align="center" sx={{ py: 10 }}>
+      return [
+        <TableRow key="loading">
+          <TableCell colSpan={8} align="center" sx={{ py: 10 }}>
             <CircularProgress />
           </TableCell>
-        </TableRow>
-      );
+        </TableRow>,
+      ];
     }
 
     if (bookings.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={5} align="center" sx={{ py: 10 }}>
+      return [
+        <TableRow key="empty">
+          <TableCell colSpan={8} align="center" sx={{ py: 10 }}>
             <Box sx={{ textAlign: "center", opacity: 0.6 }}>
               <Avatar
                 sx={{
@@ -158,157 +218,154 @@ export default function BookingsClient() {
               <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
                 No bookings found
               </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Try adjusting your filters or create a new booking.
+              </Typography>
             </Box>
+          </TableCell>
+        </TableRow>,
+      ];
+    }
+
+    return bookings.map((booking: Booking) => {
+      const effectiveStatus = statusOverrides[booking.id] ?? booking.status;
+      const statusConfig = getStatusConfig(effectiveStatus);
+      const statusColor = theme.palette[statusConfig.colorKey].main;
+
+      return (
+        <TableRow
+          key={booking.id}
+          hover
+          sx={{
+            transition: "background 0.15s",
+            "&:last-child td": { border: 0 },
+            "&:hover": { bgcolor: theme => alpha(theme.palette.primary.main, 0.03) },
+          }}
+        >
+          {/* Booking */}
+          <TableCell sx={{ pl: 3 }}>
+            <Box>
+              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
+                {booking.customerName ?? booking.customer?.fullName ?? "Unknown Customer"}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                #{booking.bookingNumber ?? booking.id.split("-")[0]}
+              </Typography>
+            </Box>
+          </TableCell>
+
+          {/* Vehicle */}
+          <TableCell>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+              <Avatar
+                variant="rounded"
+                src={toImageUrl(booking.car?.image)}
+                sx={{
+                  width: 36,
+                  height: 36,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: "primary.main",
+                }}
+              >
+                <CarIcon fontSize="small" />
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{booking.car?.name ?? "Unknown Vehicle"}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {booking.car?.plateNumber ?? "No Plate"}
+                </Typography>
+              </Box>
+            </Stack>
+          </TableCell>
+
+          {/* Supplier */}
+          <TableCell>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+              <PersonIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+              <Typography variant="body2" noWrap>
+                {booking.supplier?.name ?? booking.supplier?.fullName ?? "—"}
+              </Typography>
+            </Stack>
+          </TableCell>
+
+          {/* Period — compact */}
+          <TableCell>
+            <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
+              {formatCompactDate(booking.from)} → {formatCompactDate(booking.to)}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {booking.totalDays ? `${String(booking.totalDays)} Days` : "—"}
+            </Typography>
+          </TableCell>
+
+          {/* Status */}
+          <TableCell>
+            <Chip
+              label={statusConfig.label}
+              size="small"
+              sx={{
+                textTransform: "capitalize",
+                borderRadius: 1.5,
+                bgcolor: alpha(statusColor, 0.15),
+                color: statusColor,
+                fontWeight: 700,
+                fontSize: 11,
+              }}
+            />
+          </TableCell>
+
+          {/* Payment — status only */}
+          <TableCell>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+              <PaymentIcon
+                sx={{
+                  fontSize: 14,
+                  color: booking.paymentStatus === "Paid" ? "success.main" : "text.secondary",
+                }}
+              />
+              <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 500 }}>
+                {booking.paymentStatus ?? "Unpaid"}
+              </Typography>
+            </Stack>
+          </TableCell>
+
+          {/* Total */}
+          <TableCell>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+              <PriceIcon sx={{ fontSize: 14, color: "success.main" }} />
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                ${(booking.price ?? 0).toFixed(2)}
+              </Typography>
+            </Stack>
+          </TableCell>
+
+          {/* Actions */}
+          <TableCell align="right" sx={{ pr: 3 }}>
+            <IconButton
+              size="small"
+              onClick={e => {
+                handleOpenMenu(e, booking);
+              }}
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
           </TableCell>
         </TableRow>
       );
-    }
-
-    return (
-      <>
-        {bookings.map((booking: Booking) => {
-          const statusConfig = getStatusConfig(booking.status);
-          const statusColor = theme.palette[statusConfig.colorKey].main;
-
-          return (
-            <TableRow
-              key={booking.id}
-              hover
-              sx={{
-                transition: "background 0.15s",
-                "&:last-child td": { border: 0 },
-                "&:hover": { bgcolor: theme => alpha(theme.palette.primary.main, 0.03) },
-              }}
-            >
-              {/* Vehicle & Driver */}
-              <TableCell sx={{ pl: 3 }}>
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                  <Avatar
-                    variant="rounded"
-                    src={toImageUrl(booking.car?.image)}
-                    sx={{
-                      width: 45,
-                      height: 45,
-                      bgcolor: alpha(theme.palette.primary.main, 0.1),
-                      color: "primary.main",
-                    }}
-                  >
-                    <CarIcon />
-                  </Avatar>
-                  <Box>
-                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
-                      {booking.car?.name || "Unknown Vehicle"}
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", mt: 0.5 }}>
-                      <PersonIcon sx={{ fontSize: 14, color: "text.secondary" }} />
-                      <Typography variant="caption" color="text.secondary">
-                        {booking.driver?.fullName || "No Driver"}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Stack>
-              </TableCell>
-
-              {/* Locations */}
-              <TableCell>
-                <Stack spacing={0.5}>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                    <LocationIcon sx={{ fontSize: 14, color: "success.main" }} />
-                    <Typography variant="body2" sx={{ fontSize: 13 }}>
-                      {booking.pickupLocation?.name || "-"}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                    <LocationIcon sx={{ fontSize: 14, color: "error.main" }} />
-                    <Typography variant="body2" sx={{ fontSize: 13 }}>
-                      {booking.dropOffLocation?.name || "-"}
-                    </Typography>
-                  </Stack>
-                </Stack>
-              </TableCell>
-
-              {/* Dates */}
-              <TableCell>
-                <Stack spacing={0.5}>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                    <DateIcon sx={{ fontSize: 14, color: "text.secondary" }} />
-                    <Typography variant="body2" sx={{ fontSize: 13 }}>
-                      {formatDate(booking.from)}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                    <DateIcon sx={{ fontSize: 14, color: "text.secondary" }} />
-                    <Typography variant="body2" sx={{ fontSize: 13 }}>
-                      {formatDate(booking.to)}
-                    </Typography>
-                  </Stack>
-                </Stack>
-              </TableCell>
-
-              {/* Status & Payment */}
-              <TableCell>
-                <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
-                  <Chip
-                    label={statusConfig.label}
-                    size="small"
-                    sx={{
-                      textTransform: "capitalize",
-                      borderRadius: 2,
-                      bgcolor: alpha(statusColor, 0.15),
-                      color: statusColor,
-                      fontWeight: 700,
-                      fontSize: 11,
-                    }}
-                  />
-                  {booking.payLater && (
-                    <Chip label="Pay Later" size="small" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
-                  )}
-                </Stack>
-              </TableCell>
-
-              {/* Actions */}
-              <TableCell align="right" sx={{ pr: 3 }}>
-                <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
-                  <Tooltip title="Edit Status">
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        router.push(`/admin/bookings/${booking.id}/edit`);
-                      }}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete Booking">
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        handleDeleteClick(booking.id);
-                      }}
-                      sx={{
-                        borderRadius: 2,
-                        "&:hover": { bgcolor: alpha(theme.palette.error.main, 0.1), color: "error.main" },
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </>
-    );
+    });
   };
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
       {/* ── HEADER ── */}
-
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        sx={{ alignItems: { xs: "flex-start", sm: "center" }, gap: 2, justifyContent: "space-between", mb: 4 }}
+        sx={{
+          alignItems: { xs: "flex-start", sm: "center" },
+          gap: 2,
+          justifyContent: "space-between",
+          mb: 4,
+        }}
       >
         <Box>
           <Typography variant="h4" sx={{ fontSize: { xs: "1.6rem", sm: "2rem" }, fontWeight: 800 }}>
@@ -346,20 +403,74 @@ export default function BookingsClient() {
         </Box>
       </Stack>
 
+      {/* ── OPERATIONAL CARDS ── */}
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 4, width: "100%" }}>
+        {[
+          { label: "Active Bookings", value: stats?.activeBookings ?? "-", color: "success" },
+          { label: "Pending Bookings", value: stats?.pendingBookings ?? "-", color: "warning" },
+          {
+            label: "Completed Bookings",
+            value: stats?.totalCompletedBookings ?? stats?.completedBookings ?? stats?.completedToday ?? "-",
+            color: "info",
+          },
+        ].map(stat => (
+          <Box sx={{ flex: 1 }} key={stat.label}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                bgcolor: theme => alpha(theme.palette[stat.color as "success" | "warning" | "info"].main, 0.04),
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                {stat.label}
+              </Typography>
+              {statsLoading ? (
+                <CircularProgress size={24} sx={{ mt: 1 }} />
+              ) : (
+                <Typography variant="h4" sx={{ fontWeight: 800, color: `${stat.color}.main` }}>
+                  {stat.value}
+                </Typography>
+              )}
+            </Paper>
+          </Box>
+        ))}
+      </Stack>
+
       {/* ── SEARCH & TABLE SECTION ── */}
-      <Paper
-        elevation={0}
-        sx={{ p: 3, borderRadius: 2, border: "1px solid", borderColor: "divider", overflow: "hidden" }}
-      >
+      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", overflow: "hidden" }}>
         {/* Filter Bar */}
-        <Box sx={{ borderBottom: "1px solid", borderColor: "divider", p: 2 }}>
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          sx={{
+            p: 2,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+            alignItems: { md: "center" },
+          }}
+        >
           <TextField
-            fullWidth
-            placeholder="Search by keyword..."
+            placeholder="Search by ID, customer, or vehicle…"
             value={search}
             onChange={handleSearchChange}
             size="small"
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "background.paper" } }}
+            sx={{ flexGrow: 1, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -370,49 +481,93 @@ export default function BookingsClient() {
               },
             }}
           />
-        </Box>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Status"
+              onChange={e => {
+                setStatusFilter(e.target.value);
+                setPage(0);
+              }}
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="All">All Statuses</MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Active">Active</MenuItem>
+              <MenuItem value="Completed">Completed</MenuItem>
+              <MenuItem value="Cancelled">Cancelled</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            type="date"
+            label="From"
+            size="small"
+            slotProps={{ inputLabel: { shrink: true } }}
+            value={fromDate}
+            onChange={e => {
+              setFromDate(e.target.value);
+              setPage(0);
+            }}
+            sx={{ minWidth: 150, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+          />
+          <TextField
+            type="date"
+            label="To"
+            size="small"
+            slotProps={{ inputLabel: { shrink: true } }}
+            value={toDate}
+            onChange={e => {
+              setToDate(e.target.value);
+              setPage(0);
+            }}
+            sx={{ minWidth: 150, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+          />
+        </Stack>
 
         {/* Table */}
         <TableContainer>
-          <Table>
+          <Table stickyHeader>
             <TableHead>
               <TableRow
                 sx={{
-                  bgcolor: theme => alpha(theme.palette.primary.main, 0.04),
                   "& .MuiTableCell-head": {
                     fontWeight: 700,
                     fontSize: 12,
                     textTransform: "uppercase",
-                    letterSpacing: "0.06em",
+                    letterSpacing: "0.05em",
                     color: "text.secondary",
                     borderBottom: "1px solid",
                     borderColor: "divider",
-                    py: 1.5,
+                    py: 2,
+                    bgcolor: theme => alpha(theme.palette.primary.main, 0.03),
                   },
                 }}
               >
-                <TableCell sx={{ pl: 3 }}>Vehicle & Driver</TableCell>
-                <TableCell>Location (Pick/Drop)</TableCell>
-                <TableCell>Dates</TableCell>
-                <TableCell>Status & Payment</TableCell>
+                <TableCell sx={{ pl: 3 }}>Booking</TableCell>
+                <TableCell>Vehicle</TableCell>
+                <TableCell>Supplier</TableCell>
+                <TableCell>Period</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Payment</TableCell>
+                <TableCell>Total</TableCell>
                 <TableCell align="right" sx={{ pr: 3 }}>
                   Actions
                 </TableCell>
               </TableRow>
             </TableHead>
 
-            <TableBody>{renderTableContent()}</TableBody>
+            <TableBody>{renderTableBody()}</TableBody>
 
-            {/* PAGINATION FOOTER moved into TableFooter for semantic markup */}
             {!loading && (
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={3}>
+                  <TableCell colSpan={4}>
                     <Typography variant="caption" color="text.secondary">
                       Showing page <strong>{page + 1}</strong> of {totalPages || 1} ({totalCount} total)
                     </Typography>
                   </TableCell>
-                  <TableCell colSpan={2} align="right">
+                  <TableCell colSpan={4} align="right">
                     {totalPages > 1 && (
                       <Pagination
                         count={totalPages}
@@ -459,9 +614,7 @@ export default function BookingsClient() {
           </Button>
           <Button
             disabled={isDeleting}
-            onClick={() => {
-              void confirmDelete();
-            }}
+            onClick={confirmDelete}
             color="error"
             variant="contained"
             sx={{ borderRadius: 2, fontWeight: 700, minWidth: 100 }}
@@ -470,6 +623,49 @@ export default function BookingsClient() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ── ACTIONS MENU ── */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleCloseMenu}
+        slotProps={{ paper: { sx: { borderRadius: 2, minWidth: 180, boxShadow: theme.shadows[3] } } }}
+      >
+        <MenuItem onClick={handleViewDetails} sx={{ fontSize: 14, gap: 1.5 }}>
+          <ViewIcon fontSize="small" />
+          View Details
+        </MenuItem>
+        <MenuItem onClick={handleEdit} sx={{ fontSize: 14, gap: 1.5 }}>
+          <EditIcon fontSize="small" />
+          Edit Booking
+        </MenuItem>
+        <MenuItem onClick={handleChangeStatus} sx={{ fontSize: 14, gap: 1.5 }}>
+          <ChangeStatusIcon fontSize="small" />
+          Change Status
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleDeleteClick} sx={{ fontSize: 14, gap: 1.5, color: "error.main", fontWeight: 600 }}>
+          <DeleteIcon fontSize="small" />
+          Delete Booking
+        </MenuItem>
+      </Menu>
+
+      {/* ── CHANGE STATUS MODAL ── */}
+      <ChangeStatusModal
+        open={statusModalOpen}
+        bookingId={statusBooking?.id ?? null}
+        currentStatus={statusBooking?.status ?? null}
+        accessToken={session?.accessToken}
+        onClose={() => {
+          setStatusModalOpen(false);
+          setStatusBooking(null);
+        }}
+        onSuccess={newStatus => {
+          if (statusBooking) {
+            setStatusOverrides(prev => ({ ...prev, [statusBooking.id]: newStatus }));
+          }
+        }}
+      />
     </Box>
   );
 }

@@ -13,6 +13,7 @@ import {
   Public as CountriesIcon,
   Place as LocationsIcon,
   VerifiedUser as VerifiedUserIcon,
+  ManageSearch as InspectorsIcon,
 } from "@mui/icons-material";
 import DashboardShell, { type DashboardMenuItem } from "../_components/DashboardShell";
 
@@ -22,6 +23,7 @@ const menuItems: DashboardMenuItem[] = [
   { text: "Vehicles", icon: <CarIcon />, path: "/admin/vehicles" },
   { text: "Suppliers", icon: <SupplierIcon />, path: "/admin/suppliers" },
   { text: "Users", icon: <UsersIcon />, path: "/admin/users" },
+  { text: "Inspectors", icon: <InspectorsIcon />, path: "/admin/inspectors" },
   { text: "Verifications", icon: <VerifiedUserIcon />, path: "/admin/verifications" },
   { text: "Locations", icon: <LocationsIcon />, path: "/admin/locations" },
   { text: "Countries", icon: <CountriesIcon />, path: "/admin/countries" },

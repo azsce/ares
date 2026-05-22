@@ -278,14 +278,45 @@ public class BookingsController : ControllerBase
 public class AdminBookingsController : ControllerBase
 {
     private readonly IBookingService _bookingService;
+    private readonly IApplicationDbContext _context;
     private readonly ILogger<AdminBookingsController> _logger;
 
     public AdminBookingsController(
         IBookingService bookingService,
+        IApplicationDbContext context,
         ILogger<AdminBookingsController> logger)
     {
         _bookingService = bookingService;
+        _context = context;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Get operational booking stats for Admin/Supplier dashboard
+    /// </summary>
+    [HttpGet("stats")]
+    [ProducesResponseType(typeof(AdminBookingStatsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AdminBookingStatsDto>> GetStats(
+        CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "User not authenticated" });
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+
+        _logger.LogInformation("Admin/Supplier {UserId} requesting booking stats", currentUserId);
+
+        var result = await _bookingService.GetAdminBookingStatsAsync(
+            currentUserId,
+            isAdmin,
+            cancellationToken);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -354,7 +385,8 @@ public class AdminBookingsController : ControllerBase
     }
 
     /// <summary>
-    /// Update booking status (Confirm, Pickup, Return, etc.)
+    /// Update booking status. Operational statuses only:
+    /// Pending, Active, Completed, Cancelled.
     /// </summary>
     [HttpPut("{id}/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -388,6 +420,44 @@ public class AdminBookingsController : ControllerBase
     }
 
     /// <summary>
+    /// Edit a booking (partial update). Only operational fields are editable:
+    /// dates, locations, status. Customer / vehicle / payment / supplier are
+    /// resolved from the existing booking and cannot be changed via this
+    /// endpoint. Recalculates total days and total price automatically when
+    /// dates change.
+    /// </summary>
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(BookingDetailsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<BookingDetailsDto>> EditBooking(
+        Guid id,
+        [FromBody] UpdateBookingRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "User not authenticated" });
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+
+        _logger.LogInformation(
+            "Admin/Supplier {UserId} editing booking {BookingId}",
+            currentUserId, id);
+
+        var result = await _bookingService.UpdateBookingAsync(
+            id, request, currentUserId, isAdmin, cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Bulk delete selected bookings
     /// </summary>
     [HttpPost("delete-bookings")]
@@ -417,5 +487,137 @@ public class AdminBookingsController : ControllerBase
             cancellationToken);
 
         return Ok(new { Message = "Bookings deleted successfully" });
+    }
+
+    /// <summary>
+    /// Searchable customer picker for the create-booking flow.
+    /// Returns a small page of users (top 20 by default), filtered by an
+    /// optional free-text search. Excludes the system Admin and Supplier
+    /// roles so only customer-side users can be picked.
+    /// </summary>
+    [HttpGet("pickers/customers")]
+    [ProducesResponseType(typeof(IEnumerable<CustomerPickerItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IEnumerable<CustomerPickerItemDto>>> SearchCustomers(
+        [FromQuery] string? search,
+        [FromQuery] int limit = 20,
+        CancellationToken cancellationToken = default)
+    {
+        if (limit < 1) limit = 1;
+        if (limit > 50) limit = 50;
+
+        var query = _context.Users.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(u =>
+                (u.FirstName != null && u.FirstName.ToLower().Contains(term)) ||
+                (u.LastName != null && u.LastName.ToLower().Contains(term)) ||
+                (u.Email != null && u.Email.ToLower().Contains(term)) ||
+                (u.PhoneNumber != null && u.PhoneNumber.Contains(term)));
+        }
+
+        var items = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .ToListAsync(
+                query
+                    .OrderBy(u => u.FirstName)
+                    .ThenBy(u => u.LastName)
+                    .Take(limit)
+                    .Select(u => new CustomerPickerItemDto(
+                        u.Id,
+                        ((u.FirstName ?? string.Empty) + " " + (u.LastName ?? string.Empty)).Trim(),
+                        u.Email,
+                        u.PhoneNumber)),
+                cancellationToken);
+
+        return Ok(items);
+    }
+
+    /// <summary>
+    /// Searchable available-vehicles picker for the create-booking flow.
+    /// Only returns vehicles flagged active AND not occupied by an active
+    /// (non-cancelled) booking that overlaps the optional pickup/return
+    /// window. Unavailable / inactive vehicles never appear.
+    /// </summary>
+    [HttpGet("pickers/vehicles")]
+    [ProducesResponseType(typeof(IEnumerable<VehiclePickerItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IEnumerable<VehiclePickerItemDto>>> SearchAvailableVehicles(
+        [FromQuery] string? search,
+        [FromQuery] DateTime? pickupDate,
+        [FromQuery] DateTime? returnDate,
+        [FromQuery] int limit = 20,
+        CancellationToken cancellationToken = default)
+    {
+        if (limit < 1) limit = 1;
+        if (limit > 50) limit = 50;
+
+        var query = _context.Vehicles.Where(v => v.IsActive);
+
+        // Suppliers should only see their own fleet in the picker.
+        var isAdmin = User.IsInRole("Admin");
+        if (!isAdmin)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var currentUserId))
+            {
+                query = query.Where(v => v.UserId == currentUserId);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(v =>
+                (v.Make != null && v.Make.ToLower().Contains(term)) ||
+                (v.Model != null && v.Model.ToLower().Contains(term)) ||
+                (v.LicensePlate != null && v.LicensePlate.ToLower().Contains(term)));
+        }
+
+        // Exclude vehicles that have overlapping active bookings — when a
+        // window is supplied. Without a window we exclude vehicles with ANY
+        // currently-active rental (Status == Active).
+        if (pickupDate.HasValue && returnDate.HasValue && pickupDate.Value < returnDate.Value)
+        {
+            var from = pickupDate.Value;
+            var to = returnDate.Value;
+            query = query.Where(v => !_context.Bookings.Any(b =>
+                b.VehicleId == v.Id &&
+                b.Status != Backend.Domain.Entities.Enums.BookingStatus.Cancelled &&
+                b.Status != Backend.Domain.Entities.Enums.BookingStatus.Completed &&
+                b.PickupDate.HasValue && b.ReturnDate.HasValue &&
+                from < b.ReturnDate && to > b.PickupDate));
+        }
+        else
+        {
+            query = query.Where(v => !_context.Bookings.Any(b =>
+                b.VehicleId == v.Id &&
+                b.Status == Backend.Domain.Entities.Enums.BookingStatus.Active));
+        }
+
+        var items = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .ToListAsync(
+                query
+                    .OrderBy(v => v.Make)
+                    .ThenBy(v => v.Model)
+                    .Take(limit)
+                    .Select(v => new VehiclePickerItemDto(
+                        v.Id,
+                        ((v.Make ?? string.Empty) + " " + (v.Model ?? string.Empty)).Trim(),
+                        v.Images
+                            .Where(i => i.IsPrimary)
+                            .Select(i => i.ImageUrl)
+                            .FirstOrDefault()
+                            ?? v.Images.Select(i => i.ImageUrl).FirstOrDefault(),
+                        v.LicensePlate,
+                        v.PricePerDay,
+                        v.User != null
+                            ? (v.User.CompanyProfile != null && v.User.CompanyProfile.CompanyName != null
+                                ? v.User.CompanyProfile.CompanyName
+                                : ((v.User.FirstName ?? string.Empty) + " " + (v.User.LastName ?? string.Empty)).Trim())
+                            : null)),
+                cancellationToken);
+
+        return Ok(items);
     }
 }

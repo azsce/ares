@@ -6,4 +6,5 @@ namespace Backend.Application.DTOs.Booking;
 public record VehicleBasicDto(
     Guid Id,
     string Name,
-    string Image);
+    string Image,
+    string? PlateNumber = null);

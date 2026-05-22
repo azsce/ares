@@ -9,4 +9,6 @@ public record VehicleWithSupplierDto(
     Guid Id,
     string Name,
     string Image,
-    SupplierDto Supplier);
+    SupplierDto Supplier,
+    string? PlateNumber = null,
+    decimal? DailyRate = null);

@@ -8,7 +8,14 @@ namespace Backend.Domain.Entities.Enums
         Confirmed,
         Active,
         Completed,
-        Cancelled
+        Cancelled,
+        // ─── Inspection workflow extensions ───────────────────────────────
+        // Appended at the end so any existing rows persisted by index keep
+        // their meaning. BookingStatus is persisted as a string (see
+        // BookingConfiguration), so adding values is safe.
+        Approved,             // Admin approved booking, ready for inspector assignment
+        ReadyForDelivery,     // Inspection approved — vehicle ready to hand over
+        InspectionFailed      // Inspection rejected — vehicle not safe to deliver
     }
 
     public enum PaymentStatus

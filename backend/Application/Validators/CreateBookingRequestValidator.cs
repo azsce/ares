@@ -20,11 +20,18 @@ public class CreateBookingRequestValidator : AbstractValidator<CreateBookingRequ
             .NotEmpty().WithMessage("Vehicle ID is required")
             .MustAsync(VehicleExistsAsync).WithMessage("Vehicle does not exist");
 
-        RuleFor(x => x.PickupLocationId)
-            .NotEmpty().WithMessage("Pickup location is required");
+        // Location fields are now stored as free-text on the entity. A label
+        // OR a legacy non-empty Id is acceptable. We only require that at
+        // least one form of pickup/dropoff location is supplied.
+        RuleFor(x => x)
+            .Must(x => !string.IsNullOrWhiteSpace(x.PickupLocation) || x.PickupLocationId != Guid.Empty)
+            .WithMessage("Pickup location is required")
+            .WithName("PickupLocation");
 
-        RuleFor(x => x.DropOffLocationId)
-            .NotEmpty().WithMessage("Drop-off location is required");
+        RuleFor(x => x)
+            .Must(x => !string.IsNullOrWhiteSpace(x.DropOffLocation) || x.DropOffLocationId != Guid.Empty)
+            .WithMessage("Drop-off location is required")
+            .WithName("DropOffLocation");
 
         RuleFor(x => x.PickupDate)
             .NotEmpty().WithMessage("Pickup date is required")

@@ -1,8 +1,6 @@
 # Supplier Bookings — List Page
 
-Placeholder page for the Supplier portal bookings list. The backend is
-implemented and ready; this page is intentionally minimal until the UI
-work is scheduled.
+The UI for the Supplier portal bookings list is now implemented. It provides a table view to monitor all bookings related to the supplier's vehicles.
 
 ## Purpose
 

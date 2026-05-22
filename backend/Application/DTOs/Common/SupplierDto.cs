@@ -5,4 +5,6 @@ namespace Backend.Application.DTOs.Common;
 /// </summary>
 public record SupplierDto(
     Guid Id,
-    string FullName);
+    string FullName,
+    string? Name = null,
+    string? Email = null);

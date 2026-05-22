@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -8,534 +8,689 @@ import {
   Paper,
   Button,
   TextField,
-  MenuItem,
   CircularProgress,
-  FormControlLabel,
-  Checkbox,
-  InputAdornment,
-  IconButton,
   Alert,
+  Stack,
+  Avatar,
+  Chip,
+  IconButton,
+  Divider,
+  InputAdornment,
+  useTheme,
+  alpha,
 } from "@mui/material";
-import { ArrowBack as ArrowBackIcon, Search as SearchIcon, Save as SaveIcon } from "@mui/icons-material";
+import {
+  ArrowBackRounded as BackIcon,
+  SaveOutlined as SaveIcon,
+  SearchRounded as SearchIcon,
+  PersonOutlineRounded as PersonIcon,
+  DirectionsCarFilledTwoTone as CarIcon,
+  PlaceOutlined as PlaceIcon,
+  CheckCircleRounded as CheckIcon,
+} from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { apiFetchJson } from "@/utils/api-client";
+import {
+  searchCustomersPicker,
+  searchAvailableVehiclesPicker,
+  createBooking,
+  type CustomerPickerItem,
+  type VehiclePickerItem,
+} from "@/api-clients/bookings/bookings";
+import { toImageUrl } from "@/utils/image-url";
 import { logger } from "@/utils/logger";
-import { Location, PaginatedResponse as LocationResponse } from "@/api-clients/locations/locations";
-import { Supplier, SupplierResponse } from "@/api-clients/suppliers/suppliers";
-import { Vehicle as Car } from "@/api-clients/cars/cars";
-import { User } from "@/api-clients/users/users";
 
-// --- Local Response Types if not in api-clients ---
-interface CarResponse {
-  data?: Car[];
-  resultData?: Car[];
+const formatCurrency = (n?: number | null) => {
+  if (n == null || isNaN(n)) return "$0.00";
+  return `$${n.toFixed(2)}`;
+};
+
+interface SectionCardProps {
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly step: number;
+  readonly done?: boolean;
+  readonly children: React.ReactNode;
 }
 
-interface ExtendedUser extends User {
-  fullName?: string;
-  userName?: string;
-}
-
-interface UserResponse {
-  data?: ExtendedUser[];
-  resultData?: ExtendedUser[];
+function SectionCard({ title, subtitle, step, done, children }: SectionCardProps) {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: done ? "success.main" : "divider",
+        bgcolor: theme => (done ? alpha(theme.palette.success.main, 0.02) : "background.paper"),
+        transition: "border-color 0.2s",
+      }}
+    >
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: theme => (done ? theme.palette.success.main : alpha(theme.palette.primary.main, 0.1)),
+            color: done ? "common.white" : "primary.main",
+            fontWeight: 700,
+            fontSize: 14,
+          }}
+        >
+          {done ? <CheckIcon fontSize="small" /> : step}
+        </Box>
+        <Box>
+          <Typography sx={{ fontWeight: 700 }}>{title}</Typography>
+          {subtitle && (
+            <Typography variant="caption" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+      {children}
+    </Paper>
+  );
 }
 
 export default function CreateBookingClient() {
   const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
+  const theme = useTheme();
+  const { data: session } = useSession();
 
-  // Form State
-  const [formData, setFormData] = useState({
-    supplier: "",
-    pickupLocation: "",
-    dropOffLocation: "",
-    from: "",
-    to: "",
-    car: "",
-    driver: "",
-    price: 0,
-    status: "Pending",
-    additionalDriver: false,
-    payLater: false,
-  });
+  // ── Form state ─────────────────────────────────────────────────────
+  const [customer, setCustomer] = useState<CustomerPickerItem | null>(null);
+  const [vehicle, setVehicle] = useState<VehiclePickerItem | null>(null);
+  const [pickupDate, setPickupDate] = useState("");
+  const [returnDate, setReturnDate] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
+  const [dropOffLocation, setDropOffLocation] = useState("");
 
-  // Data States
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [cars, setCars] = useState<Car[]>([]);
+  // ── Picker state ───────────────────────────────────────────────────
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerOptions, setCustomerOptions] = useState<CustomerPickerItem[]>([]);
+  const [customerLoading, setCustomerLoading] = useState(false);
 
-  // User Search States
-  const [userKeyword, setUserKeyword] = useState("");
-  const [users, setUsers] = useState<ExtendedUser[]>([]);
-  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [vehicleSearch, setVehicleSearch] = useState("");
+  const [vehicleOptions, setVehicleOptions] = useState<VehiclePickerItem[]>([]);
+  const [vehicleLoading, setVehicleLoading] = useState(false);
 
-  // Loading States
-  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
-  const [isLoadingCars, setIsLoadingCars] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // ── Submit state ──────────────────────────────────────────────────
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 1. Fetch Initial Data (Locations & Suppliers)
+  // ── Async customer search (debounced) ─────────────────────────────
   useEffect(() => {
-    const fetchInitialData = async () => {
-      if (sessionStatus === "loading") return;
-      if (!session?.accessToken) {
-        setErrorMsg("Authentication required. Please sign in.");
-        setIsLoadingInitial(false);
-        return;
-      }
+    const token = session?.accessToken;
+    if (!token) return;
+    const controller = new AbortController();
 
+    const runSearch = async () => {
+      setCustomerLoading(true);
       try {
-        // جلب المواقع
-        const locRes = await apiFetchJson<LocationResponse<Location>>("api/locations/1/100/en", {
-          accessToken: session.accessToken,
-        });
-        setLocations(locRes.resultData);
-
-        // جلب الموردين (استخدام المسار الجديد اللي صلحناه)
-        const supRes = await apiFetchJson<SupplierResponse>("api/suppliers/1/100", {
-          method: "POST",
-          accessToken: session.accessToken,
-          body: JSON.stringify({ keyword: null, types: ["user"] }),
-        });
-
-        logger.debug("Suppliers Data", supRes);
-        const suppliersData = supRes.data || supRes.items || supRes.resultData || [];
-        setSuppliers(suppliersData);
-      } catch (error) {
-        logger.error("Failed to load initial data", error);
-        setErrorMsg("Failed to load initial data. Please try again.");
+        const data = await searchCustomersPicker(token, customerSearch, 20, controller.signal);
+        setCustomerOptions(data);
+      } catch (e) {
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          logger.error("Customer picker search failed", e);
+        }
       } finally {
-        setIsLoadingInitial(false);
+        setCustomerLoading(false);
       }
     };
-    void fetchInitialData();
-  }, [session, sessionStatus]);
 
-  // 2. Fetch Cars dynamically when dependencies are fulfilled
-  const { supplier, pickupLocation, from, to } = formData;
+    const handle = setTimeout(() => {
+      void runSearch();
+    }, 250);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
+  }, [customerSearch, session?.accessToken]);
 
+  // ── Async vehicle search (debounced; re-runs on date change) ──────
   useEffect(() => {
-    // تفريغ العربية والسعر فوراً لو المورد أو التواريخ اتغيرت عشان نتفادى خطأ 409
-    setFormData(prev => ({ ...prev, car: "", price: 0 }));
+    const token = session?.accessToken;
+    if (!token) return;
+    const controller = new AbortController();
 
-    if (supplier && pickupLocation && from && to && session?.accessToken) {
-      const fromDate = new Date(from);
-      const toDate = new Date(to);
-      if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-        setCars([]);
-        return;
-      }
-
-      const fetchAvailableCars = async () => {
-        setIsLoadingCars(true);
-        try {
-          const res = await apiFetchJson<CarResponse>("api/booking-cars/1/50", {
-            method: "POST",
-            accessToken: session.accessToken,
-            body: JSON.stringify({
-              supplier,
-              pickupLocation,
-              from: fromDate.toISOString(),
-              to: toDate.toISOString(),
-              language: "en",
-            }),
-          });
-          setCars(res.data || res.resultData || []);
-        } catch (error) {
-          logger.error("Failed to load cars", error);
-          setCars([]);
-        } finally {
-          setIsLoadingCars(false);
+    const runSearch = async () => {
+      setVehicleLoading(true);
+      try {
+        const data = await searchAvailableVehiclesPicker(
+          token,
+          {
+            search: vehicleSearch,
+            pickupDate: pickupDate ? new Date(pickupDate).toISOString() : undefined,
+            returnDate: returnDate ? new Date(returnDate).toISOString() : undefined,
+            limit: 20,
+          },
+          controller.signal
+        );
+        setVehicleOptions(data);
+        // If the selected vehicle disappeared from the results, clear it.
+        if (vehicle && !data.find(v => v.id === vehicle.id)) {
+          setVehicle(null);
         }
-      };
-      void fetchAvailableCars();
-    } else {
-      setCars([]);
-    }
-  }, [supplier, pickupLocation, from, to, session]);
+      } catch (e) {
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          logger.error("Vehicle picker search failed", e);
+        }
+      } finally {
+        setVehicleLoading(false);
+      }
+    };
 
-  // 3. Search Users
-  const handleSearchUser = async () => {
-    if (!userKeyword.trim() || !session?.accessToken) return;
-    setIsSearchingUsers(true);
-    try {
-      const res = await apiFetchJson<UserResponse>("api/users/1/50", {
-        method: "POST",
-        accessToken: session.accessToken,
-        body: JSON.stringify({ keyword: userKeyword, types: ["user"] }),
-      });
-      setUsers(res.data || res.resultData || []);
-    } catch (error) {
-      logger.error("User search failed", error);
-    } finally {
-      setIsSearchingUsers(false);
+    const handle = setTimeout(() => {
+      void runSearch();
+    }, 250);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
+    // vehicle is intentionally NOT a dependency to avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicleSearch, pickupDate, returnDate, session?.accessToken]);
+
+  // ── Derived pricing ───────────────────────────────────────────────
+  const dailyRate = vehicle?.dailyRate ?? 0;
+  const { totalDays, totalPrice, datesValid, daysString } = useMemo(() => {
+    const p = pickupDate ? new Date(pickupDate) : null;
+    const r = returnDate ? new Date(returnDate) : null;
+    if (!p || !r || isNaN(p.getTime()) || isNaN(r.getTime()) || p >= r) {
+      return { totalDays: 0, totalPrice: 0, datesValid: false, daysString: "" };
     }
+    const days = Math.round((r.getTime() - p.getTime()) / (1000 * 60 * 60 * 24));
+    const daysString = days === 1 ? "" : "s";
+    return { totalDays: days, totalPrice: days * dailyRate, datesValid: true, daysString };
+  }, [pickupDate, returnDate, dailyRate]);
+
+  // ── Validity checks for each section ──────────────────────────────
+  const customerDone = !!customer;
+  const vehicleDone = !!vehicle;
+  const datesDone = datesValid && !!pickupLocation && !!dropOffLocation;
+  const canSubmit = customerDone && vehicleDone && datesDone && !submitting;
+
+  // ── Submit ────────────────────────────────────────────────────────
+  const handleSubmit = () => {
+    void (async () => {
+      if (!session?.accessToken || !customer || !vehicle || !datesValid || submitting) return;
+      setSubmitting(true);
+      setError(null);
+      try {
+        const result = await createBooking(session.accessToken, {
+          vehicleId: vehicle.id,
+          pickupDate: new Date(pickupDate).toISOString(),
+          returnDate: new Date(returnDate).toISOString(),
+          pickupLocation,
+          dropOffLocation,
+          customerUserId: customer.id,
+        });
+        router.push(`/admin/bookings/${result.bookingId}`);
+      } catch (e) {
+        logger.error("Failed to create booking", e);
+        setError(e instanceof Error ? e.message : "Failed to create booking.");
+      } finally {
+        setSubmitting(false);
+      }
+    })();
   };
-
-  // Handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleCarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedCarId = e.target.value;
-    const selectedCar = cars.find(c => c.id === selectedCarId);
-    setFormData(prev => ({
-      ...prev,
-      car: selectedCarId,
-      price: selectedCar ? selectedCar.pricePerDay || selectedCar.dailyRate || 0 : prev.price,
-    }));
-  };
-
-  // Submit - POST /api/admin/bookings/create
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!formData.car || !formData.driver) {
-      alert("Please select a car and a driver.");
-      return;
-    }
-
-    const fromDate = new Date(formData.from);
-    const toDate = new Date(formData.to);
-    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-      alert("Please enter valid dates.");
-      return;
-    }
-
-    if (!session?.accessToken) {
-      alert("Session expired. Please sign in again.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        carId: formData.car,
-        supplierId: formData.supplier,
-        driverId: formData.driver,
-        pickupLocationId: formData.pickupLocation,
-        dropOffLocationId: formData.dropOffLocation,
-        from: fromDate.toISOString(),
-        to: toDate.toISOString(),
-        status: formData.status,
-        price: formData.price,
-        additionalDriver: formData.additionalDriver,
-        payLater: formData.payLater,
-      };
-
-      await apiFetchJson("api/admin/bookings/create", {
-        method: "POST",
-        accessToken: session.accessToken,
-        body: JSON.stringify(payload),
-      });
-
-      alert("Booking created successfully!");
-      router.push("/admin/bookings");
-    } catch (error: unknown) {
-      logger.error("Booking creation failed", error);
-      const message = error instanceof Error ? error.message : "Failed to create booking.";
-      alert(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleGoBack = useCallback(() => {
-    router.push("/admin/bookings");
-  }, [router]);
-
-  const paperSx = {
-    p: 3,
-    border: "1px solid",
-    borderColor: "divider",
-    borderRadius: 2,
-    bgcolor: "background.paper",
-  };
-
-  if (isLoadingInitial) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (errorMsg) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">{errorMsg}</Alert>
-        <Button
-          onClick={() => {
-            window.location.reload();
-          }}
-          sx={{ mt: 2 }}
-        >
-          Retry
-        </Button>
-      </Container>
-    );
-  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 4, gap: 2 }}>
-        <IconButton
-          type="button"
-          onClick={handleGoBack}
-          sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider" }}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h4" sx={{ fontWeight: "800" }}>
-          Create New Booking
-        </Typography>
-      </Box>
+      {/* ── HEADER ── */}
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        sx={{ alignItems: { md: "center" }, justifyContent: "space-between", gap: 2, mb: 4 }}
+      >
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <IconButton
+            onClick={() => {
+              router.push("/admin/bookings");
+            }}
+            sx={{ border: "1px solid", borderColor: "divider" }}
+          >
+            <BackIcon />
+          </IconButton>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              Create Booking
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Set up a new reservation for a customer.
+            </Typography>
+          </Box>
+        </Stack>
 
-      <form
-        onSubmit={e => {
-          void handleSubmit(e);
+        <Stack direction="row" spacing={1.5}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              router.push("/admin/bookings");
+            }}
+            sx={{ borderRadius: 2 }}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={submitting ? undefined : <SaveIcon />}
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            sx={{ borderRadius: 2, fontWeight: 700, minWidth: 180 }}
+          >
+            {submitting ? <CircularProgress size={22} color="inherit" /> : "Create Booking"}
+          </Button>
+        </Stack>
+      </Stack>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Box
+        sx={{
+          display: "grid",
+          gap: 3,
+          gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" },
         }}
       >
-        <Box className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Section 1: Dates & Locations */}
-          <Paper elevation={0} sx={paperSx}>
-            <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
-              📍 Dates & Locations
-            </Typography>
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField
-                select
-                label="Pickup Location"
-                name="pickupLocation"
-                value={formData.pickupLocation || ""}
-                onChange={handleChange}
-                required
-                fullWidth
-              >
-                {locations.map(loc => (
-                  <MenuItem key={loc.id} value={loc.id}>
-                    {loc.name || loc.city || loc.addressLine || "موقع بدون اسم"}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                select
-                label="Drop-off Location"
-                name="dropOffLocation"
-                value={formData.dropOffLocation || ""}
-                onChange={handleChange}
-                required
-                fullWidth
-              >
-                {locations.map(loc => (
-                  <MenuItem key={loc.id} value={loc.id}>
-                    {loc.name || loc.city || loc.addressLine || "موقع بدون اسم"}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                type="datetime-local"
-                label="From Date"
-                name="from"
-                value={formData.from || ""}
-                onChange={handleChange}
-                required
-                fullWidth
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-              <TextField
-                type="datetime-local"
-                label="To Date"
-                name="to"
-                value={formData.to || ""}
-                onChange={handleChange}
-                required
-                fullWidth
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-            </Box>
-          </Paper>
-
-          {/* Section 2: Vehicle & Supplier */}
-          <Paper elevation={0} sx={paperSx}>
-            <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
-              🚗 Vehicle Details
-            </Typography>
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField
-                select
-                label="Supplier"
-                name="supplier"
-                value={formData.supplier}
-                onChange={handleChange}
-                required
-                fullWidth
-              >
-                {suppliers.map(sup => (
-                  <MenuItem key={sup.id} value={sup.id}>
-                    {/* 🔥 التعديل هنا: هيقرأ أي اسم متاح من الباك إند */}
-                    {sup.fullName ||
-                      sup.companyProfile?.companyName ||
-                      sup.firstName ||
-                      sup.lastName ||
-                      "Unknown Supplier"}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                select
-                label={isLoadingCars ? "Loading cars..." : "Select Car"}
-                name="car"
-                value={formData.car}
-                onChange={handleCarChange}
-                required
-                fullWidth
-                disabled={!cars.length || isLoadingCars}
-                helperText={!cars.length && formData.supplier ? "No cars available for selected dates/location" : ""}
-              >
-                {cars.map(car => (
-                  <MenuItem key={car.id} value={car.id}>
-                    {car.make} {car.model} - ${car.pricePerDay || car.dailyRate}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Box>
-          </Paper>
-
-          {/* Section 3: Driver Details */}
-          <Paper elevation={0} sx={paperSx}>
-            <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
-              👤 Driver Assignment
-            </Typography>
-            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-              <TextField
-                label="Search by name or email"
-                value={userKeyword}
-                onChange={e => {
-                  setUserKeyword(e.target.value);
-                }}
-                onKeyDown={e => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void handleSearchUser();
-                  }
-                }}
-                fullWidth
-                size="small"
-              />
-              <Button
-                type="button"
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  void handleSearchUser();
-                }}
-                disabled={isSearchingUsers}
-                sx={{ minWidth: 100 }}
-              >
-                {isSearchingUsers ? <CircularProgress size={24} color="inherit" /> : <SearchIcon />}
-              </Button>
-            </Box>
-
-            {/* 🔥 التعديل هنا: لغينا الـ native واستخدمنا MenuItem عشان التنسيق ميبوظش */}
-            <TextField
-              select
-              label="Select Driver"
-              name="driver"
-              value={formData.driver}
-              onChange={handleChange}
-              required
-              fullWidth
-            >
-              {users.length === 0 && (
-                <MenuItem value="" disabled>
-                  Search results will appear here...
-                </MenuItem>
-              )}
-              {users.map(u => (
-                <MenuItem key={u.id} value={u.id}>
-                  {u.firstName || u.lastName || u.fullName || u.userName || "Unknown"} ({u.email})
-                </MenuItem>
-              ))}
-            </TextField>
-          </Paper>
-
-          {/* Section 4: Payment & Options */}
-          <Paper
-            elevation={0}
-            sx={{ ...paperSx, display: "flex", flexDirection: "column", justifyContent: "space-between" }}
+        {/* ── LEFT — sections stack ── */}
+        <Stack spacing={3}>
+          {/* 1. Customer Selection */}
+          <SectionCard
+            step={1}
+            title="Customer"
+            subtitle="Search and pick the customer for this booking"
+            done={customerDone}
           >
-            <Box>
-              <Typography variant="h6" color="primary.main" sx={{ fontWeight: "bold", mb: 3 }}>
-                💳 Payment & Options
-              </Typography>
-              <Box className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <TextField
-                  type="number"
-                  label="Total Price"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  slotProps={{ input: { startAdornment: <InputAdornment position="start">$</InputAdornment> } }}
-                />
-                <TextField
-                  select
-                  label="Status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                >
-                  {["Pending", "Confirmed", "Active", "Completed", "Cancelled"].map(s => (
-                    <MenuItem key={s} value={s}>
-                      {s}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-              <Box sx={{ display: "flex", gap: 4 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox name="additionalDriver" checked={formData.additionalDriver} onChange={handleChange} />
-                  }
-                  label="Additional Driver"
-                />
-                <FormControlLabel
-                  control={<Checkbox name="payLater" checked={formData.payLater} onChange={handleChange} />}
-                  label="Pay Later"
-                />
-              </Box>
-            </Box>
+            <TextField
+              placeholder="Search by name, email or phone…"
+              value={customerSearch}
+              onChange={e => {
+                setCustomerSearch(e.target.value);
+              }}
+              fullWidth
+              size="small"
+              sx={{ mb: 2, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: "text.disabled" }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: customerLoading ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={16} />
+                    </InputAdornment>
+                  ) : undefined,
+                },
+              }}
+            />
 
-            <Box sx={{ mt: 4 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                fullWidth
-                disabled={isSubmitting}
-                startIcon={isSubmitting ? <CircularProgress size={20} /> : <SaveIcon />}
-                sx={{ py: 1.5, borderRadius: 2, fontWeight: "bold" }}
+            {customer ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "success.main",
+                  bgcolor: theme => alpha(theme.palette.success.main, 0.04),
+                }}
               >
-                {isSubmitting ? "Creating Booking..." : "Confirm & Create Booking"}
-              </Button>
+                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                    <Avatar sx={{ bgcolor: "success.main" }}>
+                      <PersonIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>{customer.fullName || "—"}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {customer.email ?? "no email"} · {customer.phone ?? "no phone"}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setCustomer(null);
+                    }}
+                  >
+                    Change
+                  </Button>
+                </Stack>
+              </Paper>
+            ) : (
+              <Box sx={{ maxHeight: 260, overflowY: "auto" }}>
+                {customerOptions.length === 0 && !customerLoading && (
+                  <Typography variant="body2" color="text.secondary">
+                    Start typing to search for customers.
+                  </Typography>
+                )}
+                <Stack spacing={1}>
+                  {customerOptions.map(c => (
+                    <Paper
+                      key={c.id}
+                      elevation={0}
+                      onClick={() => {
+                        setCustomer(c);
+                      }}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        "&:hover": {
+                          borderColor: "primary.main",
+                          bgcolor: theme => alpha(theme.palette.primary.main, 0.03),
+                        },
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                        <Avatar
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            bgcolor: alpha(theme.palette.primary.main, 0.08),
+                            color: "primary.main",
+                          }}
+                        >
+                          <PersonIcon fontSize="small" />
+                        </Avatar>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 600 }} noWrap>
+                            {c.fullName || "Unnamed"}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {c.email ?? "no email"} · {c.phone ?? "no phone"}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+          </SectionCard>
+
+          {/* 2. Vehicle Selection */}
+          <SectionCard
+            step={2}
+            title="Vehicle"
+            subtitle="Only available vehicles are shown for the selected dates"
+            done={vehicleDone}
+          >
+            <TextField
+              placeholder="Search by make, model, or plate…"
+              value={vehicleSearch}
+              onChange={e => {
+                setVehicleSearch(e.target.value);
+              }}
+              fullWidth
+              size="small"
+              sx={{ mb: 2, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: "text.disabled" }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: vehicleLoading ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={16} />
+                    </InputAdornment>
+                  ) : undefined,
+                },
+              }}
+            />
+
+            {vehicle ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "success.main",
+                  bgcolor: theme => alpha(theme.palette.success.main, 0.04),
+                }}
+              >
+                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                    <Avatar
+                      variant="rounded"
+                      src={toImageUrl(vehicle.thumbnail ?? undefined)}
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        bgcolor: alpha(theme.palette.primary.main, 0.08),
+                        color: "primary.main",
+                      }}
+                    >
+                      <CarIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>{vehicle.name || "—"}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {vehicle.plateNumber ?? "No plate"} · {vehicle.supplierName ?? "—"}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                    <Chip
+                      label={`${formatCurrency(vehicle.dailyRate ?? 0)} / day`}
+                      size="small"
+                      color="success"
+                      sx={{ fontWeight: 700 }}
+                    />
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={() => {
+                        setVehicle(null);
+                      }}
+                    >
+                      Change
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Paper>
+            ) : (
+              <Box sx={{ maxHeight: 320, overflowY: "auto" }}>
+                {vehicleOptions.length === 0 && !vehicleLoading && (
+                  <Typography variant="body2" color="text.secondary">
+                    No available vehicles for the selected window. Adjust dates or search terms.
+                  </Typography>
+                )}
+                <Stack spacing={1}>
+                  {vehicleOptions.map(v => (
+                    <Paper
+                      key={v.id}
+                      elevation={0}
+                      onClick={() => {
+                        setVehicle(v);
+                      }}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        "&:hover": {
+                          borderColor: "primary.main",
+                          bgcolor: theme => alpha(theme.palette.primary.main, 0.03),
+                        },
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                        <Avatar
+                          variant="rounded"
+                          src={toImageUrl(v.thumbnail ?? undefined)}
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            bgcolor: alpha(theme.palette.primary.main, 0.08),
+                            color: "primary.main",
+                          }}
+                        >
+                          <CarIcon fontSize="small" />
+                        </Avatar>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 600 }} noWrap>
+                            {v.name || "Unnamed"}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {v.plateNumber ?? "No plate"} · {v.supplierName ?? "—"}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontWeight: 700, color: "success.main" }}>
+                          {formatCurrency(v.dailyRate ?? 0)}
+                        </Typography>
+                      </Stack>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+          </SectionCard>
+
+          {/* 3. Booking Information */}
+          <SectionCard
+            step={3}
+            title="Booking Information"
+            subtitle="Dates and pickup / dropoff details"
+            done={datesDone}
+          >
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2,
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              }}
+            >
+              <TextField
+                type="date"
+                label="Pickup Date"
+                value={pickupDate}
+                onChange={e => {
+                  setPickupDate(e.target.value);
+                }}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
+              />
+              <TextField
+                type="date"
+                label="Return Date"
+                value={returnDate}
+                onChange={e => {
+                  setReturnDate(e.target.value);
+                }}
+                slotProps={{ inputLabel: { shrink: true } }}
+                error={!datesValid && pickupDate !== "" && returnDate !== ""}
+                helperText={
+                  !datesValid && pickupDate !== "" && returnDate !== "" ? "Return date must be after pickup date" : ""
+                }
+                fullWidth
+              />
+              <TextField
+                label="Pickup Location"
+                value={pickupLocation}
+                onChange={e => {
+                  setPickupLocation(e.target.value);
+                }}
+                placeholder="e.g. Cairo International Airport"
+                fullWidth
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PlaceIcon fontSize="small" sx={{ color: "text.disabled" }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <TextField
+                label="Dropoff Location"
+                value={dropOffLocation}
+                onChange={e => {
+                  setDropOffLocation(e.target.value);
+                }}
+                placeholder="e.g. Downtown Office"
+                fullWidth
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PlaceIcon fontSize="small" sx={{ color: "text.disabled" }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
             </Box>
-          </Paper>
-        </Box>
-      </form>
+          </SectionCard>
+        </Stack>
+
+        {/* ── RIGHT — Pricing Summary ── */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            height: "fit-content",
+            position: { lg: "sticky" },
+            top: { lg: 24 },
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, mb: 2 }}>Pricing Summary</Typography>
+          <Stack spacing={1.5}>
+            <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+              <Typography variant="body2" color="text.secondary">
+                Daily Rate
+              </Typography>
+              <Typography sx={{ fontWeight: 600 }}>{formatCurrency(dailyRate)}</Typography>
+            </Stack>
+            <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+              <Typography variant="body2" color="text.secondary">
+                Total Days
+              </Typography>
+              <Typography sx={{ fontWeight: 600 }}>
+                {datesValid ? `${String(totalDays)} day${daysString}` : "—"}
+              </Typography>
+            </Stack>
+            <Divider />
+            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                Total Price
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: "success.main" }}>
+                {formatCurrency(totalPrice)}
+              </Typography>
+            </Stack>
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2, lineHeight: 1.5 }}>
+            Pricing updates live as you change vehicle and dates. The server confirms the final amount on save. Payment
+            is collected through a separate flow — creating a booking does not require completing payment.
+          </Typography>
+        </Paper>
+      </Box>
     </Container>
   );
 }

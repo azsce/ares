@@ -127,33 +127,62 @@ public class SupplierReviewService : ISupplierReviewService
         var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
         var skip = (page - 1) * pageSize;
 
-        var pageRows = await query
+        var rawRows = await query
             .Skip(skip)
             .Take(pageSize)
-            .Select(r => new SupplierReviewListItemDto(
+            .Select(r => new
+            {
                 r.Id,
                 r.BookingId,
                 r.UserId,
-                r.User != null ? ((r.User.FirstName ?? string.Empty) + " " + (r.User.LastName ?? string.Empty)).Trim() : string.Empty,
+                UserFirstName = r.User != null ? r.User.FirstName : null,
+                UserLastName = r.User != null ? r.User.LastName : null,
                 r.VehicleId,
-                r.Vehicle != null ? (r.Vehicle.Make ?? string.Empty) : string.Empty,
-                r.Vehicle != null ? (r.Vehicle.Model ?? string.Empty) : string.Empty,
-                r.Vehicle != null ? r.Vehicle.Year : null,
-                r.Vehicle != null
+                VehicleMake = r.Vehicle != null ? r.Vehicle.Make : null,
+                VehicleModel = r.Vehicle != null ? r.Vehicle.Model : null,
+                VehicleYear = r.Vehicle != null ? (int?)r.Vehicle.Year : null,
+                VehicleImageUrl = r.Vehicle != null
                     ? (r.Vehicle.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()
                         ?? r.Vehicle.Images.Select(i => i.ImageUrl).FirstOrDefault()
                         ?? string.Empty)
                     : string.Empty,
-                r.Rating ?? 0,
+                Rating = r.Rating ?? 0,
                 r.Comment,
                 r.CreatedAt,
                 r.SupplierReply,
                 r.RepliedAt,
-                r.SupplierReply != null && r.SupplierReply != "",
                 r.IsReported,
                 r.ReportReason,
-                r.ReportedAt))
+                r.ReportedAt
+            })
             .ToListAsync(cancellationToken);
+
+        var pageRows = rawRows.Select(r =>
+        {
+            var firstName = r.UserFirstName ?? string.Empty;
+            var lastName = r.UserLastName ?? string.Empty;
+            var fullName = $"{firstName} {lastName}".Trim();
+
+            return new SupplierReviewListItemDto(
+                r.Id,
+                r.BookingId,
+                r.UserId,
+                fullName,
+                r.VehicleId,
+                r.VehicleMake ?? string.Empty,
+                r.VehicleModel ?? string.Empty,
+                r.VehicleYear,
+                r.VehicleImageUrl,
+                r.Rating,
+                r.Comment,
+                r.CreatedAt,
+                r.SupplierReply,
+                r.RepliedAt,
+                !string.IsNullOrEmpty(r.SupplierReply),
+                r.IsReported,
+                r.ReportReason,
+                r.ReportedAt);
+        }).ToList();
 
         return new PagedResult<SupplierReviewListItemDto>(
             pageRows,
@@ -293,41 +322,65 @@ public class SupplierReviewService : ISupplierReviewService
         Guid reviewId,
         CancellationToken cancellationToken)
     {
-        var dto = await _context.Reviews
+        var rawRow = await _context.Reviews
             .AsNoTracking()
             .Where(r => r.Id == reviewId && r.Vehicle != null && r.Vehicle.UserId == supplierId)
-            .Select(r => new SupplierReviewListItemDto(
+            .Select(r => new
+            {
                 r.Id,
                 r.BookingId,
                 r.UserId,
-                r.User != null ? ((r.User.FirstName ?? string.Empty) + " " + (r.User.LastName ?? string.Empty)).Trim() : string.Empty,
+                UserFirstName = r.User != null ? r.User.FirstName : null,
+                UserLastName = r.User != null ? r.User.LastName : null,
                 r.VehicleId,
-                r.Vehicle != null ? (r.Vehicle.Make ?? string.Empty) : string.Empty,
-                r.Vehicle != null ? (r.Vehicle.Model ?? string.Empty) : string.Empty,
-                r.Vehicle != null ? r.Vehicle.Year : null,
-                r.Vehicle != null
+                VehicleMake = r.Vehicle != null ? r.Vehicle.Make : null,
+                VehicleModel = r.Vehicle != null ? r.Vehicle.Model : null,
+                VehicleYear = r.Vehicle != null ? (int?)r.Vehicle.Year : null,
+                VehicleImageUrl = r.Vehicle != null
                     ? (r.Vehicle.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()
                         ?? r.Vehicle.Images.Select(i => i.ImageUrl).FirstOrDefault()
                         ?? string.Empty)
                     : string.Empty,
-                r.Rating ?? 0,
+                Rating = r.Rating ?? 0,
                 r.Comment,
                 r.CreatedAt,
                 r.SupplierReply,
                 r.RepliedAt,
-                r.SupplierReply != null && r.SupplierReply != "",
                 r.IsReported,
                 r.ReportReason,
-                r.ReportedAt))
+                r.ReportedAt
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
         // Should be impossible — we just saved the row — but defend against
         // a concurrent delete just in case.
-        if (dto is null)
+        if (rawRow is null)
         {
             throw new NotFoundException($"Review with ID {reviewId} not found");
         }
 
-        return dto;
+        var firstName = rawRow.UserFirstName ?? string.Empty;
+        var lastName = rawRow.UserLastName ?? string.Empty;
+        var fullName = $"{firstName} {lastName}".Trim();
+
+        return new SupplierReviewListItemDto(
+            rawRow.Id,
+            rawRow.BookingId,
+            rawRow.UserId,
+            fullName,
+            rawRow.VehicleId,
+            rawRow.VehicleMake ?? string.Empty,
+            rawRow.VehicleModel ?? string.Empty,
+            rawRow.VehicleYear,
+            rawRow.VehicleImageUrl,
+            rawRow.Rating,
+            rawRow.Comment,
+            rawRow.CreatedAt,
+            rawRow.SupplierReply,
+            rawRow.RepliedAt,
+            !string.IsNullOrEmpty(rawRow.SupplierReply),
+            rawRow.IsReported,
+            rawRow.ReportReason,
+            rawRow.ReportedAt);
     }
 }

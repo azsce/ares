@@ -135,7 +135,9 @@ public class VehicleService : IVehicleService
 
         var supplierDto = new SupplierDto(
             vehicle.User?.Id ?? Guid.Empty,
-            $"{vehicle.User?.FirstName} {vehicle.User?.LastName}".Trim()
+            $"{vehicle.User?.FirstName} {vehicle.User?.LastName}".Trim(),
+            $"{vehicle.User?.FirstName} {vehicle.User?.LastName}".Trim(),
+            vehicle.User?.Email
         );
 
         return new VehicleDetailsDto(

@@ -8,7 +8,7 @@ namespace Backend.Infrastructure.Repositories;
 /// Generic repository implementation for basic CRUD operations
 /// </summary>
 /// <typeparam name="T">Entity type</typeparam>
-public class Repository<T> : IRepository<T> where T : class
+public class Repository<T> : Backend.Application.Interfaces.IRepository<T> where T : class
 {
     protected readonly ApplicationDbContext _context;
     protected readonly DbSet<T> _dbSet;

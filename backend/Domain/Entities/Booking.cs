@@ -46,9 +46,21 @@ namespace Backend.Domain.Entities
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
 
         public DateTime? CancelledAt { get; set; }
-        
+
         public string? CancellationReason { get; set; }
-        
+
         public virtual Review? Review { get; set; }
+
+        // ─── Inspection workflow ─────────────────────────────────────────
+        // The inspector (ApplicationUser with Inspector role) assigned by an
+        // admin to perform the pre-delivery vehicle inspection.
+        public Guid? AssignedInspectorId { get; set; }
+
+        [ForeignKey(nameof(AssignedInspectorId))]
+        public ApplicationUser? AssignedInspector { get; set; }
+
+        // Inspection status mirror — kept on the booking for fast filtering
+        // and to avoid a join on every listing.
+        public BookingInspectionStatus InspectionStatus { get; set; } = BookingInspectionStatus.NotRequired;
     }
 }

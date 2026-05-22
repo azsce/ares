@@ -85,6 +85,18 @@ public interface IBookingService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets booking statistics for admin dashboard
+    /// </summary>
+    /// <param name="currentUserId">ID of the authenticated user</param>
+    /// <param name="isAdmin">Whether the authenticated user is an admin</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Admin booking statistics</returns>
+    Task<AdminBookingStatsDto> GetAdminBookingStatsAsync(
+        Guid currentUserId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets detailed information about a specific booking for admin/supplier
     /// </summary>
     /// <param name="bookingId">Booking ID</param>
@@ -111,6 +123,19 @@ public interface IBookingService
         Guid bookingId,
         string newStatus,
         Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Partially updates a booking. Only the editable fields
+    /// (dates, locations, status) can be changed. Recalculates total days
+    /// and total price when dates change.
+    /// </summary>
+    /// <returns>The refreshed booking details</returns>
+    Task<BookingDetailsDto> UpdateBookingAsync(
+        Guid bookingId,
+        UpdateBookingRequest request,
+        Guid currentUserId,
         bool isAdmin,
         CancellationToken cancellationToken = default);
 

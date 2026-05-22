@@ -7,6 +7,9 @@ namespace Backend.Application.DTOs.Booking;
 /// </summary>
 public record BookingListDto(
     Guid Id,
+    string? BookingNumber,
+    string? CustomerName,
+    int? TotalDays,
     VehicleBasicDto Car,
     SupplierDto Supplier,
     DriverDto? Driver,
@@ -17,6 +20,8 @@ public record BookingListDto(
     decimal Price,
     string Status,
     bool PayLater,
+    string? PaymentStatus = null,
+    string? PaymentMethod = null,
     /// <summary>UTC timestamp when this booking record was created in the database.</summary>
     DateTime? CreatedAt = null,
     /// <summary>UTC timestamp of the last status change (e.g. when payment was confirmed).</summary>

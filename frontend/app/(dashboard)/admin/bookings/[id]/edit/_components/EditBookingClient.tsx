@@ -1,97 +1,185 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
   Paper,
-  MenuItem,
-  Select,
-  Button,
-  CircularProgress,
-  TextField,
   Stack,
-  Divider,
   Chip,
+  CircularProgress,
   Alert,
-  Grid,
+  Avatar,
+  Button,
+  IconButton,
+  TextField,
+  MenuItem,
+  Divider,
   useTheme,
   alpha,
 } from "@mui/material";
+import {
+  ArrowBackRounded as BackIcon,
+  SaveOutlined as SaveIcon,
+  DirectionsCarFilledTwoTone as CarIcon,
+} from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { apiFetchJson } from "@/utils/api-client";
+import { getAdminBookingDetails, updateBooking, type Booking } from "@/api-clients/bookings/bookings";
 import { logger } from "@/utils/logger";
-import { type Booking } from "@/api-clients/bookings/bookings";
+import { toImageUrl } from "@/utils/image-url";
+
+const OPERATIONAL_STATUSES = ["Pending", "Active", "Completed", "Cancelled"] as const;
+
+const formatCurrency = (n?: number | null) => {
+  if (n == null || isNaN(n)) return "$0.00";
+  return `$${n.toFixed(2)}`;
+};
+
+const toLocalDateInput = (value?: string | null) => {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  // YYYY-MM-DD for <input type="date">
+  return d.toISOString().slice(0, 10);
+};
+
+interface FormState {
+  pickupDate: string;
+  returnDate: string;
+  pickupLocation: string;
+  dropOffLocation: string;
+  status: string;
+}
 
 export default function EditBookingClient({ bookingId }: { readonly bookingId: string }) {
   const router = useRouter();
-  const { data: session } = useSession();
   const theme = useTheme();
+  const { data: session } = useSession();
 
-  // States
-  const [bookingDetails, setBookingDetails] = useState<Booking | null>(null);
-  const [status, setStatus] = useState("");
-  const [remarks, setRemarks] = useState("");
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [isFetching, setIsFetching] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>({
+    pickupDate: "",
+    returnDate: "",
+    pickupLocation: "",
+    dropOffLocation: "",
+    status: "Pending",
+  });
 
-  // 1. Fetch Data
+  // ── Load booking ────────────────────────────────────────────────────
   useEffect(() => {
-    const fetchBookingDetails = async () => {
-      if (!bookingId || bookingId === "undefined") {
-        setErrorMsg("Invalid Booking ID. Please go back to the table and select a valid booking.");
-        setIsFetching(false);
+    const run = async () => {
+      if (!session?.accessToken || !bookingId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getAdminBookingDetails(session.accessToken, bookingId);
+        setBooking(data);
+        setForm({
+          pickupDate: toLocalDateInput(data.from),
+          returnDate: toLocalDateInput(data.to),
+          pickupLocation: data.pickupLocation?.name ?? "",
+          dropOffLocation: data.dropOffLocation?.name ?? "",
+          status: data.status,
+        });
+      } catch (e) {
+        logger.error("Failed to load booking details", e);
+        setError(e instanceof Error ? e.message : "Failed to load booking details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    void run();
+  }, [bookingId, session?.accessToken]);
+
+  // ── Derived: terminal state ─────────────────────────────────────────
+  const isTerminal = useMemo(() => {
+    const s = booking?.status.toLowerCase() ?? "";
+    return s === "completed" || s === "cancelled";
+  }, [booking?.status]);
+
+  // ── Live recalculation ──────────────────────────────────────────────
+  const dailyRate = booking?.car?.dailyRate ?? booking?.dailyRate ?? 0;
+  const { totalDays, totalPrice, datesValid } = useMemo(() => {
+    const p = form.pickupDate ? new Date(form.pickupDate) : null;
+    const r = form.returnDate ? new Date(form.returnDate) : null;
+    if (!p || !r || isNaN(p.getTime()) || isNaN(r.getTime()) || p >= r) {
+      return { totalDays: 0, totalPrice: 0, datesValid: false };
+    }
+    const days = Math.round((r.getTime() - p.getTime()) / (1000 * 60 * 60 * 24));
+    return { totalDays: days, totalPrice: days * dailyRate, datesValid: true };
+  }, [form.pickupDate, form.returnDate, dailyRate]);
+
+  const totalDaysLabel = useMemo(() => {
+    if (!datesValid) return "—";
+    const suffix = totalDays === 1 ? "" : "s";
+    return `${String(totalDays)} day${suffix}`;
+  }, [datesValid, totalDays]);
+
+  const isDirty = useMemo(() => {
+    if (!booking) return false;
+    return (
+      form.pickupDate !== toLocalDateInput(booking.from) ||
+      form.returnDate !== toLocalDateInput(booking.to) ||
+      form.pickupLocation !== (booking.pickupLocation?.name ?? "") ||
+      form.dropOffLocation !== (booking.dropOffLocation?.name ?? "") ||
+      form.status !== booking.status
+    );
+  }, [booking, form]);
+
+  // ── Submit ──────────────────────────────────────────────────────────
+  const handleSave = () => {
+    void (async () => {
+      if (!session?.accessToken || !booking) return;
+      if (!datesValid) {
+        setError("Pickup date must be before return date.");
         return;
       }
 
-      if (!session?.accessToken) return;
-
+      setSaving(true);
+      setError(null);
       try {
-        const data = await apiFetchJson<Booking>(`/api/admin/bookings/${bookingId}`, {
-          accessToken: session.accessToken,
-        });
-        setBookingDetails(data);
-        setStatus(data.status);
-      } catch (error) {
-        logger.error("Error fetching booking details", error);
-        setErrorMsg("Failed to load booking details.");
+        const payload: {
+          pickupDate?: string;
+          returnDate?: string;
+          pickupLocation?: string;
+          dropOffLocation?: string;
+          status?: string;
+        } = {};
+
+        if (form.pickupDate !== toLocalDateInput(booking.from)) {
+          payload.pickupDate = new Date(form.pickupDate).toISOString();
+        }
+        if (form.returnDate !== toLocalDateInput(booking.to)) {
+          payload.returnDate = new Date(form.returnDate).toISOString();
+        }
+        if (form.pickupLocation !== (booking.pickupLocation?.name ?? "")) {
+          payload.pickupLocation = form.pickupLocation;
+        }
+        if (form.dropOffLocation !== (booking.dropOffLocation?.name ?? "")) {
+          payload.dropOffLocation = form.dropOffLocation;
+        }
+        if (form.status !== booking.status) {
+          payload.status = form.status;
+        }
+
+        const updated = await updateBooking(session.accessToken, bookingId, payload);
+        setBooking(updated);
+        router.push(`/admin/bookings/${bookingId}`);
+      } catch (e) {
+        logger.error("Failed to update booking", e);
+        setError(e instanceof Error ? e.message : "Failed to save changes.");
       } finally {
-        setIsFetching(false);
-      }
-    };
-
-    void fetchBookingDetails();
-  }, [bookingId, session?.accessToken]);
-
-  // 2. Update Status
-  const handleUpdateStatus = () => {
-    void (async () => {
-      setIsSaving(true);
-      setErrorMsg(null);
-      try {
-        const payload = { status, remarks };
-
-        await apiFetchJson(`/api/admin/bookings/${bookingId}/status`, {
-          method: "PUT",
-          accessToken: session?.accessToken ?? undefined,
-          body: JSON.stringify(payload),
-        });
-
-        router.push("/admin/bookings");
-        router.refresh();
-      } catch (error) {
-        logger.error("Error updating status", error);
-        setErrorMsg("Failed to update booking status. Please try again.");
-      } finally {
-        setIsSaving(false);
+        setSaving(false);
       }
     })();
   };
 
-  if (isFetching) {
+  if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
         <CircularProgress />
@@ -99,194 +187,297 @@ export default function EditBookingClient({ bookingId }: { readonly bookingId: s
     );
   }
 
-  if (!bookingDetails) {
+  if (!booking) {
     return (
       <Box sx={{ p: 3, maxWidth: 900, mx: "auto" }}>
-        <Alert severity="error">{errorMsg || "Booking not found!"}</Alert>
+        <Alert severity="error">{error ?? "Booking not found."}</Alert>
         <Button
-          variant="outlined"
           sx={{ mt: 2 }}
+          variant="outlined"
+          startIcon={<BackIcon />}
           onClick={() => {
             router.push("/admin/bookings");
           }}
         >
-          Go Back to Bookings
+          Back to Bookings
         </Button>
       </Box>
     );
   }
 
-  return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, mx: "auto" }}>
-      <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-        Manage Booking
-      </Typography>
-      <Typography color="text.secondary" sx={{ mb: 4 }}>
-        Update status and add remarks for booking ID:{" "}
-        <Typography component="span" sx={{ fontWeight: "bold" }} color="text.primary">
-          {bookingId.split("-")[0]}
-        </Typography>
-        ...
-      </Typography>
+  const editableFieldsDisabled = isTerminal || saving;
 
-      {errorMsg && (
+  return (
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1100, mx: "auto" }}>
+      {/* ── HEADER ── */}
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        sx={{ alignItems: { md: "center" }, justifyContent: "space-between", gap: 2, mb: 4 }}
+      >
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <IconButton
+            onClick={() => {
+              router.push(`/admin/bookings/${bookingId}`);
+            }}
+            sx={{ border: "1px solid", borderColor: "divider" }}
+          >
+            <BackIcon />
+          </IconButton>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              Edit Booking
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              #{booking.bookingNumber ?? booking.id.split("-")[0]}
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Stack direction="row" spacing={1.5}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              router.push(`/admin/bookings/${bookingId}`);
+            }}
+            sx={{ borderRadius: 2 }}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={saving ? undefined : <SaveIcon />}
+            onClick={handleSave}
+            disabled={!isDirty || !datesValid || isTerminal || saving}
+            sx={{ borderRadius: 2, fontWeight: 700, minWidth: 160 }}
+          >
+            {saving ? <CircularProgress size={22} color="inherit" /> : "Save Changes"}
+          </Button>
+        </Stack>
+      </Stack>
+
+      {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          {errorMsg}
+          {error}
         </Alert>
       )}
 
-      <Grid container spacing={4}>
-        {/* الكارت الأول: تفاصيل الحجز */}
-        <Grid size={{ xs: 12, md: 5 }}>
+      {isTerminal && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          This booking is {booking.status.toLowerCase()} and its details can no longer be edited.
+        </Alert>
+      )}
+
+      <Box
+        sx={{
+          display: "grid",
+          gap: 3,
+          gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" },
+        }}
+      >
+        {/* ── LEFT COLUMN ── */}
+        <Stack spacing={3}>
+          {/* Booking Summary — read-only */}
           <Paper
             elevation={0}
             sx={{
               p: 3,
-              borderRadius: 2,
-              height: "100%",
-              // السحر هنا: بنغير اللون بناءً على الـ Mode
-              bgcolor:
-                theme.palette.mode === "dark" ? alpha(theme.palette.background.paper, 0.4) : "background.default",
+              borderRadius: 3,
               border: "1px solid",
               borderColor: "divider",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              Booking Information
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+              Booking Summary
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Stack spacing={2.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  Vehicle
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" } }}>
+              <Avatar
+                variant="rounded"
+                src={toImageUrl(booking.car?.image)}
+                sx={{
+                  width: 72,
+                  height: 72,
+                  bgcolor: alpha(theme.palette.primary.main, 0.08),
+                  color: "primary.main",
+                }}
+              >
+                <CarIcon />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontWeight: 700 }}>{booking.car?.name ?? "—"}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Plate: {booking.car?.plateNumber ?? "—"}
                 </Typography>
-                <Typography sx={{ fontWeight: 600 }} color="text.primary">
-                  {bookingDetails.car?.name || "N/A"}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  Driver
-                </Typography>
-                <Typography sx={{ fontWeight: 600 }} color="text.primary">
-                  {bookingDetails.driver?.fullName || "N/A"}
-                  <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                    ({bookingDetails.driver?.phone || "No Phone"})
-                  </Typography>
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  Dates
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500 }} color="text.primary">
-                  {new Date(bookingDetails.from).toLocaleDateString()} —{" "}
-                  {new Date(bookingDetails.to).toLocaleDateString()}
+                <Typography variant="body2" color="text.secondary">
+                  Supplier: {booking.supplier?.name ?? booking.supplier?.fullName ?? "—"}
                 </Typography>
               </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  Current Status
+              <Box sx={{ minWidth: 200 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  Customer
                 </Typography>
-                <Chip
-                  label={bookingDetails.status}
-                  color={
-                    bookingDetails.status === "Paid" || bookingDetails.status === "Confirmed" ? "success" : "warning"
-                  }
-                  size="small"
-                  sx={{ mt: 0.5, fontWeight: 600 }}
-                />
+                <Typography sx={{ fontWeight: 600 }}>
+                  {booking.customer?.fullName ?? booking.customerName ?? "—"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {booking.customer?.email ?? "—"}
+                </Typography>
+              </Box>
+            </Stack>
+            <Divider sx={{ my: 2 }} />
+            <Stack direction="row" spacing={3} sx={{ flexWrap: "wrap" }}>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Payment Status
+                </Typography>
+                <Box>
+                  <Chip
+                    size="small"
+                    label={booking.paymentStatus ?? "Unpaid"}
+                    color={booking.paymentStatus === "Paid" ? "success" : "default"}
+                    sx={{ fontWeight: 600, mt: 0.5 }}
+                  />
+                </Box>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Daily Rate
+                </Typography>
+                <Typography sx={{ fontWeight: 700 }}>{formatCurrency(dailyRate)}</Typography>
               </Box>
             </Stack>
           </Paper>
-        </Grid>
 
-        {/* الكارت التاني: فورم التعديل */}
-        <Grid size={{ xs: 12, md: 7 }}>
+          {/* Editable Booking Information */}
           <Paper
             elevation={0}
             sx={{
               p: 3,
-              borderRadius: 2,
-              height: "100%",
-              bgcolor: "background.paper",
+              borderRadius: 3,
               border: "1px solid",
               borderColor: "divider",
-              boxShadow: "shadow.card",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-              Update Status
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+              Editable Booking Information
             </Typography>
-
-            <Stack spacing={3}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  New Status *
-                </Typography>
-                <Select
-                  fullWidth
-                  value={status}
-                  onChange={e => {
-                    setStatus(e.target.value);
-                  }}
-                  size="medium"
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value="Pending">Pending</MenuItem>
-                  <MenuItem value="Confirmed">Confirmed</MenuItem>
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
-                  <MenuItem value="Cancelled">Cancelled</MenuItem>
-                </Select>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  Admin Remarks (Optional)
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  placeholder="Add any notes about this status change..."
-                  value={remarks}
-                  onChange={e => {
-                    setRemarks(e.target.value);
-                  }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                />
-              </Box>
-
-              <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => {
-                    router.push("/admin/bookings");
-                  }}
-                  sx={{ borderRadius: 2, px: 3 }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleUpdateStatus}
-                  disabled={isSaving || !status || status === bookingDetails.status}
-                  sx={{ borderRadius: 2, px: 4, fontWeight: 700, flexGrow: 1 }}
-                >
-                  {isSaving ? <CircularProgress size={24} color="inherit" /> : "Save Changes"}
-                </Button>
-              </Box>
-            </Stack>
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2,
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              }}
+            >
+              <TextField
+                type="date"
+                label="Pickup Date"
+                value={form.pickupDate}
+                onChange={e => {
+                  setForm(prev => ({ ...prev, pickupDate: e.target.value }));
+                }}
+                slotProps={{ inputLabel: { shrink: true } }}
+                disabled={editableFieldsDisabled}
+                fullWidth
+              />
+              <TextField
+                type="date"
+                label="Return Date"
+                value={form.returnDate}
+                onChange={e => {
+                  setForm(prev => ({ ...prev, returnDate: e.target.value }));
+                }}
+                slotProps={{ inputLabel: { shrink: true } }}
+                disabled={editableFieldsDisabled}
+                error={!datesValid && form.pickupDate !== "" && form.returnDate !== ""}
+                helperText={
+                  !datesValid && form.pickupDate !== "" && form.returnDate !== ""
+                    ? "Return date must be after pickup date"
+                    : ""
+                }
+                fullWidth
+              />
+              <TextField
+                label="Pickup Location"
+                value={form.pickupLocation}
+                onChange={e => {
+                  setForm(prev => ({ ...prev, pickupLocation: e.target.value }));
+                }}
+                disabled={editableFieldsDisabled}
+                placeholder="e.g. Cairo International Airport"
+                fullWidth
+              />
+              <TextField
+                label="Dropoff Location"
+                value={form.dropOffLocation}
+                onChange={e => {
+                  setForm(prev => ({ ...prev, dropOffLocation: e.target.value }));
+                }}
+                disabled={editableFieldsDisabled}
+                placeholder="e.g. Downtown Office"
+                fullWidth
+              />
+              <TextField
+                select
+                label="Booking Status"
+                value={form.status}
+                onChange={e => {
+                  setForm(prev => ({ ...prev, status: e.target.value }));
+                }}
+                disabled={isTerminal || saving}
+                fullWidth
+              >
+                {OPERATIONAL_STATUSES.map(s => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
           </Paper>
-        </Grid>
-      </Grid>
+        </Stack>
+
+        {/* ── RIGHT COLUMN: Pricing summary ── */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            height: "fit-content",
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+            Pricing Summary
+          </Typography>
+          <Stack spacing={1.5}>
+            <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+              <Typography variant="body2" color="text.secondary">
+                Daily Rate
+              </Typography>
+              <Typography sx={{ fontWeight: 600 }}>{formatCurrency(dailyRate)}</Typography>
+            </Stack>
+            <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+              <Typography variant="body2" color="text.secondary">
+                Total Days
+              </Typography>
+              <Typography sx={{ fontWeight: 600 }}>{totalDaysLabel}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                Total Price
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: "success.main" }}>
+                {formatCurrency(totalPrice)}
+              </Typography>
+            </Stack>
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2, lineHeight: 1.5 }}>
+            Total price is recalculated automatically when dates change and confirmed by the server on save.
+          </Typography>
+        </Paper>
+      </Box>
     </Box>
   );
 }

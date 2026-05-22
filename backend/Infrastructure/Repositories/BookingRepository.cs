@@ -28,11 +28,14 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         CancellationToken cancellationToken = default)
     {
         var query = _dbSet
+            .AsNoTracking()
             .Include(b => b.Vehicle)
                 .ThenInclude(v => v!.Images)
             .Include(b => b.Vehicle)
                 .ThenInclude(v => v!.User)
+                    .ThenInclude(u => u!.CompanyProfile)
             .Include(b => b.Driver)
+                .ThenInclude(d => d!.User)
             .Include(b => b.User)
             .Where(b => b.UserId == userId);
 
@@ -120,12 +123,17 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         Guid bookingId,
         CancellationToken cancellationToken = default)
     {
+        // NOTE: Intentionally NOT AsNoTracking — this is also used by
+        // UpdateBookingStatusAsync / Edit Booking flow which mutates the
+        // returned entity. Read-only callers may project as needed.
         return await _dbSet
             .Include(b => b.Vehicle)
                 .ThenInclude(v => v!.Images)
             .Include(b => b.Vehicle)
                 .ThenInclude(v => v!.User)
+                    .ThenInclude(u => u!.CompanyProfile)
             .Include(b => b.Driver)
+                .ThenInclude(d => d!.User)
             .Include(b => b.User)
             .FirstOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
     }
@@ -140,11 +148,14 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         CancellationToken cancellationToken = default)
     {
         var query = _dbSet
+            .AsNoTracking()
             .Include(b => b.Vehicle)
                 .ThenInclude(v => v!.Images)
             .Include(b => b.Vehicle)
                 .ThenInclude(v => v!.User)
+                    .ThenInclude(u => u!.CompanyProfile)
             .Include(b => b.Driver)
+                .ThenInclude(d => d!.User)
             .Include(b => b.User)
             .AsQueryable();
 

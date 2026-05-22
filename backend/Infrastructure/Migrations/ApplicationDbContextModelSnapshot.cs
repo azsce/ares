@@ -158,6 +158,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AssignedInspectorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("BookingNumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -180,6 +183,13 @@ namespace Infrastructure.Migrations
                     b.Property<string>("DropoffLocation")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("InspectionStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("NotRequired");
 
                     b.Property<DateTime?>("PickupDate")
                         .HasColumnType("datetime2");
@@ -218,6 +228,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssignedInspectorId");
 
                     b.HasIndex("BookingNumber")
                         .IsUnique()
@@ -500,6 +512,39 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Favorites");
+                });
+
+            modelBuilder.Entity("Backend.Domain.Entities.InspectionImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("InspectionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InspectionId");
+
+                    b.ToTable("InspectionImages", (string)null);
                 });
 
             modelBuilder.Entity("Backend.Domain.Entities.InspectionPhoto", b =>
@@ -1157,11 +1202,26 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("InspectorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsSubmitted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OdometerReading")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1377,6 +1437,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Backend.Domain.Entities.Booking", b =>
                 {
+                    b.HasOne("Backend.Domain.Entities.ApplicationUser", "AssignedInspector")
+                        .WithMany()
+                        .HasForeignKey("AssignedInspectorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Backend.Domain.Entities.Driver", "Driver")
                         .WithMany()
                         .HasForeignKey("DriverId")
@@ -1393,6 +1458,8 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AssignedInspector");
 
                     b.Navigation("Driver");
 
@@ -1470,6 +1537,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("Backend.Domain.Entities.InspectionImage", b =>
+                {
+                    b.HasOne("Backend.Domain.Entities.VehicleInspection", "Inspection")
+                        .WithMany("Images")
+                        .HasForeignKey("InspectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inspection");
                 });
 
             modelBuilder.Entity("Backend.Domain.Entities.InspectionPhoto", b =>
@@ -1730,6 +1808,11 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("AvailabilityPeriods");
 
+                    b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("Backend.Domain.Entities.VehicleInspection", b =>
+                {
                     b.Navigation("Images");
                 });
 #pragma warning restore 612, 618

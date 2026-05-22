@@ -773,18 +773,25 @@ function ReviewTableRow({ row, onView, onReply, onReport }: ReviewTableRowProps)
         </Typography>
       </TableCell>
 
-      <TableCell>
+      <TableCell sx={{ maxWidth: { xs: "auto", md: 280 } }}>
         {row.hasReply ? (
-          <Chip
-            size="small"
-            label="Replied"
-            sx={{
-              fontWeight: 700,
-              bgcolor: alpha(theme.palette.success.main, 0.12),
-              color: "success.main",
-              borderRadius: 1.5,
-            }}
-          />
+          <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
+            <Chip
+              size="small"
+              label="Replied"
+              sx={{
+                fontWeight: 700,
+                bgcolor: alpha(theme.palette.success.main, 0.12),
+                color: "success.main",
+                borderRadius: 1.5,
+              }}
+            />
+            {row.supplierReply && (
+              <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", md: "block" } }}>
+                {truncate(row.supplierReply, 60)}
+              </Typography>
+            )}
+          </Stack>
         ) : (
           <Chip
             size="small"
