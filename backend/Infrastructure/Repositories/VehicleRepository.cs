@@ -122,6 +122,10 @@ public class VehicleRepository : PaginatedRepository<Vehicle>, IVehicleRepositor
             var isStandardRequested = standardGroup.Contains(requested);
             var isPremiumRequested = premiumGroup.Contains(requested);
 
+            if (isCompactStatus && isCompactRequested) return true;
+            if (isStandardStatus && isStandardRequested) return true;
+            if (isPremiumStatus && isPremiumRequested) return true;
+
             if (isCompactStatus && !isCompactRequested) return false;
             if (isStandardStatus && !isStandardRequested) return false;
             if (isPremiumStatus && !isPremiumRequested) return false;
@@ -131,15 +135,28 @@ public class VehicleRepository : PaginatedRepository<Vehicle>, IVehicleRepositor
         var dailyRate = vehicle.PricePerDay ?? 0;
         var fuelType = vehicle.FuelType?.Trim().ToLowerInvariant() ?? string.Empty;
         var make = vehicle.Make?.Trim().ToLowerInvariant() ?? string.Empty;
+        var model = vehicle.Model?.Trim().ToLowerInvariant() ?? string.Empty;
+        var description = vehicle.Description?.Trim().ToLowerInvariant() ?? string.Empty;
+
+        // Conduct focused checks to resolve confusion around large 4-passenger vehicles and SUVs.
+        var isSuvKeyword = model.Contains("suv") || model.Contains("crossover") || 
+                           description.Contains("suv") || description.Contains("crossover");
+
+        var isLargeKeyword = model.Contains("large") || description.Contains("large") || 
+                             model.Contains("wagon") || description.Contains("wagon") ||
+                             model.Contains("truck") || description.Contains("truck") ||
+                             model.Contains("pickup") || description.Contains("pickup") ||
+                             description.Contains("midsize") || description.Contains("mid-size") ||
+                             description.Contains("standard");
 
         return requested switch
         {
             "compact" or "mini" or "compact-mini" or "economy" =>
-                seats is > 0 and <= 4,
+                seats is > 0 and <= 4 && !isSuvKeyword && !isLargeKeyword,
             "mid-size" or "midsize" or "standard" =>
-                (seats == 4 || seats == 5) && dailyRate <= 120,
+                ((seats == 4 || seats == 5) && dailyRate <= 120 && !isSuvKeyword) || (isLargeKeyword && !isSuvKeyword),
             "suv" or "maxi" or "suv-maxi" or "premium" =>
-                (seats >= 5 && dailyRate > 80) || seats >= 6,
+                isSuvKeyword || (seats >= 5 && dailyRate > 80) || seats >= 6,
             "electric" =>
                 fuelType.Contains("electric"),
             "luxury" =>
