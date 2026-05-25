@@ -148,7 +148,7 @@ public class BookingsController : ControllerBase
         // Override request parameters with route values
         var modifiedRequest = request with { Page = page, Size = size, Language = language, UserId = userId };
 
-        var result = await _bookingService.GetUserBookingsAsync(userId, modifiedRequest, cancellationToken);
+        var result = await _bookingService.GetUserBookingsAsync(userId, modifiedRequest, cancellationToken: cancellationToken);
 
         // Format response to match frontend expectations
         var response = new
@@ -235,37 +235,15 @@ public class BookingsController : ControllerBase
             Language: "en"
         );
 
-        var result = await _bookingService.GetUserBookingsAsync(userId, request, cancellationToken);
-
-        // Apply sorting
-        var sortedData = sortBy.ToLower() switch
-        {
-            "price" => sortOrder.ToLower() == "asc"
-                ? result.Data.OrderBy(b => b.Price).ToList()
-                : result.Data.OrderByDescending(b => b.Price).ToList(),
-            "status" => sortOrder.ToLower() == "asc"
-                ? result.Data.OrderBy(b => b.Status).ToList()
-                : result.Data.OrderByDescending(b => b.Status).ToList(),
-            _ => sortOrder.ToLower() == "asc"
-                ? result.Data.OrderBy(b => b.From).ToList()
-                : result.Data.OrderByDescending(b => b.From).ToList()
-        };
-
-        var sortedResult = new PagedResult<BookingListDto>(
-            sortedData,
-            result.Page,
-            result.PageSize,
-            result.TotalCount,
-            result.TotalPages
-        );
+        var result = await _bookingService.GetUserBookingsAsync(userId, request, sortBy, sortOrder, cancellationToken);
 
         _logger.LogInformation(
             "Retrieved booking history for user {UserId}, page {Page}/{TotalPages}",
             userId,
             page,
-            sortedResult.TotalPages);
+            result.TotalPages);
 
-        return Ok(sortedResult);
+        return Ok(result);
     }
 }
 

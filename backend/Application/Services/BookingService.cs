@@ -142,6 +142,8 @@ public class BookingService : IBookingService
     public async Task<PagedResult<BookingListDto>> GetUserBookingsAsync(
         Guid userId,
         BookingListRequest request,
+        string? sortBy = null,
+        string? sortOrder = null,
         CancellationToken cancellationToken = default)
     {
         var bookings = await _bookingRepository.GetUserBookingsAsync(
@@ -157,6 +159,28 @@ public class BookingService : IBookingService
             cancellationToken);
 
         var bookingList = bookings.ToList();
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            var order = string.IsNullOrEmpty(sortOrder) ? "desc" : sortOrder.ToLower();
+            bookingList = sortBy.ToLower() switch
+            {
+                "price" => order == "asc"
+                    ? bookingList.OrderBy(b => b.TotalPrice ?? 0).ToList()
+                    : bookingList.OrderByDescending(b => b.TotalPrice ?? 0).ToList(),
+                "status" => order == "asc"
+                    ? bookingList.OrderBy(b => b.Status.ToString()).ToList()
+                    : bookingList.OrderByDescending(b => b.Status.ToString()).ToList(),
+                _ => order == "asc"
+                    ? bookingList.OrderBy(b => b.PickupDate ?? DateTime.MinValue).ToList()
+                    : bookingList.OrderByDescending(b => b.PickupDate ?? DateTime.MinValue).ToList()
+            };
+        }
+        else
+        {
+            bookingList = bookingList.OrderByDescending(b => b.CreatedAt).ToList();
+        }
+
         var totalCount = bookingList.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)request.Size);
         var skip = (request.Page - 1) * request.Size;
