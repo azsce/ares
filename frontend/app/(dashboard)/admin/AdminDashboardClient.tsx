@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -104,11 +104,11 @@ export default function AdminDashboardClient() {
           const safeNum = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
           setSummaryData([
             {
-              title: "Total Bookings",
-              value: safeNum(data.totalBookings).toLocaleString(),
-              change: "+12.5%",
+              title: "Total Suppliers",
+              value: safeNum(data.totalSuppliers).toLocaleString(),
+              change: "+8.4%",
               isUp: true,
-              icon: <EventAvailableIcon fontSize="medium" />,
+              icon: <StorefrontIcon fontSize="medium" />,
               color: "primary",
             },
             {
@@ -184,11 +184,11 @@ export default function AdminDashboardClient() {
         // Fallback to Mock Data
         setSummaryData([
           {
-            title: "Total Bookings",
-            value: "1,284",
-            change: "+12.5%",
+            title: "Total Suppliers",
+            value: "12",
+            change: "+8.4%",
             isUp: true,
-            icon: <EventAvailableIcon fontSize="medium" />,
+            icon: <StorefrontIcon fontSize="medium" />,
             color: "primary",
           },
           {

@@ -39,16 +39,16 @@ interface IdentityVerificationModalProps {
   readonly onSubmitted: (verification: UserVerificationDto) => void;
 }
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
 const ACCEPT_ATTRIBUTE = ACCEPTED_IMAGE_TYPES.join(",");
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 function isValidImage(file: File): string | null {
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    return "Only JPG, PNG or WEBP images are allowed.";
+    return "Only JPG, PNG, WEBP images or PDF files are allowed.";
   }
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return "Each image must be smaller than 5 MB.";
+    return "Each file must be smaller than 5 MB.";
   }
   return null;
 }
@@ -248,7 +248,7 @@ export default function IdentityVerificationModal({
           />
 
           <Typography variant="caption" color="text.secondary">
-            Accepted formats: JPG, PNG, WEBP. Max 5 MB per file.
+            Accepted formats: JPG, PNG, WEBP, PDF. Max 5 MB per file.
           </Typography>
         </Stack>
       </DialogContent>

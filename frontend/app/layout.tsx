@@ -8,6 +8,7 @@ import Header from "../components/layout/Header";
 import { getServerTheme } from "@/lib/server-theme-detection";
 import ThemeWatcher from "./_components/ThemeWatcher";
 import React from "react";
+import { createAppTheme } from "@/providers/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +45,8 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
   // Detect theme preference on server
   const initialTheme = await getServerTheme();
-  const bgFallbackColor = initialTheme === "dark" ? "#0a0e0f" : "#f4f6f8";
+  const theme = createAppTheme(initialTheme);
+  const bgFallbackColor = theme.palette.background.default;
 
   return (
     <html lang="en" data-theme={initialTheme} style={{ backgroundColor: bgFallbackColor }}>

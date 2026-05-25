@@ -107,6 +107,26 @@ public class VehicleRepository : PaginatedRepository<Vehicle>, IVehicleRepositor
             return true;
         }
 
+        // Define known category groups to protect explicit categories from cross-matching.
+        var compactGroup = new[] { "compact", "mini", "compact-mini", "economy", "hatchback", "coupe" };
+        var standardGroup = new[] { "standard", "mid-size", "midsize", "sedan" };
+        var premiumGroup = new[] { "premium", "suv", "maxi", "suv-maxi" };
+
+        var isCompactStatus = compactGroup.Contains(status);
+        var isStandardStatus = standardGroup.Contains(status);
+        var isPremiumStatus = premiumGroup.Contains(status);
+
+        if (isCompactStatus || isStandardStatus || isPremiumStatus)
+        {
+            var isCompactRequested = compactGroup.Contains(requested);
+            var isStandardRequested = standardGroup.Contains(requested);
+            var isPremiumRequested = premiumGroup.Contains(requested);
+
+            if (isCompactStatus && !isCompactRequested) return false;
+            if (isStandardStatus && !isStandardRequested) return false;
+            if (isPremiumStatus && !isPremiumRequested) return false;
+        }
+
         var seats = vehicle.Seats ?? 0;
         var dailyRate = vehicle.PricePerDay ?? 0;
         var fuelType = vehicle.FuelType?.Trim().ToLowerInvariant() ?? string.Empty;
@@ -115,11 +135,11 @@ public class VehicleRepository : PaginatedRepository<Vehicle>, IVehicleRepositor
         return requested switch
         {
             "compact" or "mini" or "compact-mini" or "economy" =>
-                seats is > 0 and <= 4 || dailyRate is > 0 and <= 70,
+                seats is > 0 and <= 4,
             "mid-size" or "midsize" or "standard" =>
-                seats == 5 && dailyRate is > 70 and <= 120,
-            "suv" or "maxi" or "suv-maxi" =>
-                status.Contains("suv") || seats >= 6,
+                (seats == 4 || seats == 5) && dailyRate <= 120,
+            "suv" or "maxi" or "suv-maxi" or "premium" =>
+                (seats >= 5 && dailyRate > 80) || seats >= 6,
             "electric" =>
                 fuelType.Contains("electric"),
             "luxury" =>

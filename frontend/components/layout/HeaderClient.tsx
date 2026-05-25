@@ -112,8 +112,8 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           borderBottom: "1px solid",
           borderColor: "header.border",
           // Use a dark background during the preload phase if we're in dark mode
-          ".preload &": {
-            bgcolor: "#0a0e0f", // Match theme background
+          'html[data-theme="dark"] .preload &': {
+            bgcolor: "background.default",
           },
         }}
       >
@@ -475,7 +475,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           {/* Mobile User Section */}
           {session && (
             <>
-              <Box sx={{ px: 2, py: 2, bgcolor: "grey.50", borderRadius: 2, mb: 2 }}>
+              <Box sx={{ px: 2, py: 2, bgcolor: "background.default", borderRadius: 2, mb: 2 }}>
                 <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                   <Avatar
                     src={toImageUrl(session.user.image) ?? undefined}

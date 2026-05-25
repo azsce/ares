@@ -22,6 +22,7 @@ interface SearchFormFilterProps {
   readonly defaultPickupDate: string;
   readonly defaultReturnDate: string;
   readonly defaultCategory?: string;
+  readonly defaultTransmission?: string;
   readonly vehicles: readonly PublicVehicleCard[];
 }
 
@@ -31,6 +32,7 @@ export default function SearchFormFilter({
   defaultPickupDate,
   defaultReturnDate,
   defaultCategory,
+  defaultTransmission,
   vehicles,
 }: SearchFormFilterProps) {
   const router = useRouter();
@@ -39,12 +41,19 @@ export default function SearchFormFilter({
   const [pickupDate, setPickupDate] = useState<Date | null>(new Date(defaultPickupDate));
   const [returnDate, setReturnDate] = useState<Date | null>(new Date(defaultReturnDate));
   const [category, setCategory] = useState(defaultCategory || "");
+  const [transmission, setTransmission] = useState(defaultTransmission || "");
 
   const vehicleCategories = [
     { value: "", label: "All Categories" },
     { value: "Compact", label: "Compact & Mini" },
     { value: "Standard", label: "Mid-Size & Standard" },
     { value: "Premium", label: "SUVs & Maxi" },
+  ];
+
+  const transmissionOptions = [
+    { value: "", label: "All Transmissions" },
+    { value: "Automatic", label: "Automatic" },
+    { value: "Manual", label: "Manual" },
   ];
 
   const formatDateForUrl = (date: Date | null) => {
@@ -62,6 +71,11 @@ export default function SearchFormFilter({
     // Only add category if it's not empty (not "All Categories")
     if (category) {
       params.set("category", category);
+    }
+
+    // Only add transmission if it's not empty (not "All Transmissions")
+    if (transmission) {
+      params.set("transmission", transmission);
     }
 
     router.push(`/search?${params.toString()}`);
@@ -89,7 +103,7 @@ export default function SearchFormFilter({
               xs: "1fr",
               sm: "1fr",
               md: "1fr 1fr", // Two columns on tablet
-              lg: "2fr 1fr 1fr 1.5fr auto", // Desktop: single row with category filter
+              lg: "2fr 1.1fr 1.1fr 1.3fr 1.3fr auto", // Desktop: single row with category and transmission filters
             },
             alignItems: "end",
           }}
@@ -257,6 +271,50 @@ export default function SearchFormFilter({
             {vehicleCategories.map(cat => (
               <MenuItem key={cat.value} value={cat.value}>
                 {cat.label}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {/* Transmission Filter */}
+          <TextField
+            select
+            label="Transmission"
+            value={transmission}
+            onChange={e => {
+              setTransmission(e.target.value);
+            }}
+            slotProps={{
+              inputLabel: {
+                shrink: true,
+                sx: { fontSize: "0.875rem", fontWeight: 500 },
+              },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                minHeight: "56px",
+                fontSize: "1rem",
+                "& fieldset": {
+                  borderColor: theme.palette.border.main,
+                  borderWidth: "1px",
+                },
+                "&:hover fieldset": {
+                  borderColor: theme.palette.primary.main,
+                },
+                "&.Mui-focused fieldset": {
+                  borderWidth: "2px",
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+              "& .MuiSelect-select": {
+                fontSize: "1rem",
+                fontWeight: 500,
+              },
+            }}
+          >
+            {transmissionOptions.map(option => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
               </MenuItem>
             ))}
           </TextField>

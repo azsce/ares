@@ -77,6 +77,15 @@ const formatCompactDate = (dateString: string) => {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
+const getInitials = (name?: string) => {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return parts[0][0].toUpperCase();
+};
+
 // ── MAIN PAGE COMPONENT ─────────────────────────────────────────────────
 export default function BookingsClient() {
   const theme = useTheme();
@@ -244,14 +253,28 @@ export default function BookingsClient() {
         >
           {/* Booking */}
           <TableCell sx={{ pl: 3 }}>
-            <Box>
-              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
-                {booking.customerName ?? booking.customer?.fullName ?? "Unknown Customer"}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                #{booking.bookingNumber ?? booking.id.split("-")[0]}
-              </Typography>
-            </Box>
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+              <Avatar
+                sx={{
+                  width: 36,
+                  height: 36,
+                  bgcolor: theme => alpha(theme.palette.primary.main, 0.08),
+                  color: "primary.main",
+                  fontWeight: 700,
+                  fontSize: 14,
+                }}
+              >
+                {getInitials(booking.customerName ?? booking.customer?.fullName ?? "Unknown Customer")}
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
+                  {booking.customerName ?? booking.customer?.fullName ?? "Unknown Customer"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  #{booking.bookingNumber ?? booking.id.split("-")[0]}
+                </Typography>
+              </Box>
+            </Stack>
           </TableCell>
 
           {/* Vehicle */}
