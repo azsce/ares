@@ -180,7 +180,7 @@ export default function BookingOverview() {
               />
               <Tooltip
                 formatter={(value?: unknown, name?: unknown) => [
-                  `${((value as number) || 0).toLocaleString()} ${String(name || "").toLowerCase()}`,
+                  `${((value as number) || 0).toLocaleString()} ${typeof name === "string" ? name.toLowerCase() : ""}`,
                   "",
                 ]}
                 separator=""
