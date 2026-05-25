@@ -21,7 +21,7 @@ export default function HeroSection({ heroTitle, heroDescription }: HeroSectionP
         overflow: "hidden",
         color: "common.white",
         textAlign: "center",
-        bgcolor: "#050708", // Darkest theme color as baseline
+        bgcolor: "hero.background",
         "&::before": {
           content: '""',
           position: "absolute",
@@ -49,7 +49,7 @@ export default function HeroSection({ heroTitle, heroDescription }: HeroSectionP
           objectFit: "cover",
           transform: "translate(-50%, -50%)",
           zIndex: 0,
-          bgcolor: "#050708",
+          bgcolor: "hero.background",
         }}
       >
         <source src="/cover.mp4" type="video/mp4" />

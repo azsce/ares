@@ -20,6 +20,7 @@ import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   getNotifications,
@@ -53,6 +54,7 @@ interface NotificationsPanelProps {
 
 export default function NotificationsPanel({ iconColor = "inherit" }: NotificationsPanelProps) {
   const theme = useTheme();
+  const router = useRouter();
   const { data: session } = useSession();
   const token = session?.accessToken;
 
@@ -103,13 +105,39 @@ export default function NotificationsPanel({ iconColor = "inherit" }: Notificati
   };
 
   const handleItemClick = async (item: NotificationItem) => {
-    if (item.isRead || !token) return;
-    setItems(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: true } : n)));
-    try {
-      await markNotificationAsRead(item.id, token);
-    } catch (err) {
-      logger.error("NotificationsPanel: mark-as-read failed; reverting", err);
-      setItems(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: false } : n)));
+    // 1. Mark as read first if unread
+    if (!item.isRead && token) {
+      setItems(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: true } : n)));
+      try {
+        await markNotificationAsRead(item.id, token);
+      } catch (err) {
+        logger.error("NotificationsPanel: mark-as-read failed; reverting", err);
+        setItems(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: false } : n)));
+      }
+    }
+
+    // 2. Navigate if deep link is available
+    if (item.type) {
+      const parts = item.type.split(":");
+      const tag = parts[0];
+      const entityId = parts[1];
+      if (entityId) {
+        if (
+          [
+            "BookingPending",
+            "BookingPendingPayment",
+            "BookingApproved",
+            "BookingRejected",
+            "BookingCompleted",
+            "ReviewAvailable",
+            "InspectionApproved",
+            "InspectionRejected",
+          ].includes(tag)
+        ) {
+          router.push(`/booking/${entityId}`);
+          handleClose();
+        }
+      }
     }
   };
 

@@ -32,16 +32,16 @@ interface DriverLicenseModalProps {
   readonly onSubmitted: (license: DriverLicenseDto) => void;
 }
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
 const ACCEPT_ATTRIBUTE = ACCEPTED_IMAGE_TYPES.join(",");
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB to match backend
 
 function isValidImage(file: File): string | null {
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    return "Only JPG or PNG images are allowed.";
+    return "Only JPG, PNG or PDF files are allowed.";
   }
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return "The license image must be smaller than 10 MB.";
+    return "The license file must be smaller than 10 MB.";
   }
   return null;
 }
@@ -291,7 +291,7 @@ export default function DriverLicenseModal({
           />
 
           <Typography variant="caption" color="text.secondary">
-            Accepted formats: JPG, PNG. Max 10 MB.
+            Accepted formats: JPG, PNG, PDF. Max 10 MB.
           </Typography>
         </Stack>
       </DialogContent>
@@ -332,7 +332,7 @@ function ImageFileField({ id, label, file, error, disabled, onChange }: ImageFil
   // Stored in state and managed via effect so we don't recreate it every render.
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   useEffect(() => {
-    if (!file) {
+    if (!file || file.type === "application/pdf") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreviewUrl(null);
       return;

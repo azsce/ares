@@ -410,7 +410,8 @@ export async function fetchFeaturedVehicles(
   pickupDate: string,
   returnDate: string,
   category?: string,
-  limit = 6
+  limit = 6,
+  transmission?: string
 ): Promise<PublicVehicleCard[]> {
   const searchParams: Record<string, string> = {
     pickupLocationId,
@@ -424,6 +425,11 @@ export async function fetchFeaturedVehicles(
   // Add category filter if provided
   if (category) {
     searchParams.category = category;
+  }
+
+  // Add transmission filter if provided
+  if (transmission) {
+    searchParams.transmission = transmission;
   }
 
   const search = new URLSearchParams(searchParams);

@@ -292,8 +292,8 @@ public class InspectionService : IInspectionService
         // Fire notifications: customer + admins.
         var bookingLabel = booking?.BookingNumber ?? inspection.BookingId.ToString();
         var notifType = request.Approve
-            ? NotificationTypeInspectionApproved
-            : NotificationTypeInspectionRejected;
+            ? (booking != null ? $"{NotificationTypeInspectionApproved}:{booking.Id}" : NotificationTypeInspectionApproved)
+            : (booking != null ? $"{NotificationTypeInspectionRejected}:{booking.Id}" : NotificationTypeInspectionRejected);
         var notifTitle = request.Approve
             ? "Vehicle inspection approved"
             : "Vehicle inspection failed";

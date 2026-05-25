@@ -202,10 +202,37 @@ public class DashboardService : IDashboardService
             ));
         }
 
-        // Sort by most recent first — exactly 4 categories (booking, payment, user, vehicle)
+        // ── 5. Latest Verification log (admin view only) ──────────────────────
+        if (!supplierId.HasValue)
+        {
+            var latestVerification = await _context.Verifications
+                .Include(v => v.User)
+                .OrderByDescending(v => v.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (latestVerification is not null)
+            {
+                var fullName = latestVerification.User is not null
+                    ? $"{latestVerification.User.FirstName} {latestVerification.User.LastName}".Trim()
+                    : "a user";
+                if (string.IsNullOrWhiteSpace(fullName))
+                    fullName = latestVerification.User?.Email ?? "Unknown user";
+
+                var statusLabel = latestVerification.Status ?? "Pending";
+
+                items.Add(new RecentActivityItemDto(
+                    Type: "verification",
+                    Message: $"Verification submitted by {fullName} ({statusLabel})",
+                    CreatedAt: latestVerification.CreatedAt,
+                    Icon: "verification"
+                ));
+            }
+        }
+
+        // Sort by most recent first — up to 5 categories (booking, payment, user, vehicle, verification)
         return items
             .OrderByDescending(i => i.CreatedAt)
-            .Take(4)
+            .Take(5)
             .ToList()
             .AsReadOnly();
     }

@@ -49,9 +49,10 @@ export default async function SearchPage({ searchParams }: Readonly<PageProps>) 
   const pickupDate = firstValue(resolvedSearchParams.pickupDate) || defaultDates.pickupDate;
   const returnDate = firstValue(resolvedSearchParams.returnDate) || defaultDates.returnDate;
   const category = firstValue(resolvedSearchParams.category);
+  const transmission = firstValue(resolvedSearchParams.transmission);
 
   const vehicles = pickupLocationId
-    ? await fetchFeaturedVehicles(pickupLocationId, pickupDate, returnDate, category, 12)
+    ? await fetchFeaturedVehicles(pickupLocationId, pickupDate, returnDate, category, 12, transmission)
     : [];
 
   return (
@@ -63,6 +64,7 @@ export default async function SearchPage({ searchParams }: Readonly<PageProps>) 
       returnDate={returnDate}
       selectedLocation={selectedLocation}
       category={category}
+      transmission={transmission}
     />
   );
 }

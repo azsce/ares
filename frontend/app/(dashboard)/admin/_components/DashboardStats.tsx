@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Grid, Card, CardContent, Box, Typography, Avatar, Chip, CircularProgress, useTheme } from "@mui/material";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -13,7 +13,7 @@ import { apiFetchJson } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
 interface DashboardSummary {
-  totalBookings: number;
+  totalSuppliers: number;
   totalVehicles: number;
   totalRevenue: number;
   totalUsers: number;
@@ -47,11 +47,11 @@ export default function DashboardStats() {
           });
           setSummaryData([
             {
-              title: "Total Bookings",
-              value: data.totalBookings.toString(),
-              change: "+12.5%",
+              title: "Total Suppliers",
+              value: data.totalSuppliers.toString(),
+              change: "+8.4%",
               isUp: true,
-              icon: <EventAvailableIcon />,
+              icon: <StorefrontIcon />,
               color: "primary",
             },
             {
@@ -84,11 +84,11 @@ export default function DashboardStats() {
         logger.error("Failed to fetch dashboard summary:", _error);
         setSummaryData([
           {
-            title: "Total Bookings",
-            value: "1,284",
-            change: "+12.5%",
+            title: "Total Suppliers",
+            value: "12",
+            change: "+8.4%",
             isUp: true,
-            icon: <EventAvailableIcon />,
+            icon: <StorefrontIcon />,
             color: "primary",
           },
           {

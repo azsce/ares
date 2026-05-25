@@ -26,6 +26,12 @@ export function AppThemeProvider({ children, initialTheme = "light" }: AppThemeP
     }
   }, [mode]);
 
+  // Sync data-theme attribute for CSS variable application (e.g. from globals.css)
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+    document.documentElement.style.colorScheme = mode;
+  }, [mode]);
+
   const toggleTheme = () => {
     const newMode = mode === "light" ? "dark" : "light";
     setThemePreference(newMode);

@@ -116,7 +116,14 @@ public class BookingService : IBookingService
         await _bookingRepository.SaveChangesAsync(cancellationToken);
 
         // Requirement 4.8: Create notification for the booking owner (customer).
-        await CreateBookingNotificationAsync(ownerUserId, bookingNumber, cancellationToken);
+        if (request.CustomerUserId.HasValue && request.CustomerUserId.Value != userId)
+        {
+            await CreateBookingNotificationForAdminCreatedAsync(ownerUserId, booking.Id, bookingNumber, cancellationToken);
+        }
+        else
+        {
+            await CreateBookingNotificationAsync(ownerUserId, booking.Id, bookingNumber, cancellationToken);
+        }
 
         // Supplier-facing notification — "new booking received" — fired
         // best-effort so a notification failure cannot roll back the
@@ -602,6 +609,7 @@ public class BookingService : IBookingService
     /// </summary>
     private async Task CreateBookingNotificationAsync(
         Guid userId,
+        Guid bookingId,
         string bookingNumber,
         CancellationToken cancellationToken)
     {
@@ -616,7 +624,7 @@ public class BookingService : IBookingService
                 userId,
                 "Booking Received",
                 $"Your booking {bookingNumber} has been created and is pending confirmation.",
-                "BookingPending",
+                $"BookingPending:{bookingId}",
                 cancellationToken);
         }
         catch
@@ -624,19 +632,47 @@ public class BookingService : IBookingService
             // Swallow — notifications are best-effort and must not break the booking flow.
         }
 
-        // Fan-out to admins so the admin notification bell reflects real
-        // platform activity. Best-effort — already wrapped internally.
         try
         {
             await _notificationService.NotifyAdminsAsync(
                 "New booking created",
                 $"A new booking {bookingNumber} has been created and is awaiting confirmation.",
-                "BookingPending",
+                $"BookingPending:{bookingId}",
                 cancellationToken);
         }
         catch
         {
             // Best-effort only.
+        }
+    }
+
+    /// <summary>
+    /// Creates a payment-pending notification for the customer after admin-driven booking creation.
+    /// Wrapped in try/catch so notification failures never break the booking flow.
+    /// </summary>
+    private async Task CreateBookingNotificationForAdminCreatedAsync(
+        Guid userId,
+        Guid bookingId,
+        string bookingNumber,
+        CancellationToken cancellationToken)
+    {
+        if (_notificationService == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _notificationService.CreateNotificationAsync(
+                userId,
+                "Booking Awaiting Payment",
+                $"An admin has created Booking {bookingNumber} on your behalf. Please complete the payment on your end to confirm the booking.",
+                $"BookingPendingPayment:{bookingId}",
+                cancellationToken);
+        }
+        catch
+        {
+            // Swallow — notifications are best-effort and must not break the booking flow.
         }
     }
 
@@ -666,12 +702,12 @@ public class BookingService : IBookingService
                         booking.UserId,
                         "Booking Approved",
                         $"Your booking {bookingLabel} has been approved. Get ready for your trip!",
-                        "BookingApproved",
+                        $"BookingApproved:{booking.Id}",
                         cancellationToken);
                     await _notificationService.NotifyAdminsAsync(
                         "Booking approved",
                         $"Booking {bookingLabel} has been approved.",
-                        "BookingApproved",
+                        $"BookingApproved:{booking.Id}",
                         cancellationToken);
                     break;
 
@@ -680,12 +716,12 @@ public class BookingService : IBookingService
                         booking.UserId,
                         "Booking Rejected",
                         $"Your booking {bookingLabel} has been rejected or cancelled. Please review your bookings for details.",
-                        "BookingRejected",
+                        $"BookingRejected:{booking.Id}",
                         cancellationToken);
                     await _notificationService.NotifyAdminsAsync(
                         "Booking rejected",
                         $"Booking {bookingLabel} has been rejected or cancelled.",
-                        "BookingRejected",
+                        $"BookingRejected:{booking.Id}",
                         cancellationToken);
                     break;
 
@@ -694,7 +730,7 @@ public class BookingService : IBookingService
                         booking.UserId,
                         "Booking Completed",
                         $"Your booking {bookingLabel} has been completed. Thank you for choosing us!",
-                        "BookingCompleted",
+                        $"BookingCompleted:{booking.Id}",
                         cancellationToken);
 
                     // Review-available notification (Requirement: review available).
@@ -702,7 +738,7 @@ public class BookingService : IBookingService
                         booking.UserId,
                         "Share your experience",
                         $"You can now leave a review for booking {bookingLabel}.",
-                        "ReviewAvailable",
+                        $"ReviewAvailable:{booking.Id}",
                         cancellationToken);
 
                     // Supplier-facing "booking completed" notification. Uses
