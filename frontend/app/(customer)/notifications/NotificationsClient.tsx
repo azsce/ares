@@ -17,6 +17,7 @@ import {
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   getNotifications,
   markAllNotificationsAsRead,
@@ -28,6 +29,7 @@ import { logger } from "@/utils/logger";
 export default function NotificationsClient() {
   const { data: session, status } = useSession();
   const token = session?.accessToken;
+  const router = useRouter();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,44 @@ export default function NotificationsClient() {
       logger.error("Mark as read failed", err);
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleItemClick = async (item: NotificationItem) => {
+    // 1. Mark as read first if unread
+    if (!item.isRead && token && !processingId) {
+      try {
+        setProcessingId(item.id);
+        await markNotificationAsRead(item.id, token);
+        setNotifications(prev => prev.map(n => (n.id === item.id ? { ...n, isRead: true } : n)));
+      } catch (err) {
+        logger.error("Mark as read failed", err);
+      } finally {
+        setProcessingId(null);
+      }
+    }
+
+    // 2. Navigate if deep link is available
+    if (item.type) {
+      const parts = item.type.split(":");
+      const tag = parts[0];
+      const entityId = parts[1];
+      if (entityId) {
+        if (
+          [
+            "BookingPending",
+            "BookingPendingPayment",
+            "BookingApproved",
+            "BookingRejected",
+            "BookingCompleted",
+            "ReviewAvailable",
+            "InspectionApproved",
+            "InspectionRejected",
+          ].includes(tag)
+        ) {
+          router.push(`/booking/${entityId}`);
+        }
+      }
     }
   };
 
@@ -144,12 +184,10 @@ export default function NotificationsClient() {
                 transition: "background-color 0.2s ease",
                 bgcolor: n.isRead ? "transparent" : "action.hover",
                 "&:hover": { bgcolor: "action.selected" },
-                cursor: n.isRead ? "default" : "pointer",
+                cursor: "pointer",
               }}
               onClick={() => {
-                if (!n.isRead) {
-                  void handleMarkRead(n.id);
-                }
+                void handleItemClick(n);
               }}
             >
               <Box sx={{ flex: 1 }}>
@@ -246,7 +284,7 @@ export default function NotificationsClient() {
         </Alert>
       )}
 
-      <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+      <Card elevation={0} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
         {renderContent()}
       </Card>
     </Container>

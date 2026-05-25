@@ -22,7 +22,9 @@ namespace Backend.Application.DTOs.DriverLicense
         string? LicenseImageUrl,
         bool IsVerified,
         DateTime SubmittedAt,
-        DateTime? UpdatedAt);
+        DateTime? UpdatedAt,
+        string? VerificationStatus = null,
+        string? RejectionReason = null);
 
     /// <summary>
     /// Admin-facing DTO for driver license review. Mirrors the shape used by

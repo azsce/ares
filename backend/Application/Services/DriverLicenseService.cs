@@ -357,7 +357,9 @@ namespace Backend.Application.Services
                 LicenseImageUrl: driver.LicenseImage,
                 IsVerified: driver.IsVerified,
                 SubmittedAt: driver.CreatedAt,
-                UpdatedAt: driver.UpdatedAt);
+                UpdatedAt: driver.UpdatedAt,
+                VerificationStatus: driver.VerificationStatus,
+                RejectionReason: driver.RejectionReason);
 
         private static void ValidateLicenseNumber(string? licenseNumber)
         {

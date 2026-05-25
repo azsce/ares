@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Grid, Card, CardContent, Box, Typography, Avatar, Chip, CircularProgress, useTheme } from "@mui/material";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -11,9 +11,10 @@ import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { useSession } from "next-auth/react";
 import { apiFetchJson } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
+import { useAdminVehicleStats } from "@/api-clients/cars/cars";
 
 interface DashboardSummary {
-  totalBookings: number;
+  totalSuppliers: number;
   totalVehicles: number;
   totalRevenue: number;
   totalUsers: number;
@@ -36,6 +37,8 @@ export default function DashboardStats() {
   const [summaryData, setSummaryData] = useState<StatItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { stats: vehicleStats } = useAdminVehicleStats(session?.accessToken);
+
   useEffect(() => {
     if (status === "loading") return;
 
@@ -47,11 +50,11 @@ export default function DashboardStats() {
           });
           setSummaryData([
             {
-              title: "Total Bookings",
-              value: data.totalBookings.toString(),
-              change: "+12.5%",
+              title: "Total Suppliers",
+              value: data.totalSuppliers.toString(),
+              change: "+8.4%",
               isUp: true,
-              icon: <EventAvailableIcon />,
+              icon: <StorefrontIcon />,
               color: "primary",
             },
             {
@@ -84,11 +87,11 @@ export default function DashboardStats() {
         logger.error("Failed to fetch dashboard summary:", _error);
         setSummaryData([
           {
-            title: "Total Bookings",
-            value: "1,284",
-            change: "+12.5%",
+            title: "Total Suppliers",
+            value: "12",
+            change: "+8.4%",
             isUp: true,
-            icon: <EventAvailableIcon />,
+            icon: <StorefrontIcon />,
             color: "primary",
           },
           {
@@ -166,7 +169,7 @@ export default function DashboardStats() {
               </Box>
               {/* text.primary هيخلي اللون أسود في اللايت، وأبيض في الدارك تلقائياً */}
               <Typography variant="h4" sx={{ color: "text.primary", fontWeight: "800", mb: 0.5 }}>
-                {stat.value}
+                {stat.title === "Active Vehicles" ? (vehicleStats?.availableVehicles ?? stat.value) : stat.value}
               </Typography>
               {/* text.secondary للون الرمادي المريح للعين */}
               <Typography

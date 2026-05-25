@@ -16,6 +16,15 @@ export interface BookingCar {
   readonly supplier?: BookingParty;
 }
 
+export interface BookingInspectionOverview {
+  readonly preInspectionStatus?: string;
+  readonly postInspectionStatus?: string;
+  readonly assignedInspectorId?: string;
+  readonly assignedInspectorName?: string;
+  readonly preInspectionDate?: string;
+  readonly postInspectionDate?: string;
+}
+
 export interface BookingDetails {
   readonly id?: string;
   readonly car?: BookingCar;
@@ -27,4 +36,5 @@ export interface BookingDetails {
   readonly price?: number;
   readonly status?: string;
   readonly payLater?: boolean;
+  readonly inspection?: BookingInspectionOverview;
 }

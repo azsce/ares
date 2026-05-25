@@ -36,6 +36,7 @@ interface SearchPageContentProps {
   readonly returnDate: string;
   readonly selectedLocation: PublicLocation | undefined;
   readonly category?: string;
+  readonly transmission?: string;
 }
 
 function VehicleCard({ vehicle }: Readonly<{ vehicle: PublicVehicleCard }>) {
@@ -313,6 +314,7 @@ export default function SearchPageContent({
   returnDate,
   selectedLocation,
   category,
+  transmission,
 }: SearchPageContentProps) {
   const theme = useTheme();
 
@@ -375,6 +377,7 @@ export default function SearchPageContent({
                 defaultPickupDate={pickupDate}
                 defaultReturnDate={returnDate}
                 defaultCategory={category}
+                defaultTransmission={transmission}
                 vehicles={vehicles}
               />
             </Box>
@@ -408,6 +411,15 @@ export default function SearchPageContent({
                 <Chip
                   label={categoryDisplayName}
                   color="success"
+                  variant="filled"
+                  size="small"
+                  sx={{ fontSize: "0.75rem", fontWeight: 600 }}
+                />
+              )}
+              {transmission && (
+                <Chip
+                  label={transmission}
+                  color="info"
                   variant="filled"
                   size="small"
                   sx={{ fontSize: "0.75rem", fontWeight: 600 }}

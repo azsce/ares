@@ -30,6 +30,8 @@ public interface IBookingService
     Task<PagedResult<BookingListDto>> GetUserBookingsAsync(
         Guid userId,
         BookingListRequest request,
+        string? sortBy = null,
+        string? sortOrder = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

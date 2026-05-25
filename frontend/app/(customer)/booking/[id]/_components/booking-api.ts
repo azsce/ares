@@ -94,6 +94,7 @@ function parseBookingDetails(payload: unknown): BookingDetails | null {
   const driverNode = getObject(bookingNode, ["driver", "Driver"]);
   const pickupNode = getObject(bookingNode, ["pickupLocation", "PickupLocation"]);
   const dropOffNode = getObject(bookingNode, ["dropOffLocation", "DropOffLocation"]);
+  const inspectionNode = getObject(bookingNode, ["inspection", "Inspection"]);
 
   return {
     id: getString(bookingNode, ["id", "_id", "Id"]),
@@ -135,6 +136,16 @@ function parseBookingDetails(payload: unknown): BookingDetails | null {
     price: getNumber(bookingNode, ["price", "Price"]),
     status: getString(bookingNode, ["status", "Status"]),
     payLater: getBoolean(bookingNode, ["payLater", "PayLater"]),
+    inspection: inspectionNode
+      ? {
+          preInspectionStatus: getString(inspectionNode, ["preInspectionStatus", "PreInspectionStatus"]),
+          postInspectionStatus: getString(inspectionNode, ["postInspectionStatus", "PostInspectionStatus"]),
+          assignedInspectorId: getString(inspectionNode, ["assignedInspectorId", "AssignedInspectorId"]),
+          assignedInspectorName: getString(inspectionNode, ["assignedInspectorName", "AssignedInspectorName"]),
+          preInspectionDate: getString(inspectionNode, ["preInspectionDate", "PreInspectionDate"]),
+          postInspectionDate: getString(inspectionNode, ["postInspectionDate", "PostInspectionDate"]),
+        }
+      : undefined,
   };
 }
 

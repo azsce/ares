@@ -39,9 +39,9 @@ interface RawBooking {
   readonly status?: string;
 }
 
-interface ApiResponse {
-  readonly resultData?: readonly RawBooking[];
-  readonly pageInfo?: readonly { readonly totalRecords?: number }[];
+interface PagedHistoryResponse {
+  readonly data?: readonly RawBooking[];
+  readonly totalCount?: number;
 }
 
 // ── normalizer ────────────────────────────────────────────────────────────────
@@ -79,6 +79,8 @@ export default function BookingsList({ userId, accessToken }: Readonly<{ userId:
     "Cancelled",
   ]);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -98,54 +100,56 @@ export default function BookingsList({ userId, accessToken }: Readonly<{ userId:
       }
 
       // Step 2: fetch paginated bookings
-      const res = await fetch(toApiUrl(`/api/bookings/${String(page)}/${String(PAGE_SIZE)}/en`), {
-        method: "POST",
+      const statusParam = activeStatuses.join(",");
+      const searchParam = searchKeyword !== "" ? searchKeyword : "";
+
+      const queryParams = new URLSearchParams({
+        page: String(page),
+        limit: String(PAGE_SIZE),
+        status: statusParam,
+        sortBy,
+        sortOrder,
+      });
+      if (searchParam) {
+        queryParams.append("search", searchParam);
+      }
+
+      const res = await fetch(toApiUrl(`/api/bookings/history?${queryParams.toString()}`), {
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          UserId: userId,
-          Suppliers: [],
-          Statuses: activeStatuses,
-          CarId: null,
-          Filter: {
-            From: null,
-            To: null,
-            Keyword: searchKeyword !== "" ? searchKeyword : null,
-            PickupLocation: null,
-            DropOffLocation: null,
-          },
-          Page: page,
-          Size: PAGE_SIZE,
-          Language: "en",
-        }),
       });
 
       if (!res.ok) {
         throw new Error(`Failed to load bookings (${String(res.status)})`);
       }
 
-      const data = (await res.json()) as ApiResponse;
-      setBookings((data.resultData ?? []).map(normalizeBooking));
-      setTotalRecords(data.pageInfo?.[0]?.totalRecords ?? 0);
+      const data = (await res.json()) as PagedHistoryResponse;
+      setBookings((data.data ?? []).map(normalizeBooking));
+      setTotalRecords(data.totalCount ?? 0);
     } catch (err) {
       logger.error("Fetch bookings error", err);
       setError("Unable to load bookings. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [page, userId, accessToken, activeStatuses, searchKeyword, hasEverBooked]);
+  }, [page, userId, accessToken, activeStatuses, searchKeyword, sortBy, sortOrder, hasEverBooked]);
 
   useEffect(() => {
     void fetchBookings();
   }, [fetchBookings]);
 
-  const handleFilterChange = useCallback((statuses: readonly string[], keyword: string) => {
-    setActiveStatuses(statuses);
-    setSearchKeyword(keyword);
-    setPage(1);
-  }, []);
+  const handleFilterChange = useCallback(
+    (statuses: readonly string[], keyword: string, newSortBy: string, newSortOrder: string) => {
+      setActiveStatuses(statuses);
+      setSearchKeyword(keyword);
+      setSortBy(newSortBy);
+      setSortOrder(newSortOrder);
+      setPage(1);
+    },
+    []
+  );
 
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
@@ -194,7 +198,7 @@ export default function BookingsList({ userId, accessToken }: Readonly<{ userId:
           textAlign: "center",
           py: { xs: 10, sm: 16 },
           px: 4,
-          borderRadius: 3,
+          borderRadius: 2,
           border: "1px solid",
           borderColor: "border.main",
           bgcolor: "background.paper",
@@ -258,7 +262,7 @@ export default function BookingsList({ userId, accessToken }: Readonly<{ userId:
           sx={{
             textAlign: "center",
             py: 12,
-            borderRadius: 3,
+            borderRadius: 2,
             border: "2px dashed",
             borderColor: "border.main",
             bgcolor: "background.paper",
@@ -302,7 +306,7 @@ export default function BookingsList({ userId, accessToken }: Readonly<{ userId:
                 alignItems: "center",
                 gap: 2,
                 p: { xs: 2, md: 3 },
-                borderRadius: 3,
+                borderRadius: 2,
                 border: "1px solid",
                 borderColor: "border.main",
                 bgcolor: "background.paper",

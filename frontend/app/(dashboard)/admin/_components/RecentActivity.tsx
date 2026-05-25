@@ -18,13 +18,15 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import PaymentIcon from "@mui/icons-material/Payment";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import { useSession } from "next-auth/react";
 import { apiFetchJson, ApiError } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
+import { getAdminVerifications } from "@/api-clients/admin-verifications/admin-verifications";
 
 // ── Shape from GET /api/dashboard/recent-summary ──────────────────────────────
 interface RecentActivityItem {
-  type: "booking" | "payment" | "user" | "vehicle";
+  type: "booking" | "payment" | "user" | "vehicle" | "verification";
   message: string;
   createdAt: string; // ISO-8601 UTC — always a real DB timestamp
   icon: string;
@@ -76,6 +78,7 @@ const TYPE_META: Record<
   payment: { color: "success", icon: <PaymentIcon fontSize="small" /> },
   user: { color: "info", icon: <PersonAddIcon fontSize="small" /> },
   vehicle: { color: "warning", icon: <DirectionsCarIcon fontSize="small" /> },
+  verification: { color: "success", icon: <VerifiedIcon fontSize="small" /> },
 };
 
 // ── Timestamp display ─────────────────────────────────────────────────────────
@@ -122,13 +125,13 @@ const bestBookingTs = (b: RawBooking): string | undefined => b.createdAt ?? (b.f
 const bestPaymentTs = (b: RawBooking): string | undefined =>
   b.updatedAt ?? b.createdAt ?? (b.from ? b.from : undefined);
 
-// ── Fallback: build 4-item list from existing working APIs ────────────────────
+// ── Fallback: build single most-recent event from existing working APIs ───────
 async function fetchViaFallbackApis(
   accessToken: string,
   isSupplier: boolean,
   userId: string
 ): Promise<RecentActivityItem[]> {
-  const [bookingsRes, usersRes, vehiclesRes] = await Promise.all([
+  const [bookingsRes, usersRes, vehiclesRes, verificationsRes] = await Promise.all([
     // POST /api/admin/bookings/search/1/10  → PagedResult<BookingListDto> → { data: [...] }
     apiFetchJson<AnyPagedResponse<RawBooking>>("api/admin/bookings/search/1/10", {
       method: "POST",
@@ -167,6 +170,14 @@ async function fetchViaFallbackApis(
       logger.error("RecentActivity fallback: vehicles", e);
       return null;
     }),
+
+    // GET /api/admin/verifications?page=1&pageSize=1  → PagedResult<AdminVerificationDto> → { data: [...] }
+    isSupplier
+      ? Promise.resolve({ data: [] })
+      : getAdminVerifications(1, 1).catch((e: unknown) => {
+          logger.error("RecentActivity fallback: verifications", e);
+          return { data: [] };
+        }),
   ]);
 
   // One slot per type — keep the most recently created
@@ -235,13 +246,23 @@ async function fetchViaFallbackApis(
     break; // service orders newest-first; first entry is the latest
   }
 
-  return [...latestByType.values()]
-    .sort(
-      (a, b) =>
-        // Items without timestamps go to bottom
-        (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0)
-    )
-    .slice(0, 4);
+  // ── Verifications ────────────────────────────────────────────────────────
+  const verifications = extractRows(verificationsRes);
+  for (const v of verifications) {
+    const fullName = `${v.userFirstName} ${v.userLastName}`.trim() || v.userEmail || "New verification";
+    const statusLabel = v.status || "Pending";
+    keepLatest({
+      type: "verification",
+      message: `Verification submitted by ${fullName} (${statusLabel})`,
+      createdAt: v.submittedAt,
+      icon: "verification",
+    });
+    break; // Paged results are sorted newest-first by the backend; first entry is the latest
+  }
+
+  return [...latestByType.values()].sort(
+    (a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0)
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -261,7 +282,19 @@ export default function RecentActivity() {
       const data = await apiFetchJson<RecentActivityItem[]>("api/dashboard/recent-summary", {
         accessToken: session.accessToken,
       });
-      return Array.isArray(data) ? data : [];
+      if (!Array.isArray(data)) return [];
+      // One entry per type — keep the latest of each, sorted newest-first
+      const byType = new Map<RecentActivityItem["type"], RecentActivityItem>();
+      for (const item of data) {
+        const prev = byType.get(item.type);
+        if (!prev || new Date(item.createdAt) > new Date(prev.createdAt)) {
+          byType.set(item.type, item);
+        }
+      }
+      return [...byType.values()].sort(
+        (a, b) =>
+          (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0)
+      );
     } catch (err: unknown) {
       const status = err instanceof ApiError ? err.status : 0;
       if (status !== 404) {

@@ -88,6 +88,9 @@ declare module "@mui/material/styles" {
         color: string;
       };
     };
+    hero: {
+      background: string;
+    };
   }
   interface PaletteOptions {
     overlay?: {
@@ -173,6 +176,9 @@ declare module "@mui/material/styles" {
         bg?: string;
         color?: string;
       };
+    };
+    hero?: {
+      background?: string;
     };
   }
 }
@@ -282,6 +288,9 @@ const lightPalette: PaletteOptions = {
       color: "#2E7D32",
     },
   },
+  hero: {
+    background: "#f4f6f8",
+  },
 };
 
 const darkPalette: PaletteOptions = {
@@ -388,6 +397,9 @@ const darkPalette: PaletteOptions = {
       bg: "#14532d",
       color: "#86efac",
     },
+  },
+  hero: {
+    background: "#050708",
   },
 };
 

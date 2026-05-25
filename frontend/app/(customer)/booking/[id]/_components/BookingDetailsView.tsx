@@ -18,6 +18,8 @@ import {
   DirectionsCar as CarIcon,
   LocationOn as LocationIcon,
   Person as PersonIcon,
+  VerifiedUser as VerifiedIcon,
+  Engineering as InspectorIcon,
 } from "@mui/icons-material";
 import { toImageUrl } from "@/utils/image-url";
 import { type BookingDetails } from "./types";
@@ -86,6 +88,36 @@ function getStatusColor(status?: string): "success" | "warning" | "error" | "def
       return "error";
     default:
       return "default";
+  }
+}
+
+function getInspectionStatusStyles(status?: string) {
+  const normalized = status?.toLowerCase();
+  switch (normalized) {
+    case "approved":
+      return {
+        bg: "status.completed.light",
+        color: "status.completed.main",
+        label: "Approved",
+      };
+    case "pending":
+      return {
+        bg: "status.pending.light",
+        color: "status.pending.main",
+        label: "Pending",
+      };
+    case "rejected":
+      return {
+        bg: "status.cancelled.light",
+        color: "status.cancelled.main",
+        label: "Rejected",
+      };
+    default:
+      return {
+        bg: "action.hover",
+        color: "text.secondary",
+        label: status ?? "Not Required",
+      };
   }
 }
 
@@ -261,6 +293,108 @@ export default function BookingDetailsView({
                 </Stack>
               </CardContent>
             </Paper>
+
+            {booking.inspection ? (
+              <Paper
+                sx={{
+                  mt: 3,
+                  border: "1px solid",
+                  borderColor: "border.main",
+                  bgcolor: "background.paper",
+                  boxShadow: "shadow.card",
+                  overflow: "hidden",
+                }}
+              >
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 3 }}>
+                    <Box sx={{ color: "primary.main", display: "flex" }}>
+                      <VerifiedIcon fontSize="medium" />
+                    </Box>
+                    <Typography variant="h6" color="text.primary" sx={{ fontWeight: 800 }}>
+                      Vehicle Inspection Details
+                    </Typography>
+                  </Stack>
+
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Stack direction="row" spacing={1.5}>
+                        <Box sx={{ color: "text.secondary", display: "flex", pt: 0.25 }}>
+                          <InspectorIcon fontSize="small" />
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>
+                            Assigned Inspector
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            {booking.inspection.assignedInspectorName ?? "No Inspector Assigned"}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <Stack spacing={1}>
+                        <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>
+                          Pre-Delivery Inspection
+                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          {(() => {
+                            const styles = getInspectionStatusStyles(booking.inspection.preInspectionStatus);
+                            return (
+                              <Chip
+                                label={styles.label}
+                                size="small"
+                                sx={{
+                                  bgcolor: styles.bg,
+                                  color: styles.color,
+                                  fontWeight: 700,
+                                  border: "none",
+                                }}
+                              />
+                            );
+                          })()}
+                        </Box>
+                        {booking.inspection.preInspectionDate ? (
+                          <Typography variant="caption" color="text.secondary">
+                            Date: {formatDate(booking.inspection.preInspectionDate)}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <Stack spacing={1}>
+                        <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>
+                          Post-Return Inspection
+                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          {(() => {
+                            const styles = getInspectionStatusStyles(booking.inspection.postInspectionStatus);
+                            return (
+                              <Chip
+                                label={styles.label}
+                                size="small"
+                                sx={{
+                                  bgcolor: styles.bg,
+                                  color: styles.color,
+                                  fontWeight: 700,
+                                  border: "none",
+                                }}
+                              />
+                            );
+                          })()}
+                        </Box>
+                        {booking.inspection.postInspectionDate ? (
+                          <Typography variant="caption" color="text.secondary">
+                            Date: {formatDate(booking.inspection.postInspectionDate)}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Paper>
+            ) : null}
 
             {accessToken ? (
               <BookingReviewSection
