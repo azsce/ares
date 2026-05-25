@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Box } from "@mui/material";
 import { Logout as LogoutIcon } from "@mui/icons-material";
 
@@ -51,11 +51,13 @@ export default function LogoutConfirmDialog({ open, onOpenChange, onConfirm }: L
       onClose={handleClose}
       aria-labelledby="logout-dialog-title"
       aria-describedby="logout-dialog-description"
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          p: 1,
-          minWidth: { xs: "90%", sm: 400 },
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            p: 1,
+            minWidth: { xs: "90%", sm: 400 },
+          },
         },
       }}
     >
