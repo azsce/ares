@@ -33,6 +33,7 @@ import { signInSchema, type SignInFormData } from "@/lib/validation/schemas";
 import { logger } from "@/utils/logger";
 import { toApiUrl } from "@/utils/api-client";
 import { useEffect } from "react";
+import GoogleSignInButton from "../_components/GoogleSignInButton";
 
 type FieldErrors = Partial<Record<keyof SignInFormData, string>>;
 
@@ -351,6 +352,25 @@ export default function SignInForm() {
                 {isLoading ? <CircularProgress size={24} color="inherit" /> : "Sign in"}
               </Button>
             </Box>
+
+            {/* ── Google sign-in ─────────────────────────────────────── */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 3 }}>
+              <Box sx={{ flex: 1, height: 1, bgcolor: "divider" }} />
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ textTransform: "uppercase", letterSpacing: 1 }}
+              >
+                or
+              </Typography>
+              <Box sx={{ flex: 1, height: 1, bgcolor: "divider" }} />
+            </Box>
+            <GoogleSignInButton
+              disabled={isLoading}
+              onError={message => {
+                setServerError(message);
+              }}
+            />
 
             <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 4 }}>
               Don&apos;t have an account?{" "}
