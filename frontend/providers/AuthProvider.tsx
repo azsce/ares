@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react";
 import { SessionProvider } from "next-auth/react";
 import { Component, type ReactNode } from "react";
+import { useSessionMonitor } from "@/hooks/useSessionMonitor";
 
 class JwtErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   constructor(props: { children: ReactNode }) {
@@ -29,10 +30,17 @@ class JwtErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
   }
 }
 
+function SessionMonitor({ children }: { readonly children: ReactNode }) {
+  useSessionMonitor();
+  return <>{children}</>;
+}
+
 export default function AuthProvider({ children }: { readonly children: React.ReactNode }) {
   return (
     <JwtErrorBoundary>
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider>
+        <SessionMonitor>{children}</SessionMonitor>
+      </SessionProvider>
     </JwtErrorBoundary>
   );
 }

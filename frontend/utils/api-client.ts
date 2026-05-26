@@ -55,10 +55,11 @@ export async function apiFetchJson<T>(endpoint: string, options: ApiFetchOptions
     const errorBody = await response.text();
     logger.debug("Backend Error Details", errorBody);
 
-    // If we get a 401 and we have an access token, the token might be expired
-    // The session will be automatically refreshed on the next getSession() call
+    // If we get a 401 with an access token, the token is expired
+    // NextAuth will automatically refresh on next getSession() call
+    // The useSessionMonitor hook will detect if refresh fails and force logout
     if (response.status === 401 && accessToken) {
-      logger.warn("Received 401 with access token - token may be expired");
+      logger.warn("Received 401 - access token expired, session will auto-refresh");
     }
 
     throw new ApiError(response.status, response.statusText, errorBody);

@@ -179,10 +179,22 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Access token has expired, try to refresh it
-      return await refreshAccessToken(token);
+      const refreshedToken = await refreshAccessToken(token);
+
+      // If refresh failed, return error to force re-login
+      if (refreshedToken.error) {
+        return { ...token, error: "RefreshAccessTokenError" };
+      }
+
+      return refreshedToken;
     },
     // 2. نقل الداتا من التوكن للـ Session عشان الفرونت إند يعرف يقرأها
     session({ session, token }) {
+      // If token refresh failed, propagate error to client
+      if (token.error) {
+        session.error = token.error;
+      }
+
       session.user.id = token.id;
       session.user.firstName = token.firstName;
       session.user.lastName = token.lastName;
