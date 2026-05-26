@@ -25,6 +25,24 @@ type AuthResponse = {
 };
 
 async function performLogin(credentials: Record<string, string>, baseUrl: string): Promise<Response> {
+  // Google ID-token flow — the client fetched an ID token via Google
+  // Identity Services and we forward it to the backend, which validates
+  // the token and returns the same shape as /api/auth/login.
+  if (credentials.googleIdToken) {
+    if (!credentials.googleRole) {
+      throw new Error("Missing role for Google sign-in");
+    }
+    return fetch(`${baseUrl}/api/auth/google`, {
+      method: "POST",
+      body: JSON.stringify({
+        idToken: credentials.googleIdToken,
+        role: credentials.googleRole,
+        stayConnected: credentials.stayConnected === "true",
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (credentials.demoRole) {
     return fetch(`${baseUrl}/api/auth/demo-login`, {
       method: "POST",
@@ -49,7 +67,9 @@ async function performLogin(credentials: Record<string, string>, baseUrl: string
 }
 
 function handleAuthError(res: Response, data: AuthResponse): never {
-  if (res.status === 401) throw new Error("Invalid email or password");
+  // Prefer the backend's message when present so Google-flow specific
+  // errors (e.g. "Invalid Google credentials.") surface verbatim.
+  if (res.status === 401) throw new Error(data.message || "Invalid email or password");
   if (res.status === 403) throw new Error(data.message || "Account suspended or locked");
   if (res.status === 429) throw new Error("Too many attempts. Try again later");
   throw new Error(data.message || "An unexpected error occurred");
@@ -96,6 +116,11 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
         stayConnected: { label: "Stay Connected", type: "text" },
         demoRole: { label: "Demo Role", type: "text" },
+        // Google ID token + selected role (Customer | Supplier | Driver).
+        // The backend cryptographically validates the token; the role is
+        // re-validated server-side as well.
+        googleIdToken: { label: "Google ID Token", type: "text" },
+        googleRole: { label: "Google Role", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials) {

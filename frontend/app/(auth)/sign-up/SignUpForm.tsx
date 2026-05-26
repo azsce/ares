@@ -38,6 +38,7 @@ import {
 } from "@mui/icons-material";
 import { signUpSchema, type SignUpFormData } from "@/lib/validation/schemas";
 import { z } from "zod";
+import GoogleSignInButton from "../_components/GoogleSignInButton";
 
 // ── password strength ──────────────────────────────────────────────────────────
 
@@ -650,6 +651,25 @@ export default function SignUpForm() {
                   validateField={validateField}
                   passwordStrength={passwordStrength}
                   canSubmit={canSubmit}
+                />
+
+                {/* ── Google sign-up ─────────────────────────────────── */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 3 }}>
+                  <Box sx={{ flex: 1, height: 1, bgcolor: "divider" }} />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ textTransform: "uppercase", letterSpacing: 1 }}
+                  >
+                    or
+                  </Typography>
+                  <Box sx={{ flex: 1, height: 1, bgcolor: "divider" }} />
+                </Box>
+                <GoogleSignInButton
+                  disabled={isLoading}
+                  onError={message => {
+                    setServerError(message);
+                  }}
                 />
 
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 4 }}>
