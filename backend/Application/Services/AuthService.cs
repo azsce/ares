@@ -357,16 +357,20 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            _logger.LogWarning("Refresh token failed: Invalid token");
+            _logger.LogWarning("Refresh token failed: Token not found in database");
             throw new UnauthorizedException("Invalid refresh token");
         }
 
         var refreshToken = user.RefreshTokens.Single(x => x.Token == request.RefreshToken);
+        _logger.LogInformation("Found refresh token for user {UserId}. ExpiresAt: {ExpiresAt}, CreatedAt: {CreatedAt}, IsExpired: {IsExpired}, IsRevoked: {IsRevoked}, CurrentUtc: {CurrentUtc}", 
+            user.Id, refreshToken.ExpiresAt, refreshToken.CreatedAt, refreshToken.IsExpired, refreshToken.IsRevoked, DateTime.UtcNow);
 
         if (!refreshToken.IsActive)
         {
-            _logger.LogWarning("Refresh token failed: Token not active for user {UserId}", user.Id);
-            throw new UnauthorizedException("Invalid refresh token");
+            var reason = refreshToken.IsExpired ? "expired" : "revoked";
+            _logger.LogWarning("Refresh token failed: Token {Reason} for user {UserId}. IsExpired: {IsExpired}, IsRevoked: {IsRevoked}, ExpiresAt: {ExpiresAt}, RevokedAt: {RevokedAt}", 
+                reason, user.Id, refreshToken.IsExpired, refreshToken.IsRevoked, refreshToken.ExpiresAt, refreshToken.RevokedAt);
+            throw new UnauthorizedException($"Refresh token {reason}. Please login again.");
         }
 
         if (user.Status == "Blocked")

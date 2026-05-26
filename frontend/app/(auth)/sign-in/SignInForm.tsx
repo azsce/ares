@@ -40,6 +40,7 @@ export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
+  const errorParam = searchParams.get("error");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
@@ -52,6 +53,20 @@ export default function SignInForm() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof SignInFormData, boolean>>>({});
   const [demoRoles, setDemoRoles] = useState<string[]>([]);
+
+  // Clear error parameter from URL after showing it once
+  useEffect(() => {
+    if (errorParam === "session_expired") {
+      const timer = setTimeout(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("error");
+        window.history.replaceState({}, "", url.toString());
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [errorParam]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
@@ -217,6 +232,12 @@ export default function SignInForm() {
                 Please enter your details to sign in to your account.
               </Typography>
             </Box>
+
+            {errorParam === "session_expired" && (
+              <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+                Your session has expired. Please sign in again.
+              </Alert>
+            )}
 
             {serverError && (
               <Alert severity="error" icon={<ErrorIcon />} sx={{ mb: 3, borderRadius: 2 }}>
