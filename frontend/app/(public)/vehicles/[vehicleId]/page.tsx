@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 import { Box, Container, Grid, Paper, Stack, Typography } from "@mui/material";
 import Gallery from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/Gallery";
 import VehicleInfo from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/VehicleInfo";
@@ -9,6 +10,7 @@ import {
   type VehicleDetailsViewModel,
   type VehicleReviewViewModel,
 } from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/types";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
@@ -170,22 +172,24 @@ async function fetchLocations(): Promise<readonly BookingLocationOption[]> {
 export default async function VehicleDetailsPage({ params }: PageProps) {
   const { vehicleId } = await params;
 
-  let pageData: {
-    vehicle: VehicleDetailsViewModel | null;
-    reviews: readonly VehicleReviewViewModel[];
-    locations: readonly BookingLocationOption[];
-  } | null = null;
+  const [session, pageData] = await Promise.all([
+    getServerSession(authOptions).catch(() => null),
+    (async () => {
+      try {
+        const [vehicle, reviews, locations] = await Promise.all([
+          fetchVehicleDetails(vehicleId),
+          fetchVehicleReviews(vehicleId),
+          fetchLocations(),
+        ]);
+        return { vehicle, reviews, locations };
+      } catch (error) {
+        logger.error("Vehicle details page error", error);
+        return null;
+      }
+    })(),
+  ]);
 
-  try {
-    const [vehicle, reviews, locations] = await Promise.all([
-      fetchVehicleDetails(vehicleId),
-      fetchVehicleReviews(vehicleId),
-      fetchLocations(),
-    ]);
-    pageData = { vehicle, reviews, locations };
-  } catch (error) {
-    logger.error("Vehicle details page error", error);
-  }
+  const isAdmin = session?.user.roles.includes("Admin") ?? false;
 
   if (!pageData) {
     return (
@@ -231,9 +235,11 @@ export default async function VehicleDetailsPage({ params }: PageProps) {
 
           <Grid size={{ xs: 12, lg: 4 }}>
             <Box sx={{ position: { lg: "sticky" }, top: { lg: 96 } }}>
-              <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
-                <BookingCard vehicle={vehicle} locationOptions={locations} />
-              </Paper>
+              {!isAdmin && (
+                <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
+                  <BookingCard vehicle={vehicle} locationOptions={locations} />
+                </Paper>
+              )}
             </Box>
           </Grid>
         </Grid>

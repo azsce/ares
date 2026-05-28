@@ -455,9 +455,10 @@ export default function CreateBookingClient() {
                   : "No customers found."
               }
               renderOption={(props, option) => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { key, ...optionProps } = props;
                 return (
-                  <li key={key} {...optionProps}>
+                  <li key={option.id} {...optionProps}>
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", width: "100%" }}>
                       <Avatar
                         sx={{
@@ -489,6 +490,7 @@ export default function CreateBookingClient() {
                   fullWidth
                   size="small"
                   slotProps={{
+                    ...params.slotProps,
                     input: {
                       ...params.slotProps.input,
                       startAdornment: (
@@ -583,9 +585,10 @@ export default function CreateBookingClient() {
                 getOptionLabel={option => option.label}
                 noOptionsText="No locations found."
                 renderOption={(props, option) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   const { key, ...optionProps } = props;
                   return (
-                    <li key={key} {...optionProps}>
+                    <li key={option.id} {...optionProps}>
                       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                         <PlaceIcon fontSize="small" sx={{ color: "text.secondary" }} />
                         <Typography variant="body2">{option.label}</Typography>
@@ -600,6 +603,7 @@ export default function CreateBookingClient() {
                     placeholder="Search pickup location…"
                     fullWidth
                     slotProps={{
+                      ...params.slotProps,
                       input: {
                         ...params.slotProps.input,
                         startAdornment: (
@@ -652,9 +656,10 @@ export default function CreateBookingClient() {
                 getOptionLabel={option => option.label}
                 noOptionsText="No locations found."
                 renderOption={(props, option) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   const { key, ...optionProps } = props;
                   return (
-                    <li key={key} {...optionProps}>
+                    <li key={option.id} {...optionProps}>
                       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                         <PlaceIcon fontSize="small" sx={{ color: "text.secondary" }} />
                         <Typography variant="body2">{option.label}</Typography>
@@ -669,6 +674,7 @@ export default function CreateBookingClient() {
                     placeholder="Search dropoff location…"
                     fullWidth
                     slotProps={{
+                      ...params.slotProps,
                       input: {
                         ...params.slotProps.input,
                         startAdornment: (
@@ -733,9 +739,10 @@ export default function CreateBookingClient() {
                   },
                 }}
                 renderOption={(props, option) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   const { key, ...optionProps } = props;
                   return (
-                    <li key={key} {...optionProps}>
+                    <li key={option.id} {...optionProps}>
                       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", width: "100%", py: 0.5 }}>
                         <Avatar
                           variant="rounded"
@@ -771,6 +778,7 @@ export default function CreateBookingClient() {
                     placeholder="Search by make, model, or plate…"
                     fullWidth
                     slotProps={{
+                      ...params.slotProps,
                       input: {
                         ...params.slotProps.input,
                         startAdornment: (
