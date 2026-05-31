@@ -76,18 +76,24 @@ public class BookingService : IBookingService
         // honours the gate — an admin must not be able to side-step the
         // requirement on behalf of an unverified customer.
         //
-        // The gate is intentionally the first check in this method so an
-        // unverified customer never even probes vehicle availability,
-        // pricing, or any other side-effect-free read.
+        // ⚡ OVERRIDE: System administrators can manually create bookings even
+        // for unverified customers (e.g. walk-in customers verified offline).
+        // Regular users and suppliers must still be/select a verified customer.
         //
         // The exception is mapped to HTTP 403 by GlobalExceptionHandlerMiddleware.
-        if (_verificationService is not null)
+        if (_verificationService is not null && _userManager is not null)
         {
-            var bookingOwnerId = request.CustomerUserId ?? userId;
-            var isApproved = await _verificationService.IsApprovedAsync(bookingOwnerId, cancellationToken);
-            if (!isApproved)
+            var initiator = await _userManager.FindByIdAsync(userId.ToString());
+            var isAdminInitiator = initiator != null && await _userManager.IsInRoleAsync(initiator, "Admin");
+
+            if (!isAdminInitiator)
             {
-                throw new ForbiddenException(IdentityVerificationRequiredMessage);
+                var bookingOwnerId = request.CustomerUserId ?? userId;
+                var isApproved = await _verificationService.IsApprovedAsync(bookingOwnerId, cancellationToken);
+                if (!isApproved)
+                {
+                    throw new ForbiddenException(IdentityVerificationRequiredMessage);
+                }
             }
         }
 
@@ -494,7 +500,6 @@ public class BookingService : IBookingService
         }
         booking.UpdatedAt = DateTime.UtcNow;
 
-        await _bookingRepository.UpdateAsync(booking, cancellationToken);
         await _bookingRepository.SaveChangesAsync(cancellationToken);
 
         // Fire-and-forget notification for the customer (best-effort).
@@ -598,7 +603,6 @@ public class BookingService : IBookingService
         booking.TotalPrice = (booking.Vehicle?.PricePerDay ?? 0m) * totalDays;
         booking.UpdatedAt = DateTime.UtcNow;
 
-        await _bookingRepository.UpdateAsync(booking, cancellationToken);
         await _bookingRepository.SaveChangesAsync(cancellationToken);
 
         // Best-effort status-change notification only when the status actually
