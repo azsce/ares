@@ -365,12 +365,14 @@ public class SupplierVehicleService : ISupplierVehicleService
             // Add new ones
             foreach (var img in request.Images)
             {
-                vehicle.Images.Add(new Domain.Entities.VehicleImage
+                var newImg = new Domain.Entities.VehicleImage
                 {
+                    VehicleId = vehicleId,
                     ImageUrl = img.Url,
                     IsPrimary = img.IsPrimary,
                     DisplayOrder = 0
-                });
+                };
+                _context.AddVehicleImage(newImg);
             }
         }
         else if (!string.IsNullOrWhiteSpace(request.ImageUrl))
@@ -379,13 +381,14 @@ public class SupplierVehicleService : ISupplierVehicleService
             var primary = vehicle.Images.FirstOrDefault(i => i.IsPrimary);
             if (primary is null)
             {
-                vehicle.Images.Add(new VehicleImage
+                var newImg = new VehicleImage
                 {
                     VehicleId = vehicle.Id,
                     ImageUrl = request.ImageUrl,
                     IsPrimary = true,
                     DisplayOrder = 0
-                });
+                };
+                _context.AddVehicleImage(newImg);
             }
             else
             {
@@ -412,12 +415,11 @@ public class SupplierVehicleService : ISupplierVehicleService
             _context.AddVehicleFeatures(newFeatures);
         }
 
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation(
             "Supplier {SupplierId} updated vehicle {VehicleId}",
             supplierId, vehicleId);
+
+        await _vehicleRepository.SaveChangesAsync(cancellationToken);
 
         return new VehicleResponse(vehicleId, "Vehicle updated successfully");
     }
@@ -447,7 +449,6 @@ public class SupplierVehicleService : ISupplierVehicleService
         vehicle.Status = StatusDeleted;
         vehicle.AvailabilityStatus = AvailabilityUnavailable;
 
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
         await _vehicleRepository.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
@@ -481,7 +482,6 @@ public class SupplierVehicleService : ISupplierVehicleService
         // ⚠ Do NOT touch vehicle.Status here — availability and status are
         // independent dimensions per spec.
 
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
         await _vehicleRepository.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(

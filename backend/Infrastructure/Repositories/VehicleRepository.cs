@@ -175,6 +175,7 @@ public class VehicleRepository : PaginatedRepository<Vehicle>, IVehicleRepositor
             .AnyAsync(b =>
                 b.VehicleId == vehicleId &&
                 b.Status != Backend.Domain.Entities.Enums.BookingStatus.Cancelled &&
+                b.Status != Backend.Domain.Entities.Enums.BookingStatus.Completed &&
                 b.PickupDate < endDate &&
                 b.ReturnDate > startDate,
                 cancellationToken);
