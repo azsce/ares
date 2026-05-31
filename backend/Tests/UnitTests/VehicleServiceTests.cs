@@ -1347,7 +1347,6 @@ public class VehicleServiceTests : IDisposable
         Assert.Equal("New City", existingVehicle.LocationCity);
         Assert.Equal("Updated description", existingVehicle.Description);
 
-        _vehicleRepositoryMock.Verify(x => x.UpdateAsync(existingVehicle, It.IsAny<CancellationToken>()), Times.Once);
         _vehicleRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -1551,7 +1550,6 @@ public class VehicleServiceTests : IDisposable
         Assert.Equal("Deleted", vehicle.Status);
         Assert.Equal("Unavailable", vehicle.AvailabilityStatus);
 
-        _vehicleRepositoryMock.Verify(x => x.UpdateAsync(vehicle, It.IsAny<CancellationToken>()), Times.Once);
         _vehicleRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         _bookingRepositoryMock.Verify(x => x.HasActiveBookingsAsync(vehicleId, It.IsAny<CancellationToken>()), Times.Once);
     }

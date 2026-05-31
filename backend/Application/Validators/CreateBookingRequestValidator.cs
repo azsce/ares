@@ -49,7 +49,8 @@ public class CreateBookingRequestValidator : AbstractValidator<CreateBookingRequ
 
         RuleFor(x => x.PickupDate)
             .NotEmpty().WithMessage("Pickup date is required")
-            .GreaterThanOrEqualTo(DateTime.Today).WithMessage("Pickup date must be today or in the future");
+            .Must(d => d.Date >= DateTime.UtcNow.Date.AddDays(-1))
+            .WithMessage("Pickup date must be today or in the future");
 
         RuleFor(x => x.ReturnDate)
             .NotEmpty().WithMessage("Return date is required")

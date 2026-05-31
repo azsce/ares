@@ -733,12 +733,14 @@ public class VehicleService : IVehicleService
                 }
                 else
                 {
-                    vehicle.Images.Add(new Domain.Entities.VehicleImage
+                    var newImg = new Domain.Entities.VehicleImage
                     {
+                        VehicleId = vehicleId,
                         ImageUrl = incomingImg.Url,
                         IsPrimary = incomingImg.IsPrimary,
                         DisplayOrder = 0
-                    });
+                    };
+                    _context.AddVehicleImage(newImg);
                 }
             }
         }
@@ -791,7 +793,6 @@ public class VehicleService : IVehicleService
         if (!string.IsNullOrWhiteSpace(request.AvailabilityStatus))
             vehicle.AvailabilityStatus = request.AvailabilityStatus;
 
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
         await _vehicleRepository.SaveChangesAsync(cancellationToken);
 
         // Best-effort supplier notification — never block the update path.
@@ -889,7 +890,6 @@ public class VehicleService : IVehicleService
         vehicle.Status = "Deleted";
         vehicle.AvailabilityStatus = "Unavailable";
 
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
         await _vehicleRepository.SaveChangesAsync(cancellationToken);
 
         return new VehicleResponse(
