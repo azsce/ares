@@ -18,11 +18,11 @@ import {
   InputAdornment,
 } from "@mui/material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
-import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SecurityIcon from "@mui/icons-material/Security";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 import { paymentSchema, type PaymentFormData } from "@/lib/validation/schemas";
@@ -156,18 +156,56 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
   };
 
   return (
-    <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 3, md: 4 },
+        borderRadius: 2,
+        border: "1px solid",
+        borderColor: "divider",
+        boxShadow: "shadow.card",
+      }}
+    >
       <Stack spacing={3}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <CreditCardIcon color="primary" />
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Payment Method
-          </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: "primary.main" }}>
+              Payment Method
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1}>
+            <Box
+              sx={{
+                height: 24,
+                px: 1.5,
+                bgcolor: "action.hover",
+                borderRadius: 0.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 800, color: "primary.main" }}>
+                VISA
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                height: 24,
+                px: 1.5,
+                bgcolor: "action.hover",
+                borderRadius: 0.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 800, color: "primary.main" }}>
+                MC
+              </Typography>
+            </Box>
+          </Stack>
         </Box>
-
-        <Typography variant="body2" color="text.secondary">
-          Secure payment via simulated Credit or Debit card.
-        </Typography>
 
         {serverError && <Alert severity="error">{serverError}</Alert>}
 
@@ -380,12 +418,17 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
               fullWidth
               size="large"
               disabled={isSubmitting}
+              endIcon={!isSubmitting && <ArrowForwardIcon />}
               sx={{
                 height: 56,
-                borderRadius: 2,
+                borderRadius: 999,
                 fontWeight: 800,
                 fontSize: "1.1rem",
                 textTransform: "none",
+                boxShadow: "shadow.button",
+                "&:hover": {
+                  boxShadow: "shadow.buttonHover",
+                },
               }}
             >
               {isSubmitting ? (
@@ -400,13 +443,6 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
               )}
             </Button>
           </Box>
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, color: "text.secondary" }}>
-          <LockIcon sx={{ fontSize: 16 }} />
-          <Typography variant="caption" sx={{ fontWeight: 600 }}>
-            SSL Secured & PCI Compliant (Simulated)
-          </Typography>
         </Box>
       </Stack>
     </Paper>

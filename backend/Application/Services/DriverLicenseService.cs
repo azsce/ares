@@ -28,13 +28,16 @@ namespace Backend.Application.Services
             new[] { "image/jpeg", "image/jpg", "image/png" };
 
         private readonly IApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
         private readonly ILogger<DriverLicenseService> _logger;
 
         public DriverLicenseService(
             IApplicationDbContext context,
+            INotificationService notificationService,
             ILogger<DriverLicenseService> logger)
         {
             _context = context;
+            _notificationService = notificationService;
             _logger = logger;
         }
 
@@ -246,6 +249,21 @@ namespace Backend.Application.Services
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            // Send notification to user
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    driver.UserId,
+                    "Driver License Verified",
+                    "Your driver license has been approved. You can now book vehicles on the platform.",
+                    "LicenseVerified",
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send driver license approval notification to user {UserId}", driver.UserId);
+            }
+
             _logger.LogInformation(
                 "Driver license {DriverLicenseId} approved by admin {AdminUserId}",
                 driverLicenseId, adminUserId);
@@ -308,6 +326,21 @@ namespace Backend.Application.Services
             driver.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Send notification to user
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    driver.UserId,
+                    "Driver License Rejected",
+                    $"Your driver license was rejected. Reason: {trimmed}. Please resubmit with a valid document.",
+                    "LicenseRejected",
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send driver license rejection notification to user {UserId}", driver.UserId);
+            }
 
             _logger.LogInformation(
                 "Driver license {DriverLicenseId} rejected by admin {AdminUserId}",

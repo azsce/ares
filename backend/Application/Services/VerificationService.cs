@@ -13,13 +13,16 @@ namespace Backend.Application.Services
     public class VerificationService : IVerificationService
     {
         private readonly IApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
         private readonly ILogger<VerificationService> _logger;
 
         public VerificationService(
             IApplicationDbContext context,
+            INotificationService notificationService,
             ILogger<VerificationService> logger)
         {
             _context = context;
+            _notificationService = notificationService;
             _logger = logger;
         }
 
@@ -210,6 +213,21 @@ namespace Backend.Application.Services
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            // Send notification to user
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    verification.UserId,
+                    "Identity Verified",
+                    "Your identity verification has been approved. You can now use all platform features.",
+                    "IdentityVerified",
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send approval notification to user {UserId}", verification.UserId);
+            }
+
             _logger.LogInformation(
                 "Verification {VerificationId} approved by admin {AdminUserId}",
                 verificationId, adminUserId);
@@ -269,6 +287,21 @@ namespace Backend.Application.Services
             verification.RejectionReason = trimmed;
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Send notification to user
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    verification.UserId,
+                    "Identity Rejected",
+                    $"Your identity verification was rejected. Reason: {trimmed}. Please resubmit with correct documents.",
+                    "IdentityRejected",
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send rejection notification to user {UserId}", verification.UserId);
+            }
 
             _logger.LogInformation(
                 "Verification {VerificationId} rejected by admin {AdminUserId}",

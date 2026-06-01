@@ -41,9 +41,16 @@ public static class SupplierNotificationTypes
     public const string BookingReceived = "BookingReceived";
     public const string BookingCompletedSupplier = "BookingCompletedSupplier";
 
+    // Verification tags (shared by customers and suppliers)
+    public const string IdentityVerified = "IdentityVerified";
+    public const string IdentityRejected = "IdentityRejected";
+    public const string LicenseVerified = "LicenseVerified";
+    public const string LicenseRejected = "LicenseRejected";
+
     // ── Entity-type logical names ────────────────────────────────────────
     public const string EntityTypeVehicle = "Vehicle";
     public const string EntityTypeBooking = "Booking";
+    public const string EntityTypeUser = "User";
 
     /// <summary>
     /// Builds a structured type value for storage in <c>Notification.Type</c>.
@@ -87,6 +94,7 @@ public static class SupplierNotificationTypes
     {
         VehicleApproved or VehicleRejected or VehiclePendingReview => EntityTypeVehicle,
         BookingReceived or BookingCompletedSupplier => EntityTypeBooking,
+        IdentityVerified or IdentityRejected or LicenseVerified or LicenseRejected => EntityTypeUser,
         _ => null,
     };
 
@@ -97,6 +105,13 @@ public static class SupplierNotificationTypes
     /// </summary>
     public static string? RedirectUrlFor(string? tag, Guid? entityId)
     {
+        // For verification tags, we redirect to the profile page even
+        // if no entity id is present (it's always the current user's profile).
+        if (tag is IdentityVerified or IdentityRejected or LicenseVerified or LicenseRejected)
+        {
+            return "/account/profile";
+        }
+
         if (entityId is null) return null;
         var id = entityId.Value.ToString("D");
 
