@@ -97,9 +97,21 @@ export default function HeaderClient({ session }: HeaderClientProps) {
     return `${firstName} ${lastName}`.trim() || session.user.email || "User";
   };
 
-  // Check if user has admin/supplier role
-  const isAdminOrSupplier = session?.user.roles.some(role => role === "Admin" || role === "Supplier");
-  const isAdmin = session?.user.roles.includes("Admin");
+  // Check if user has admin/supplier/driver/inspector roles
+  const roles = session?.user?.roles || [];
+  const isAdmin = roles.includes("Admin");
+  const isSupplier = roles.includes("Supplier");
+  const isDriver = roles.includes("Driver");
+  const isInspector = roles.includes("Inspector");
+  const hasDashboard = isAdmin || isSupplier || isDriver || isInspector;
+
+  const getDashboardHref = () => {
+    if (isAdmin) return "/admin";
+    if (isSupplier) return "/supplier/dashboard";
+    if (isDriver) return "/driver/dashboard";
+    if (isInspector) return "/inspector";
+    return "/";
+  };
 
   return (
     <>
@@ -337,10 +349,10 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                       </MenuItem>
                     )}
 
-                    {isAdminOrSupplier && (
+                    {hasDashboard && (
                       <MenuItem
                         component={Link}
-                        href={isAdmin ? "/admin" : "/supplier/dashboard"}
+                        href={getDashboardHref()}
                         onClick={() => {
                           setUserMenuAnchor(null);
                         }}
@@ -536,11 +548,11 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                     </ListItemButton>
                   </ListItem>
                 )}
-                {isAdminOrSupplier && (
+                {hasDashboard && (
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
-                      href="/admin"
+                      href={getDashboardHref()}
                       onClick={() => {
                         setMobileMenuOpen(false);
                       }}
