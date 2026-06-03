@@ -38,7 +38,7 @@ const OPTIONS: readonly RoleOption[] = [
     value: "driver",
     title: "Driver",
     description: "Offer your driving services to customers.",
-    icon: DirectionsCarRoundedIcon as typeof PersonRoundedIcon,
+    icon: DirectionsCarRoundedIcon,
   },
 ];
 
