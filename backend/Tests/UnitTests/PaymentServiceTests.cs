@@ -3,8 +3,10 @@ using Backend.Application.DTOs.Common;
 using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Application.Services;
+using Backend.Application.Settings;
 using Backend.Domain.Entities;
 using Backend.Domain.Entities.Enums;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -15,6 +17,8 @@ public class PaymentServiceTests
     private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
     private readonly Mock<IBookingRepository> _bookingRepositoryMock;
     private readonly Mock<IApplicationDbContext> _contextMock;
+    private readonly Mock<IPaymobClient> _paymobMock;
+    private readonly Mock<IRefundCalculator> _refundCalculatorMock;
     private readonly PaymentService _paymentService;
 
     public PaymentServiceTests()
@@ -22,11 +26,16 @@ public class PaymentServiceTests
         _paymentRepositoryMock = new Mock<IPaymentRepository>();
         _bookingRepositoryMock = new Mock<IBookingRepository>();
         _contextMock = new Mock<IApplicationDbContext>();
+        _paymobMock = new Mock<IPaymobClient>();
+        _refundCalculatorMock = new Mock<IRefundCalculator>();
 
         _paymentService = new PaymentService(
             _paymentRepositoryMock.Object,
             _bookingRepositoryMock.Object,
-            _contextMock.Object);
+            _contextMock.Object,
+            _paymobMock.Object,
+            _refundCalculatorMock.Object,
+            Options.Create(new PaymobSettings()));
     }
 
     #region ProcessPaymentAsync Tests

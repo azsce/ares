@@ -445,17 +445,37 @@ public class BookingService : IBookingService
         }
 
         // Requirement 20.1: Create cancellation record
+        var calculator = new RefundCalculator();
+        var totalAmount = booking.TotalPrice ?? 0m;
+        var pickupDate = booking.PickupDate ?? DateTime.UtcNow.AddDays(1);
+        // Only run algorithm if booking has been paid (Confirmed or beyond)
+        Domain.Entities.Enums.PolicyType policy;
+        decimal refundPct, fee;
+        if (booking.Status == BookingStatus.Pending)
+        {
+            policy = Domain.Entities.Enums.PolicyType.Free;
+            refundPct = 100m;
+            fee = 0m;
+        }
+        else
+        {
+            var refundResult = calculator.Calculate(booking.Status, pickupDate, totalAmount);
+            policy = refundResult.PolicyType;
+            refundPct = refundResult.RefundPercentage;
+            fee = refundResult.CancellationFee;
+        }
+
         var cancellation = new BookingCancellation
         {
             Id = Guid.NewGuid(),
             BookingId = bookingId,
             CancelledBy = userId,
-            PolicyType = Domain.Entities.Enums.PolicyType.Free, // Default policy
-            RefundPercentage = 100, // Full refund by default
-            OriginalAmount = booking.TotalPrice ?? 0,
-            CancellationFee = 0, // No fee by default
-            Currency = "USD",
-            RefundStatus = Domain.Entities.Enums.RefundStatus.Pending,
+            PolicyType = policy,
+            RefundPercentage = refundPct,
+            OriginalAmount = totalAmount,
+            CancellationFee = fee,
+            Currency = "EGP",
+            RefundStatus = refundPct > 0 ? Domain.Entities.Enums.RefundStatus.Processing : Domain.Entities.Enums.RefundStatus.Completed,
             Reason = "Customer requested cancellation",
             ReasonCategory = Domain.Entities.Enums.ReasonCategory.PlansChanged,
             CreatedAt = DateTime.UtcNow
@@ -1532,5 +1552,15 @@ public class BookingService : IBookingService
         }
 
         return locationStr;
+    }
+
+    public async Task<Application.Interfaces.RefundResult> GetRefundPreviewAsync(Guid bookingId, CancellationToken ct = default)
+    {
+        var booking = await _bookingRepository.GetByIdAsync(bookingId, ct)
+            ?? throw new NotFoundException($"Booking {bookingId} not found");
+        var payment = await _context.Payments
+            .FirstOrDefaultAsync(p => p.BookingId == bookingId && p.Status == "Captured", ct)
+            ?? throw new NotFoundException("No captured payment found for this booking");
+        return new RefundCalculator().Calculate(booking.Status, booking.PickupDate ?? DateTime.UtcNow.AddDays(1), payment.Amount);
     }
 }

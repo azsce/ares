@@ -307,12 +307,7 @@ export default function PaymentClient({ booking, accessToken }: PaymentClientPro
               )}
 
               <ExpressCheckout enableApplePay={enableApplePay} enableGooglePay={enableGooglePay} />
-              <PaymentForm
-                bookingId={booking.id}
-                amount={booking.price}
-                accessToken={accessToken}
-                isDisabled={holdExpired}
-              />
+              {holdExpired ? null : <PaymentForm bookingId={booking.id} accessToken={accessToken} />}
             </Stack>
           </Grid>
 

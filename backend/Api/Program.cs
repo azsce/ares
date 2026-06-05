@@ -155,6 +155,11 @@ try
     builder.Services.AddScoped<Backend.Application.Services.IAboutService, Backend.Application.Services.AboutService>();
     builder.Services.AddHostedService<Backend.Infrastructure.Services.BookingStatusUpdateService>();
 
+    // Paymob
+    builder.Services.Configure<Backend.Application.Settings.PaymobSettings>(builder.Configuration.GetSection("Paymob"));
+    builder.Services.AddHttpClient<Backend.Application.Interfaces.IPaymobClient, Backend.Infrastructure.Services.PaymobClient>();
+    builder.Services.AddSingleton<Backend.Application.Interfaces.IRefundCalculator, Backend.Application.Services.RefundCalculator>();
+
     // Register FluentValidation
     builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
