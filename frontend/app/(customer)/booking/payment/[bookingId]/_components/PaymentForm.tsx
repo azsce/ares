@@ -23,20 +23,15 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SecurityIcon from "@mui/icons-material/Security";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 import { paymentSchema, type PaymentFormData } from "@/lib/validation/schemas";
+import { confirmCheckout } from "@/api-clients/checkout/checkout";
 
 interface PaymentFormProps {
   readonly bookingId: string;
   readonly amount: number;
   readonly accessToken: string;
-}
-
-interface PaymentResponse {
-  readonly transactionId: string;
-  readonly status: string;
-  readonly message: string;
+  readonly isDisabled?: boolean;
 }
 
 // ── Formatters & Helpers ───────────────────────────────────────────────────────
@@ -84,7 +79,7 @@ const formatCVV = (value: string) => {
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function PaymentForm({ bookingId, amount, accessToken }: PaymentFormProps) {
+export default function PaymentForm({ bookingId, amount, accessToken, isDisabled = false }: PaymentFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -115,39 +110,28 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
     setIsSubmitting(true);
 
     try {
-      logger.info("Processing payment", {
+      logger.info("Processing payment via confirmCheckout", {
         bookingId,
         cardHolder: data.cardHolder,
         cardLast4: data.cardNumber.slice(-4),
       });
 
+      // Simulate a small delay for premium feels
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const response = await fetch(toApiUrl("/api/payments/create"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          bookingId,
-          amount,
-          paymentMethodId: "00000000-0000-0000-0000-000000000000",
+      const result = await confirmCheckout(
+        bookingId,
+        {
           paymentMethod: "credit_card",
-        }),
-      });
+          paymentMethodId: "00000000-0000-0000-0000-000000000000",
+        },
+        accessToken
+      );
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as { message?: string };
-        throw new Error(payload.message ?? "Payment processing failed. Please try again.");
-      }
-
-      const payload = (await response.json()) as PaymentResponse;
-
-      if (payload.status === "Captured" || payload.status === "Success") {
+      if (result.status === "Confirmed") {
         router.push(`/bookings/confirmation/${bookingId}`);
       } else {
-        setServerError(payload.message || "Payment was not successful. Please verify your details.");
+        setServerError(result.message || "Payment was not successful. Please verify your details.");
       }
     } catch (err) {
       logger.error("Payment submission error", err);
@@ -230,7 +214,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
                     fullWidth
                     label="Card Number"
                     placeholder="•••• •••• •••• ••••"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isDisabled}
                     error={
                       !!errors.cardNumber && (isSubmitted || !cardValidator.number(field.value).isPotentiallyValid)
                     }
@@ -300,7 +284,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
                     inputRef={expiryRef}
                     label="Expiry Date"
                     placeholder="MM/YY"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isDisabled}
                     error={
                       !!errors.expiryDate &&
                       (isSubmitted || !cardValidator.expirationDate(field.value).isPotentiallyValid)
@@ -348,7 +332,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
                     label="CVV"
                     type="password"
                     placeholder="***"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isDisabled}
                     error={!!errors.cvv && (isSubmitted || !cardValidator.cvv(field.value).isPotentiallyValid)}
                     helperText={
                       isSubmitted || !cardValidator.cvv(field.value).isPotentiallyValid ? errors.cvv?.message : ""
@@ -391,7 +375,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
                     inputRef={nameRef}
                     label="Cardholder Name"
                     placeholder="John Doe"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isDisabled}
                     error={!!errors.cardHolder}
                     helperText={errors.cardHolder?.message}
                     slotProps={{
@@ -419,7 +403,7 @@ export default function PaymentForm({ bookingId, amount, accessToken }: PaymentF
               variant="contained"
               fullWidth
               size="large"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isDisabled}
               endIcon={!isSubmitting && <ArrowForwardIcon />}
               sx={{
                 height: 56,

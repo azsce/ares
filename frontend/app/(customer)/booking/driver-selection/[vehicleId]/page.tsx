@@ -185,6 +185,7 @@ export default function DriverSelectionPage() {
     })();
     return () => {
       cancelled = true;
+      draftRequested.current = false;
     };
   }, [status, intent, bookingId, session]);
 
@@ -250,10 +251,11 @@ export default function DriverSelectionPage() {
   const selfDriveDisabled = eligibility?.driverRequired ?? false;
 
   const canContinue = useMemo(() => {
+    if (!bookingId) return false;
     if (mode === "self") return !selfDriveDisabled;
     if (mode === "driver") return Boolean(selectedDriverId);
     return false;
-  }, [mode, selfDriveDisabled, selectedDriverId]);
+  }, [mode, selfDriveDisabled, selectedDriverId, bookingId]);
 
   const handleContinue = async () => {
     if (!intent || !canContinue || submitting) return;
@@ -280,7 +282,7 @@ export default function DriverSelectionPage() {
         );
       }
       sessionStorage.setItem("bookingIntent", JSON.stringify(updated));
-      router.push(`/booking/payment/${intent.vehicleId}`);
+      router.push(`/booking/payment/${bookingId}`);
     } catch (e) {
       logger.error("Failed to save driver selection", e);
       setError(e instanceof CheckoutError ? e.message : "We couldn't save your driver choice. Please try again.");
