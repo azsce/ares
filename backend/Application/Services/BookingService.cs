@@ -451,7 +451,7 @@ public class BookingService : IBookingService
         // Only run algorithm if booking has been paid (Confirmed or beyond)
         Domain.Entities.Enums.PolicyType policy;
         decimal refundPct, fee;
-        if (booking.Status == BookingStatus.Pending)
+        if (booking.Status == BookingStatus.PaymentPending || booking.Status == BookingStatus.Draft)
         {
             policy = Domain.Entities.Enums.PolicyType.Free;
             refundPct = 100m;
