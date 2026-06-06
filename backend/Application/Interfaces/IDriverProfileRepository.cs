@@ -36,6 +36,6 @@ namespace Backend.Application.Interfaces
         /// <see cref="GetEligibleDriversForServiceAreaAsync"/> this is not scoped
         /// to a single service area so the customer sees every selectable driver.
         /// </summary>
-        Task<IEnumerable<DriverProfile>> GetAvailableDriversForWindowAsync(DateTime pickup, DateTime ret, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DriverProfile>> GetAvailableDriversForWindowAsync(DateTime pickup, DateTime ret, Guid? excludeBookingId = null, CancellationToken cancellationToken = default);
     }
 }

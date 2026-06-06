@@ -27,10 +27,10 @@ import {
   useTheme,
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+import ChatBubbleOutlinedRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded";
 import DirectionsCarFilledTwoToneIcon from "@mui/icons-material/DirectionsCarFilledTwoTone";
-import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import PersonOutlinedRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import RatingStars from "./RatingStars";
 import type { SupplierReviewListItem } from "@/api-clients/supplier-reviews/supplier-reviews";
 
@@ -84,7 +84,7 @@ export default function ReviewDetailsDialog({ open, review, onClose, onReply, on
         >
           <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
             <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.12), color: "primary.main" }}>
-              <PersonOutlineRoundedIcon />
+              <PersonOutlinedRoundedIcon />
             </Avatar>
             <Box>
               <Typography variant="body1" sx={{ fontWeight: 700 }}>
@@ -222,7 +222,7 @@ export default function ReviewDetailsDialog({ open, review, onClose, onReply, on
             onReply(review);
           }}
           variant="contained"
-          startIcon={<ChatBubbleOutlineRoundedIcon />}
+          startIcon={<ChatBubbleOutlinedRoundedIcon />}
           sx={{ borderRadius: 2, fontWeight: 700, textTransform: "none", flex: { xs: 1, sm: "none" } }}
         >
           {review.hasReply ? "Edit reply" : "Reply"}

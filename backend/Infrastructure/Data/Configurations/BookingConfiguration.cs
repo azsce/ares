@@ -90,6 +90,14 @@ namespace Backend.Infrastructure.Data.Configurations
             builder
                 .Property(b => b.RowVersion)
                 .IsRowVersion();
+
+            builder.ToTable("Bookings", t =>
+            {
+                // Database-level guarantee: no driver profile should be assigned 
+                // if the booking explicitly says a driver is not required.
+                t.HasCheckConstraint("CK_Booking_DriverRequirement",
+                    "([RequiresDriver] = 1 OR [AssignedDriverProfileId] IS NULL)");
+            });
         }
     }
 }

@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 import { Box, Button, Skeleton, Stack, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import HourglassTopRoundedIcon from "@mui/icons-material/HourglassTopRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
-import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import type { VerificationStatus } from "@/hooks/useVerificationStatus";
 
 /**
@@ -29,55 +29,41 @@ interface StatusContent {
   readonly title: string;
   readonly body: string;
   readonly cta: string;
-  readonly icon: typeof WarningAmberRoundedIcon;
+  readonly icon: typeof WarningAmberOutlinedIcon;
   /**
    * Logical role for the surface — drives the colour palette without
    * hard-coding hex values. Maps to MUI theme palette keys.
    */
-  readonly tone: "warning" | "info" | "error";
+  readonly tone: "warning" | "info" | "error" | "primary" | "secondary";
 }
 
 const STATUS_CONTENT: Record<Exclude<VerificationStatus, "Approved">, StatusContent> = {
   NotSubmitted: {
-    title: "Verify your identity to book",
-    body: "Complete your identity verification to book this vehicle. It takes only a couple of minutes and protects your account.",
-    cta: "Start verification",
-    icon: WarningAmberRoundedIcon,
+    title: "Identity Verification Required",
+    body: "Complete your identity verification to enable booking features. It's a one-time process to ensure a safe rental experience.",
+    cta: "Verify Identity",
+    icon: WarningAmberOutlinedIcon,
     tone: "warning",
   },
   Pending: {
-    title: "Verification in review",
-    body: "Your documents are being reviewed by our team. You'll be able to book a vehicle as soon as your verification is approved.",
-    cta: "View verification status",
+    title: "Verification in Progress",
+    body: "Our team is currently reviewing your documents. This typically takes a few hours. We'll notify you as soon as you're cleared to book.",
+    cta: "Check Status",
     icon: HourglassTopRoundedIcon,
-    tone: "info",
+    tone: "secondary",
   },
   Rejected: {
-    title: "Verification was rejected",
-    body: "Your last identity verification was rejected. Please re-submit your documents to continue with booking.",
-    cta: "Re-submit verification",
+    title: "Verification Unsuccessful",
+    body: "Your identity verification could not be approved. Please review the requirements and re-submit your documents.",
+    cta: "Re-submit Identity",
     icon: ErrorOutlineRoundedIcon,
     tone: "error",
   },
 };
 
 /**
- * Modern, mobile-first warning card shown on the booking surfaces when a
- * customer is not approved for booking.
- *
- * Design notes:
- *   - whole card is clickable + role="button" so any tap area routes
- *     the user to the Profile → Verification section (spec requirement);
- *   - status icon + colour tone vary per state (NotSubmitted / Pending
- *     / Rejected) so users know exactly what action is expected;
- *   - colours all come from `theme.palette.<tone>.{main,light}` via
- *     `alpha(...)` — no hard-coded hex values (follows the project's
- *     theme rule in AGENTS.md);
- *   - responsive padding via the `sx` breakpoint syntax so the card
- *     stays comfortable on mobile (`xs`) and feels intentional on
- *     laptop (`md`);
- *   - loading state uses MUI `Skeleton` matching the card height to
- *     prevent layout shift when the hook resolves.
+ * High-fidelity, professional status card for identity verification.
+ * Designed to be placed as a dedicated section on the page.
  */
 export default function VerificationRequiredCard({
   status,
@@ -88,11 +74,20 @@ export default function VerificationRequiredCard({
   const router = useRouter();
 
   if (loading) {
-    return <Skeleton variant="rounded" width="100%" height={208} sx={{ borderRadius: 3 }} />;
+    return (
+      <Box sx={{ p: 3, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <Skeleton variant="circular" width={48} height={48} />
+          <Stack spacing={1} sx={{ flexGrow: 1 }}>
+            <Skeleton variant="text" width="40%" height={24} />
+            <Skeleton variant="text" width="70%" height={20} />
+          </Stack>
+        </Stack>
+      </Box>
+    );
   }
 
   if (status === "Approved") {
-    // Approved users see the regular booking CTA — nothing to render here.
     return null;
   }
 
@@ -107,93 +102,94 @@ export default function VerificationRequiredCard({
 
   return (
     <Box
-      role="button"
-      tabIndex={0}
-      aria-label={`${content.title}. Open profile verification.`}
-      onClick={goToVerification}
-      onKeyDown={e => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          goToVerification();
-        }
-      }}
       sx={{
         position: "relative",
-        cursor: "pointer",
-        borderRadius: 3,
-        p: { xs: 2.25, sm: 3 },
-        bgcolor: alpha(theme.palette[tone].main, 0.06),
+        borderRadius: 2,
+        overflow: "hidden",
+        bgcolor: alpha(theme.palette[tone].main, 0.03),
         border: "1px solid",
-        borderColor: alpha(theme.palette[tone].main, 0.32),
-        boxShadow: `0 6px 16px -8px ${alpha(theme.palette[tone].main, 0.45)}`,
-        transition: theme.transitions.create(["box-shadow", "transform", "border-color", "background-color"], {
-          duration: theme.transitions.duration.shorter,
-        }),
+        borderColor: alpha(theme.palette[tone].main, 0.12),
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          borderColor: alpha(theme.palette[tone].main, 0.55),
-          boxShadow: `0 10px 22px -8px ${alpha(theme.palette[tone].main, 0.55)}`,
-          transform: "translateY(-1px)",
-        },
-        "&:focus-visible": {
-          outline: "none",
-          borderColor: theme.palette[tone].main,
-          boxShadow: `0 0 0 3px ${alpha(theme.palette[tone].main, 0.35)}`,
+          borderColor: alpha(theme.palette[tone].main, 0.25),
+          bgcolor: alpha(theme.palette[tone].main, 0.05),
+          transform: "translateY(-2px)",
+          boxShadow: `0 12px 30px -10px ${alpha(theme.palette[tone].main, 0.15)}`,
         },
       }}
     >
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 1.5, sm: 2 }} sx={{ alignItems: "flex-start" }}>
+      {/* Accent bar */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 4,
+          height: "100%",
+          bgcolor: theme.palette[tone].main,
+          opacity: 0.8,
+        }}
+      />
+
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={3}
+        sx={{
+          p: { xs: 3, md: 4 },
+          alignItems: { xs: "flex-start", md: "center" },
+        }}
+      >
         <Box
           sx={{
-            display: "inline-flex",
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 44,
-            height: 44,
-            borderRadius: "50%",
-            bgcolor: alpha(theme.palette[tone].main, 0.16),
-            color: `${tone}.main`,
+            width: 56,
+            height: 56,
+            borderRadius: 2,
+            bgcolor: alpha(theme.palette[tone].main, 0.1),
+            color: theme.palette[tone].main,
             flexShrink: 0,
+            boxShadow: `0 8px 20px -6px ${alpha(theme.palette[tone].main, 0.25)}`,
           }}
         >
-          <Icon fontSize="medium" />
+          <Icon sx={{ fontSize: 32 }} />
         </Box>
 
-        <Stack spacing={1} sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
+        <Stack spacing={0.5} sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: "-0.01em" }}>
             {content.title}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", maxWidth: 600, lineHeight: 1.6 }}>
             {content.body}
           </Typography>
-
           {error && (
-            <Typography variant="caption" color="error.main" sx={{ display: "block" }}>
+            <Typography variant="caption" sx={{ color: "error.main", mt: 1, fontWeight: 600 }}>
               {error}
             </Typography>
           )}
-
-          <Button
-            variant="contained"
-            color={tone}
-            size="medium"
-            startIcon={<VerifiedUserOutlinedIcon />}
-            onClick={e => {
-              // Don't double-fire — the wrapper Box also routes on click.
-              e.stopPropagation();
-              goToVerification();
-            }}
-            sx={{
-              alignSelf: { xs: "stretch", sm: "flex-start" },
-              mt: 0.5,
-              textTransform: "none",
-              fontWeight: 700,
-              borderRadius: 2,
-              px: 2.25,
-            }}
-          >
-            {content.cta}
-          </Button>
         </Stack>
+
+        <Button
+          variant="contained"
+          color={tone}
+          endIcon={<KeyboardArrowRightRoundedIcon />}
+          onClick={goToVerification}
+          sx={{
+            minWidth: 180,
+            height: 48,
+            borderRadius: 2.5,
+            textTransform: "none",
+            fontWeight: 700,
+            fontSize: "0.95rem",
+            boxShadow: `0 8px 20px -8px ${alpha(theme.palette[tone].main, 0.4)}`,
+            "&:hover": {
+              boxShadow: `0 12px 25px -8px ${alpha(theme.palette[tone].main, 0.5)}`,
+            },
+          }}
+        >
+          {content.cta}
+        </Button>
       </Stack>
     </Box>
   );

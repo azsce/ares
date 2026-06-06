@@ -29,7 +29,7 @@ public static class OperationalDataSeeder
         for (int i = 1; i <= 2; i++) demoUserEmails.Add($"newinspector{i}@ares.local");
 
         var demoUsers = await context.Users
-            .Where(u => demoUserEmails.Contains(u.Email))
+            .Where(u => u.Email != null && demoUserEmails.Contains(u.Email))
             .ToListAsync();
         var demoUserIds = demoUsers.Select(u => u.Id).ToList();
 

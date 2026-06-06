@@ -102,7 +102,7 @@ export default function DriverDashboardClient() {
         </Box>
 
         {summary && (
-          <Box sx={{ bgcolor: "background.paper", p: 2, borderRadius: 3, boxShadow: theme.palette.shadow.card }}>
+          <Box sx={{ bgcolor: "background.paper", p: 2, borderRadius: 2, boxShadow: theme.palette.shadow.card }}>
             <DriverAvailabilityToggle
               initialAvailability={summary.availability}
               onAvailabilityChange={newAvail => {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Box, Container, Paper, Stack, Typography, Button } from "@mui/material";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineOutlined";
+import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutlined";
 
 interface PageProps {
   readonly searchParams: Promise<Record<string, string | undefined>>;
@@ -29,7 +29,7 @@ export default async function CheckoutSessionPage({ searchParams }: PageProps) {
           elevation={0}
           sx={{
             p: { xs: 3, md: 6 },
-            borderRadius: 4,
+            borderRadius: 2,
             border: "1px solid",
             borderColor: "divider",
             textAlign: "center",
@@ -39,7 +39,7 @@ export default async function CheckoutSessionPage({ searchParams }: PageProps) {
             {success ? (
               <CheckCircleOutlinedIcon sx={{ fontSize: 72, color: "success.main" }} />
             ) : (
-              <ErrorOutlineIcon sx={{ fontSize: 72, color: "error.main" }} />
+              <ErrorOutlinedIcon sx={{ fontSize: 72, color: "error.main" }} />
             )}
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
               {success ? "Payment Successful" : "Payment Failed"}

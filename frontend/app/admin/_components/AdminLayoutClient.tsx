@@ -37,6 +37,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { performLogoutCleanup } from "@/utils/auth-cleanup";
 
 const drawerWidth = 280;
 
@@ -71,6 +72,7 @@ export default function AdminLayoutClient({ children }: Readonly<{ children: Rea
     setAnchorEl(null);
   };
   const handleLogout = async () => {
+    performLogoutCleanup();
     await signOut({ callbackUrl: "/" });
   };
 

@@ -272,6 +272,10 @@ public class SupplierBookingService : ISupplierBookingService
 
         var customerName = $"{row.CustomerFirstName} {row.CustomerLastName}".Trim();
 
+        // Resolve locations on the fly.
+        var pickupName = await ResolveDisplayLocationAsync(row.PickupLocation, cancellationToken);
+        var dropoffName = await ResolveDisplayLocationAsync(row.DropoffLocation, cancellationToken);
+
         return new SupplierBookingDetailsDto(
             BookingId: row.BookingId,
             BookingNumber: row.BookingNumber,
@@ -281,8 +285,8 @@ public class SupplierBookingService : ISupplierBookingService
             TotalDays: row.TotalDays,
             TotalPrice: row.TotalPrice,
             BookingStatus: row.BookingStatus.ToString(),
-            PickupLocation: row.PickupLocation,
-            DropoffLocation: row.DropoffLocation,
+            PickupLocation: pickupName,
+            DropoffLocation: dropoffName,
 
             CustomerId: row.CustomerId,
             CustomerName: customerName,
@@ -301,5 +305,27 @@ public class SupplierBookingService : ISupplierBookingService
             PaymentAmount: latestPayment?.Amount,
             PaymentCurrency: latestPayment?.Currency,
             PaymentProcessedAt: latestPayment?.ProcessedAt);
+    }
+
+    private async Task<string> ResolveDisplayLocationAsync(string? locationStr, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(locationStr))
+            return string.Empty;
+
+        if (Guid.TryParse(locationStr, out var guid))
+        {
+            var loc = await _context.UserAddresses.FirstOrDefaultAsync(l => l.Id == guid, cancellationToken);
+            if (loc != null)
+            {
+                var parts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(loc.City)) parts.Add(loc.City);
+                if (!string.IsNullOrWhiteSpace(loc.Governorate)) parts.Add(loc.Governorate);
+                if (!string.IsNullOrWhiteSpace(loc.Country)) parts.Add(loc.Country);
+                if (parts.Count > 0) return string.Join(", ", parts);
+            }
+            return "Unknown Location";
+        }
+
+        return locationStr;
     }
 }

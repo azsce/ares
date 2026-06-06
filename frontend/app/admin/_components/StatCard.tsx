@@ -33,7 +33,7 @@ export default function StatCard({ title, value, change, isUp, icon, color }: St
     <Card
       elevation={0}
       sx={theme => ({
-        borderRadius: 4,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "divider",
         bgcolor: "background.paper",

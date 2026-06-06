@@ -133,7 +133,7 @@ export default function DriverRequestsClient() {
           sx={{
             p: 8,
             textAlign: "center",
-            borderRadius: 4,
+            borderRadius: 2,
             border: `1px dashed ${theme.palette.divider}`,
             bgcolor: "background.paper",
           }}
@@ -156,7 +156,7 @@ export default function DriverRequestsClient() {
               <Grid size={{ xs: 12, md: 6 }} key={request.id}>
                 <Card
                   sx={{
-                    borderRadius: 3,
+                    borderRadius: 2,
                     boxShadow: theme.palette.shadow.card,
                     border: `1px solid ${theme.palette.border.light}`,
                     height: "100%",

@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Box, Button, Grid } from "@mui/material";
+import { Card, CardContent, Typography, Box, Button, Grid, alpha } from "@mui/material";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -15,6 +15,17 @@ const IconMap = {
   FileText: AssessmentIcon,
   AssignmentInd: AssignmentIndIcon,
   FactCheck: FactCheckIcon,
+};
+
+type StatusKey = "active" | "completed" | "pending" | "cancelled" | "confirmed" | "blocked";
+
+const getStatusKey = (color: string): StatusKey => {
+  if (color === "primary") return "active";
+  if (color === "success") return "completed";
+  if (color === "warning") return "pending";
+  if (color === "error") return "cancelled";
+  if (color === "info") return "active";
+  return "pending";
 };
 
 export default function QuickActions({ actions }: Readonly<{ actions: readonly QuickAction[] }>) {
@@ -36,6 +47,8 @@ export default function QuickActions({ actions }: Readonly<{ actions: readonly Q
         <Grid container spacing={2}>
           {actions.map((action, i) => {
             const Icon = IconMap[action.icon as keyof typeof IconMap];
+            const statusKey = getStatusKey(action.color);
+
             return (
               <Grid size={{ xs: 6, sm: 6 }} key={i}>
                 <Button
@@ -43,58 +56,51 @@ export default function QuickActions({ actions }: Readonly<{ actions: readonly Q
                   component={Link}
                   href={action.path}
                   disableElevation
-                  sx={theme => ({
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    p: 2,
-                    height: "100%",
-                    width: "100%",
-                    borderRadius: 3,
-                    textTransform: "none",
-                    bgcolor: theme.palette.background.default,
-                    color: theme.palette.text.primary,
-                    border: "1px solid transparent",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      bgcolor: theme.palette.background.paper,
-                      boxShadow: theme.palette.shadow.cardHover,
-                      borderColor: theme.palette.border.main,
-                      transform: "translateY(-2px)",
-                    },
-                  })}
+                  sx={theme => {
+                    const colorMain = theme.palette.status[statusKey].main;
+                    return {
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      p: 2,
+                      height: "100%",
+                      width: "100%",
+                      borderRadius: 2,
+                      textTransform: "none",
+                      bgcolor: alpha(colorMain, 0.04),
+                      color: theme.palette.text.primary,
+                      border: "1px solid",
+                      borderColor: alpha(colorMain, 0.1),
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: alpha(colorMain, 0.08),
+                        boxShadow: `0 4px 12px ${alpha(colorMain, 0.12)}`,
+                        borderColor: alpha(colorMain, 0.2),
+                        transform: "translateY(-2px)",
+                      },
+                    };
+                  }}
                 >
                   <Box
                     sx={theme => {
-                      const statusKey: "active" | "completed" | "pending" | "cancelled" | "confirmed" | "blocked" =
-                        action.color === "primary"
-                          ? "active"
-                          : action.color === "success"
-                            ? "completed"
-                            : action.color === "warning"
-                              ? "pending"
-                              : action.color === "error"
-                                ? "cancelled"
-                                : action.color === "info"
-                                  ? "active"
-                                  : "pending";
-
+                      const colorMain = theme.palette.status[statusKey].main;
                       return {
-                        bgcolor: theme.palette.status[statusKey].light,
-                        color: theme.palette.status[statusKey].main,
+                        bgcolor: alpha(colorMain, 0.12),
+                        color: colorMain,
                         p: 1.5,
                         borderRadius: 2,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        mb: 1,
+                        mb: 1.5,
+                        boxShadow: `0 4px 10px ${alpha(colorMain, 0.2)}`,
                       };
                     }}
                   >
                     <Icon fontSize="medium" />
                   </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, textAlign: "center", lineHeight: 1.2 }}>
                     {action.label}
                   </Typography>
                 </Button>

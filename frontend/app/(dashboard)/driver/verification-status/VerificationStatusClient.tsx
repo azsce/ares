@@ -88,7 +88,7 @@ export default function VerificationStatusClient() {
         sx={{
           p: 4,
           textAlign: "center",
-          borderRadius: 4,
+          borderRadius: 2,
           boxShadow: theme.palette.shadow.card,
           border: `1px solid ${theme.palette.border.light}`,
         }}

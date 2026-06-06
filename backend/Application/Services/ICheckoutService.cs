@@ -28,8 +28,9 @@ namespace Backend.Application.Services
         /// <summary>
         /// Verified, available drivers selectable for the supplied rental
         /// window, with the per-booking driver fee already computed.
+        /// Includes nearby availability statistics if a bookingId is provided.
         /// </summary>
-        Task<IEnumerable<AvailableDriverDto>> GetAvailableDriversAsync(DateTime pickupDate, DateTime returnDate, CancellationToken cancellationToken = default);
+        Task<AvailableDriversResponse> GetAvailableDriversAsync(DateTime pickupDate, DateTime returnDate, Guid? bookingId = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Validates the reservation + driver choice, processes payment, then

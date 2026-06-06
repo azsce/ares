@@ -47,7 +47,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import BlockIcon from "@mui/icons-material/Block";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PeopleIcon from "@mui/icons-material/People";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { toggleUserStatus, deleteUser, getUsers, type User } from "@/api-clients/users/users";
 import { ApiError } from "@/utils/api-client";
@@ -170,7 +170,7 @@ function UserMobileCard({ u, theme, fetchUsers, onRequestDelete }: UserMobileCar
             }}
             sx={{ color: "error.main" }}
           >
-            <DeleteOutlineIcon fontSize="small" />
+            <DeleteOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </Stack>
@@ -505,7 +505,7 @@ export default function UsersPage() {
                               }}
                               sx={{ color: "error.main" }}
                             >
-                              <DeleteOutlineIcon fontSize="small" />
+                              <DeleteOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </Stack>
@@ -747,7 +747,7 @@ export default function UsersPage() {
             disabled={deleting}
             variant="contained"
             color="error"
-            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : <DeleteOutlineIcon />}
+            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : <DeleteOutlinedIcon />}
           >
             {deleting ? "Deleting..." : "Delete Permanently"}
           </Button>

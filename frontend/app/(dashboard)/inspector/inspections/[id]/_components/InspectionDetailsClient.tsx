@@ -25,7 +25,7 @@ import Grid from "@mui/material/Grid";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineRounded";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import LockIcon from "@mui/icons-material/Lock";
@@ -507,7 +507,7 @@ function InspectionReportForm({
                         "&:hover": { bgcolor: theme.palette.error.main },
                       }}
                     >
-                      <DeleteOutlineIcon fontSize="small" />
+                      <DeleteOutlinedIcon fontSize="small" />
                     </IconButton>
                   )}
                 </Box>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Box,
   Container,
@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import TimerIcon from "@mui/icons-material/Timer";
 import WarningIcon from "@mui/icons-material/Warning";
+import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutlined";
 import { beginPayment, CheckoutError } from "@/api-clients/checkout/checkout";
 import { logger } from "@/utils/logger";
 import PaymentForm from "./PaymentForm";
@@ -34,8 +35,8 @@ export interface BookingDetailsDto {
       readonly name: string;
     };
   };
-  readonly pickupLocation: { readonly label: string };
-  readonly dropOffLocation: { readonly label: string };
+  readonly pickupLocation: { readonly name: string };
+  readonly dropOffLocation: { readonly name: string };
   readonly from: string;
   readonly to: string;
   readonly price: number;
@@ -50,11 +51,14 @@ interface PaymentClientProps {
 
 export default function PaymentClient({ booking, accessToken }: PaymentClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [holdSecondsLeft, setHoldSecondsLeft] = useState<number | null>(null);
   const [holdExpired, setHoldExpired] = useState(false);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const paymentFailed = searchParams.get("payment_failed") === "1";
 
   // Initialize the vehicle hold on page mount
   useEffect(() => {
@@ -156,34 +160,47 @@ export default function PaymentClient({ booking, accessToken }: PaymentClientPro
                     color: isVerificationRequired ? "warning.main" : "error.main",
                   }}
                 >
-                  {isVerificationRequired ? "Verification Required" : "Vehicle Unavailable"}
+                  {isVerificationRequired
+                    ? "Verification Required"
+                    : isConflict && errorMessage?.includes("no longer in progress")
+                      ? "Booking Status Changed"
+                      : "Vehicle Unavailable"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {errorMessage ||
                     (isConflict
-                      ? "This vehicle has just been reserved by another customer."
+                      ? "This vehicle is no longer available or the booking cannot be modified."
                       : "An unexpected error occurred.")}
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  router.push(isVerificationRequired ? "/account/profile" : "/");
-                }}
-                sx={{
-                  fontWeight: 800,
-                  borderRadius: 999,
-                  px: 4,
-                  height: 48,
-                  textTransform: "none",
-                  bgcolor: isVerificationRequired ? "warning.main" : "primary.main",
-                  "&:hover": {
-                    bgcolor: isVerificationRequired ? "warning.dark" : "primary.dark",
-                  },
-                }}
-              >
-                {isVerificationRequired ? "Complete Verification" : "Browse Other Vehicles"}
-              </Button>
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="outlined"
+                  onClick={() => router.push(`/booking/${booking.id}`)}
+                  sx={{ fontWeight: 700, borderRadius: 999, px: 3, textTransform: "none" }}
+                >
+                  View Booking
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    router.push(isVerificationRequired ? "/account/profile" : "/");
+                  }}
+                  sx={{
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    px: 4,
+                    height: 48,
+                    textTransform: "none",
+                    bgcolor: isVerificationRequired ? "warning.main" : "primary.main",
+                    "&:hover": {
+                      bgcolor: isVerificationRequired ? "warning.dark" : "primary.dark",
+                    },
+                  }}
+                >
+                  {isVerificationRequired ? "Complete Verification" : "Return Home"}
+                </Button>
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
@@ -324,6 +341,18 @@ export default function PaymentClient({ booking, accessToken }: PaymentClientPro
                     </Box>
                   </Alert>
                 )
+              )}
+
+              {paymentFailed && (
+                <Alert severity="error" icon={<ErrorOutlinedIcon />} sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.5 }}>
+                    Payment Failed
+                  </Typography>
+                  <Typography variant="body2">
+                    Your previous payment attempt was unsuccessful. Please check your card details and try again, or use
+                    a different payment method.
+                  </Typography>
+                </Alert>
               )}
 
               <ExpressCheckout enableApplePay={enableApplePay} enableGooglePay={enableGooglePay} />

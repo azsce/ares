@@ -52,4 +52,6 @@ public interface IPaymentService
     Task<RefundResult> GetRefundPreviewAsync(Guid bookingId, CancellationToken ct = default);
 
     Task<RefundResponse> RefundAsync(Guid bookingId, Guid requestedBy, bool isAdmin, decimal? adminOverrideAmount = null, CancellationToken ct = default);
+
+    Task<bool> SyncPaymentStatusAsync(Guid bookingId, Guid userId, CancellationToken ct = default);
 }

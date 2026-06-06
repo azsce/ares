@@ -17,8 +17,8 @@ interface OrderSummaryProps {
         readonly name: string;
       };
     };
-    readonly pickupLocation: { readonly label: string };
-    readonly dropOffLocation: { readonly label: string };
+    readonly pickupLocation: { readonly name: string };
+    readonly dropOffLocation: { readonly name: string };
     readonly from: string;
     readonly to: string;
     readonly price: number;
@@ -96,7 +96,7 @@ export default function OrderSummary({ booking }: OrderSummaryProps) {
                 Pickup
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 700, color: "text.primary" }}>
-                {booking.pickupLocation.label}
+                {booking.pickupLocation.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {pickupDate.toLocaleDateString(undefined, {
@@ -120,7 +120,7 @@ export default function OrderSummary({ booking }: OrderSummaryProps) {
                 Return
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 700, color: "text.primary" }}>
-                {booking.dropOffLocation.label}
+                {booking.dropOffLocation.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {returnDate.toLocaleDateString(undefined, {

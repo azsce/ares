@@ -335,6 +335,46 @@ public class DashboardService : IDashboardService
         return new LiveTrackingDto(TotalActiveRentals: totalActiveRentals, ConnectedPhones: connectedPhones);
     }
 
+    public async Task<IReadOnlyList<TopVehicleDto>> GetTopVehiclesAsync(Guid? supplierId, int limit = 5, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Bookings.Where(b => b.Vehicle != null);
+
+        if (supplierId.HasValue)
+            query = query.Where(b => b.Vehicle!.UserId == supplierId.Value);
+
+        var grouped = await query
+            .GroupBy(b => b.VehicleId)
+            .Select(g => new
+            {
+                VehicleId = g.Key,
+                BookingsCount = g.Count(),
+                Revenue = g.Sum(b => b.TotalPrice ?? 0),
+            })
+            .OrderByDescending(x => x.BookingsCount)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
+        var vehicleIds = grouped.Select(x => x.VehicleId).ToList();
+        var vehicles = await _context.Vehicles
+            .Include(v => v.Images)
+            .Where(v => vehicleIds.Contains(v.Id))
+            .ToListAsync(cancellationToken);
+
+        return grouped.Select(x =>
+        {
+            var vehicle = vehicles.FirstOrDefault(v => v.Id == x.VehicleId);
+            return new TopVehicleDto(
+                Id: x.VehicleId.ToString(),
+                Make: vehicle?.Make ?? string.Empty,
+                Model: vehicle?.Model ?? string.Empty,
+                Year: vehicle?.Year,
+                BookingsCount: x.BookingsCount,
+                Revenue: x.Revenue,
+                ImageUrl: vehicle?.Images.FirstOrDefault()?.ImageUrl
+            );
+        }).ToList().AsReadOnly();
+    }
+
     public Task<SystemStatusDto> GetSystemStatusAsync(CancellationToken cancellationToken = default)
     {
         // Mock system metrics for the dashboard from backend side

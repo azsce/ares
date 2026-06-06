@@ -42,6 +42,10 @@ export function setThemePreference(mode: PaletteMode) {
     // Set cookie for server-side detection
     const maxAge = 60 * 60 * 24 * 365;
     document.cookie = `theme-mode=${mode}; path=/; max-age=${maxAge.toString()}; SameSite=Lax`;
+
+    // Force a page reload to ensure all components and styles are re-rendered cleanly
+    // and that server-side components respect the new theme cookie.
+    window.location.reload();
   } catch (error) {
     logger.warn("Failed to set theme preference:", error);
   }

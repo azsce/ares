@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -325,7 +325,7 @@ export default function NotificationsClient() {
                       handleDeleteClick(e, n);
                     }}
                   >
-                    <DeleteOutlineIcon fontSize="small" />
+                    <DeleteOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </Stack>

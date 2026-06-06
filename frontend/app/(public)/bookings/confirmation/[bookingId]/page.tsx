@@ -25,8 +25,8 @@ interface BookingDetailsDto {
       readonly name: string;
     };
   };
-  readonly pickupLocation: { readonly label: string };
-  readonly dropOffLocation: { readonly label: string };
+  readonly pickupLocation: { readonly name: string };
+  readonly dropOffLocation: { readonly name: string };
   readonly from: string;
   readonly to: string;
   readonly price: number;

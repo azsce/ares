@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { performLogoutCleanup } from "@/utils/auth-cleanup";
 import type { Session } from "next-auth";
 import {
   AppBar,
@@ -54,7 +55,7 @@ export default function HeaderClient({ session: initialSession }: HeaderClientPr
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
 
   const navigationLinks = [
-    { label: "Fleet", href: "/search" },
+    { label: "Search", href: "/search" },
     { label: "Locations", href: "/locations" },
     { label: "Offers & Deals", href: "/offers" },
     { label: "About Us", href: "/about" },
@@ -82,6 +83,7 @@ export default function HeaderClient({ session: initialSession }: HeaderClientPr
 
   const handleSignOut = async () => {
     setUserMenuAnchor(null);
+    performLogoutCleanup();
     await signOut({ callbackUrl: "/" });
   };
 

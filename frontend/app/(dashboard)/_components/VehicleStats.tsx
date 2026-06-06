@@ -25,7 +25,7 @@ import {
 } from "@mui/icons-material";
 
 // ── STAT CARD ──
-interface StatCardProps {
+export interface StatCardProps {
   readonly label: string;
   readonly value: number | string;
   readonly color: string;
@@ -36,7 +36,16 @@ interface StatCardProps {
   readonly subtitle?: string;
 }
 
-const StatCard = memo(function StatCard({ label, value, color, icon, change, isUp, loading, subtitle }: StatCardProps) {
+export const StatCard = memo(function StatCard({
+  label,
+  value,
+  color,
+  icon,
+  change,
+  isUp,
+  loading,
+  subtitle,
+}: StatCardProps) {
   const theme = useTheme();
 
   // Resolve palette colors safely (e.g. "primary" or dynamic colors from theme)
@@ -55,6 +64,7 @@ const StatCard = memo(function StatCard({ label, value, color, icon, change, isU
         borderColor: "divider",
         position: "relative",
         overflow: "hidden",
+        height: "100%",
         background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(mainColor, 0.08)} 100%)`,
         transition: "transform 0.2s, box-shadow 0.2s",
         "&:hover": {
@@ -227,6 +237,8 @@ export default function VehicleStats({
     gridSizes = { xs: 12, sm: 6 };
   } else if (finalItems.length === 4) {
     gridSizes = { xs: 12, sm: 6, md: 3 };
+  } else if (finalItems.length === 6) {
+    gridSizes = { xs: 12, sm: 4, lg: 2 };
   } else {
     gridSizes = { xs: 12, sm: 4 };
   }

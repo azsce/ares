@@ -18,21 +18,23 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+
 import { toApiUrl } from "@/utils/api-client";
 import { toImageUrl } from "@/utils/image-url";
 import { formatCurrency } from "@/utils/currency-helpers";
 import { logger } from "@/utils/logger";
 import {
-  CheckoutError,
   checkoutStepHref,
   createDraft,
   getActiveCheckout,
   selectDriver,
   type CheckoutState,
+  type AvailableDriver,
+  type AvailableDriversResponse,
 } from "@/api-clients/checkout/checkout";
 
 interface BookingIntent {
@@ -48,17 +50,6 @@ interface BookingIntent {
   driverProfileId?: string | null;
   driverName?: string | null;
   driverFee?: number;
-}
-
-interface AvailableDriver {
-  driverProfileId: string;
-  firstName?: string;
-  lastName?: string;
-  profilePictureUrl?: string;
-  averageRating: number;
-  totalTrips: number;
-  experienceYears: number;
-  driverFee: number;
 }
 
 interface Eligibility {
@@ -108,45 +99,76 @@ export default function DriverSelectionPage() {
     return parsed?.vehicleId === params.vehicleId ? parsed : null;
   });
 
-  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return sessionStorage.getItem("checkoutBookingId");
+  });
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
-  const [loadingEligibility, setLoadingEligibility] = useState(true);
   const [mode, setMode] = useState<DriveMode | null>(null);
   const [drivers, setDrivers] = useState<AvailableDriver[]>([]);
+  const [nearbyUnavailableCount, setNearbyUnavailableCount] = useState(0);
   const [loadingDrivers, setLoadingDrivers] = useState(false);
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [recovering, setRecovering] = useState(false);
-  const [noBooking, setNoBooking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const draftRequested = useRef(false);
+  const recoveryAttempted = useRef(false);
+
+  // Sync selected state with intent
+  useEffect(() => {
+    if (intent?.driverProfileId && !selectedDriverId) {
+      setSelectedDriverId(intent.driverProfileId);
+    }
+    if (intent?.needDriver && !mode) {
+      setMode("driver");
+    }
+  }, [intent, selectedDriverId, mode]);
+
+  // Persist intent to sessionStorage whenever it changes
+  useEffect(() => {
+    if (intent) {
+      sessionStorage.setItem("bookingIntent", JSON.stringify(intent));
+    }
+  }, [intent]);
 
   // Booking recovery: if the client intent was lost (refresh, new tab, error),
   // restore it from the database instead of silently redirecting away.
   useEffect(() => {
-    if (status === "loading" || intent) return;
-    if (status !== "authenticated" || !session?.accessToken) return;
+    if (status === "loading") return;
+    const token = session?.accessToken;
+    if (status !== "authenticated" || !token) return;
+
+    // Ensure we only attempt recovery from the server once per page load to avoid infinite loops.
+    if (recoveryAttempted.current) return;
+    recoveryAttempted.current = true;
+
     let cancelled = false;
     setRecovering(true);
     void (async () => {
       try {
-        const state = await getActiveCheckout(session.accessToken);
+        const state = await getActiveCheckout(token);
         if (cancelled) return;
         if (state && state.vehicleId === params.vehicleId) {
-          setIntent(intentFromState(state));
+          const newIntent = intentFromState(state);
+          setIntent(prev => {
+            if (!prev) return newIntent;
+            if (!prev.driverProfileId && newIntent.driverProfileId) return newIntent;
+            if (!prev.needDriver && newIntent.needDriver) return newIntent;
+            return prev;
+          });
           setBookingId(state.bookingId);
           sessionStorage.setItem("checkoutBookingId", state.bookingId);
+          if (state.requiresDriver) setMode("driver");
+          if (state.driverProfileId) setSelectedDriverId(state.driverProfileId);
         } else if (state) {
           // An unfinished booking exists for a different vehicle → take the
           // customer to the right step rather than dropping them home.
           router.replace(checkoutStepHref(state));
-        } else {
-          setNoBooking(true);
         }
       } catch (e) {
         logger.error("Booking recovery failed", e);
-        setNoBooking(true);
       } finally {
         if (!cancelled) setRecovering(false);
       }
@@ -154,12 +176,13 @@ export default function DriverSelectionPage() {
     return () => {
       cancelled = true;
     };
-  }, [intent, status, session, params.vehicleId, router]);
+  }, [status, session?.accessToken, params.vehicleId, router]);
 
   // Persist a DRAFT booking server-side as soon as the funnel starts, so it can
   // always be recovered. DRAFT does not reserve the vehicle.
   useEffect(() => {
-    if (status !== "authenticated" || !intent || bookingId || !session?.accessToken) return;
+    const token = session?.accessToken;
+    if (status !== "authenticated" || !intent || bookingId || !token) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -174,11 +197,15 @@ export default function DriverSelectionPage() {
             pickupLocationId: intent.pickupLocationId || undefined,
             dropOffLocationId: intent.dropOffLocationId || undefined,
           },
-          session.accessToken
+          token
         );
         if (cancelled) return;
         setBookingId(state.bookingId);
         sessionStorage.setItem("checkoutBookingId", state.bookingId);
+        // Sync any existing driver/mode from server
+        if (state.requiresDriver) setMode("driver");
+        if (state.driverProfileId) setSelectedDriverId(state.driverProfileId);
+        setIntent(intentFromState(state));
       } catch (e) {
         logger.error("Failed to start the draft booking", e);
       }
@@ -187,7 +214,7 @@ export default function DriverSelectionPage() {
       cancelled = true;
       draftRequested.current = false;
     };
-  }, [status, intent, bookingId, session]);
+  }, [status, intent, bookingId, session?.accessToken]);
 
   // Auth gate.
   useEffect(() => {
@@ -198,10 +225,9 @@ export default function DriverSelectionPage() {
 
   // Load drive eligibility (license status).
   useEffect(() => {
-    if (status !== "authenticated" || !intent) return;
-    const token = session.accessToken;
+    const token = session?.accessToken;
+    if (status !== "authenticated" || !intent || !token) return;
     const load = async () => {
-      setLoadingEligibility(true);
       try {
         const res = await fetch(toApiUrl("/api/checkout/eligibility"), {
           headers: { Authorization: `Bearer ${token}` },
@@ -215,29 +241,30 @@ export default function DriverSelectionPage() {
         }
       } catch (e) {
         logger.error("Failed to load drive eligibility", e);
-      } finally {
-        setLoadingEligibility(false);
       }
     };
     void load();
-  }, [status, session, intent]);
+  }, [status, session?.accessToken, intent]);
 
   // When the driver path is chosen, load the catalog of available drivers.
   useEffect(() => {
-    if (mode !== "driver" || !intent || status !== "authenticated") return;
-    const token = session.accessToken;
+    const token = session?.accessToken;
+    if (mode !== "driver" || !intent || status !== "authenticated" || !token) return;
     const load = async () => {
       setLoadingDrivers(true);
       setError("");
       try {
+        const bookingParam = bookingId ? `&bookingId=${bookingId}` : "";
         const url = toApiUrl(
           `/api/checkout/drivers?pickupDate=${encodeURIComponent(intent.pickupDate)}&returnDate=${encodeURIComponent(
             intent.returnDate
-          )}`
+          )}${bookingParam}`
         );
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load drivers");
-        setDrivers((await res.json()) as AvailableDriver[]);
+        const data = (await res.json()) as AvailableDriversResponse;
+        setDrivers(data.drivers);
+        setNearbyUnavailableCount(data.nearbyUnavailableCount);
       } catch (e) {
         logger.error("Failed to load available drivers", e);
         setError("We couldn't load drivers right now. Please try again.");
@@ -246,7 +273,7 @@ export default function DriverSelectionPage() {
       }
     };
     void load();
-  }, [mode, intent, status, session]);
+  }, [mode, intent, status, session?.accessToken, bookingId]);
 
   const selfDriveDisabled = eligibility?.driverRequired ?? false;
 
@@ -257,35 +284,74 @@ export default function DriverSelectionPage() {
     return false;
   }, [mode, selfDriveDisabled, selectedDriverId, bookingId]);
 
+  const handleDriverSelect = async (driverId: string | null) => {
+    const token = session?.accessToken;
+    if (!bookingId || !token || !intent) return;
+
+    // Optimistic UI
+    const prevDriverId = selectedDriverId;
+    setSelectedDriverId(driverId);
+
+    try {
+      const state = await selectDriver(
+        bookingId,
+        {
+          needDriver: mode === "driver",
+          driverProfileId: mode === "driver" ? driverId : null,
+        },
+        token
+      );
+
+      const newIntent = intentFromState(state);
+      setIntent(newIntent);
+    } catch (e) {
+      logger.error("Failed to persist driver selection", e);
+      setSelectedDriverId(prevDriverId); // rollback
+      setError("Failed to save your selection. Please try again.");
+    }
+  };
+
+  const handleModeChange = async (newMode: DriveMode) => {
+    const token = session?.accessToken;
+    if (newMode === mode) return;
+    if (newMode === "self" && selfDriveDisabled) return;
+
+    const prevMode = mode;
+    const prevDriverId = selectedDriverId;
+
+    setMode(newMode);
+    if (newMode === "self") setSelectedDriverId(null);
+
+    try {
+      if (bookingId && token) {
+        const state = await selectDriver(
+          bookingId,
+          {
+            needDriver: newMode === "driver",
+            driverProfileId: null,
+          },
+          token
+        );
+        setIntent(intentFromState(state));
+      }
+    } catch (e) {
+      logger.error("Failed to change drive mode", e);
+      setMode(prevMode);
+      setSelectedDriverId(prevDriverId);
+      setError("Failed to change mode. Please try again.");
+    }
+  };
+
   const handleContinue = async () => {
     if (!intent || !canContinue || submitting) return;
-    const needDriver = mode === "driver";
-    const selected = drivers.find(d => d.driverProfileId === selectedDriverId);
-    const updated: BookingIntent = {
-      ...intent,
-      needDriver,
-      driverProfileId: needDriver ? selectedDriverId : null,
-      driverName: needDriver && selected ? `${selected.firstName ?? ""} ${selected.lastName ?? ""}`.trim() : null,
-      driverFee: needDriver && selected ? selected.driverFee : 0,
-    };
 
+    // The driver choice is already persisted to the server via handleDriverSelect.
+    // We just ensure sessionStorage is in sync and navigate.
     setSubmitting(true);
-    setError("");
     try {
-      // Persist the driver choice (DRIVER_SELECTED) so the server knows the
-      // chosen driver before payment. Still does not reserve the vehicle.
-      if (bookingId && session?.accessToken) {
-        await selectDriver(
-          bookingId,
-          { needDriver, driverProfileId: needDriver ? selectedDriverId : null },
-          session.accessToken
-        );
-      }
-      sessionStorage.setItem("bookingIntent", JSON.stringify(updated));
       router.push(`/booking/payment/${bookingId}`);
     } catch (e) {
-      logger.error("Failed to save driver selection", e);
-      setError(e instanceof CheckoutError ? e.message : "We couldn't save your driver choice. Please try again.");
+      logger.error("Navigation failed", e);
       setSubmitting(false);
     }
   };
@@ -314,34 +380,25 @@ export default function DriverSelectionPage() {
                 router.push(`/vehicles/${params.vehicleId}`);
               }}
             >
-              Choose dates
+              Go Back
             </Button>
           }
         >
-          {noBooking
-            ? "We couldn't find an in-progress booking. Please start again from the vehicle page."
-            : "Loading your booking…"}
+          We could not find your booking details. Your session may have expired or the vehicle is no longer available.
         </Alert>
       </Box>
     );
   }
 
-  if (loadingEligibility) {
-    return (
-      <Box sx={{ minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
-    <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 4, md: 8 } }}>
+    <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 4, md: 10 } }}>
       <Container maxWidth="lg">
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
-          Choose how you&apos;ll drive
+        {/* Header */}
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 900, mb: 1 }}>
+          Choose your driving mode
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-          Step 3 of 4 · {intent.vehicleLabel}
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          {intent.vehicleLabel} · {intent.pickupDate.split("T")[0]} to {intent.returnDate.split("T")[0]}
         </Typography>
 
         {/* Stepper */}
@@ -378,10 +435,7 @@ export default function DriverSelectionPage() {
             >
               <CardActionArea
                 disabled={selfDriveDisabled}
-                onClick={() => {
-                  setMode("self");
-                  setSelectedDriverId(null);
-                }}
+                onClick={() => void handleModeChange("self")}
                 sx={{ height: "100%", p: 1 }}
               >
                 <CardContent>
@@ -409,12 +463,7 @@ export default function DriverSelectionPage() {
                 height: "100%",
               }}
             >
-              <CardActionArea
-                onClick={() => {
-                  setMode("driver");
-                }}
-                sx={{ height: "100%", p: 1 }}
-              >
+              <CardActionArea onClick={() => void handleModeChange("driver")} sx={{ height: "100%", p: 1 }}>
                 <CardContent>
                   <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 1 }}>
                     <PersonSearchIcon color={mode === "driver" ? "primary" : "action"} />
@@ -435,9 +484,16 @@ export default function DriverSelectionPage() {
         {/* Driver catalog */}
         {mode === "driver" && (
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
-              Available drivers
-            </Typography>
+            <Stack direction="row" sx={{ alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                Available drivers
+              </Typography>
+              {nearbyUnavailableCount > 0 && (
+                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 400 }}>
+                  ({nearbyUnavailableCount} others in this area are currently busy or unavailable)
+                </Typography>
+              )}
+            </Stack>
 
             {loadingDrivers ? (
               <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -452,6 +508,7 @@ export default function DriverSelectionPage() {
               <Grid container spacing={2}>
                 {drivers.map(driver => {
                   const selected = selectedDriverId === driver.driverProfileId;
+                  const fullName = `${driver.firstName ?? ""} ${driver.lastName ?? ""}`.trim();
                   return (
                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={driver.driverProfileId}>
                       <Card
@@ -460,12 +517,11 @@ export default function DriverSelectionPage() {
                           borderColor: selected ? "primary.main" : "divider",
                           borderWidth: selected ? 2 : 1,
                           height: "100%",
+                          position: "relative",
                         }}
                       >
                         <CardActionArea
-                          onClick={() => {
-                            setSelectedDriverId(driver.driverProfileId);
-                          }}
+                          onClick={() => void handleDriverSelect(selected ? null : driver.driverProfileId)}
                           sx={{ height: "100%" }}
                         >
                           <CardContent>
@@ -478,7 +534,7 @@ export default function DriverSelectionPage() {
                               </Avatar>
                               <Box sx={{ minWidth: 0 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
-                                  {driver.firstName} {driver.lastName}
+                                  {fullName}
                                 </Typography>
                                 <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                                   <Rating value={driver.averageRating} readOnly size="small" precision={0.5} />
@@ -495,7 +551,7 @@ export default function DriverSelectionPage() {
                                 Experience
                               </Typography>
                               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {driver.experienceYears > 0 ? `${driver.experienceYears} yr` : "New"} ·{" "}
+                                {driver.experienceYears > 0 ? `${String(driver.experienceYears)} yr` : "New"} ·{" "}
                                 {driver.totalTrips} trips
                               </Typography>
                             </Stack>
@@ -507,6 +563,16 @@ export default function DriverSelectionPage() {
                                 {formatCurrency(driver.driverFee)}
                               </Typography>
                             </Stack>
+
+                            {selected && (
+                              <Typography
+                                variant="caption"
+                                color="primary"
+                                sx={{ fontWeight: 800, mt: 1, display: "block", textAlign: "right" }}
+                              >
+                                SELECTED (Tap again to unselect)
+                              </Typography>
+                            )}
                           </CardContent>
                         </CardActionArea>
                       </Card>

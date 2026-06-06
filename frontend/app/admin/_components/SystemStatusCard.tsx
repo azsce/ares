@@ -54,7 +54,7 @@ export default function SystemStatusCard() {
     return (
       <Card
         elevation={0}
-        sx={{ borderRadius: 4, border: "1px solid", borderColor: "border.main", height: "100%", mt: 3 }}
+        sx={{ borderRadius: 2, border: "1px solid", borderColor: "border.main", height: "100%", mt: 3 }}
       >
         <CardContent sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
           <CircularProgress />
@@ -67,7 +67,7 @@ export default function SystemStatusCard() {
     <Card
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "border.main",
         height: "100%",
@@ -101,7 +101,7 @@ export default function SystemStatusCard() {
                 color={item.color as "primary" | "secondary" | "error" | "info" | "success" | "warning"}
                 sx={{
                   height: 8,
-                  borderRadius: 4,
+                  borderRadius: 2,
                   bgcolor: "action.hover",
                 }}
               />
@@ -112,7 +112,7 @@ export default function SystemStatusCard() {
             sx={{
               mt: 2,
               p: 2,
-              borderRadius: 3,
+              borderRadius: 2,
               bgcolor: systemData.isOperational ? "success.lighter" : "error.lighter",
               display: "flex",
               alignItems: "flex-start",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, Typography, Box, useTheme, Select, MenuItem, FormControl } from "@mui/material";
 import { ResponsiveContainer, PieChart, Pie, Tooltip, Legend, Label, Sector } from "recharts";
 import { VehicleStatusData, mockCityVehicleData } from "./mockData";
@@ -8,6 +8,16 @@ import { VehicleStatusData, mockCityVehicleData } from "./mockData";
 export default function VehicleStatusChart({ data }: { readonly data: readonly VehicleStatusData[] }) {
   const theme = useTheme();
   const [selectedCity, setSelectedCity] = useState("All Cities");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Helper to extract theme colors using string paths (e.g. "status.active.main")
   const getThemeColor = (path: string): string => {
@@ -72,64 +82,66 @@ export default function VehicleStatusChart({ data }: { readonly data: readonly V
           </FormControl>
         </Box>
         <Box sx={{ width: "100%", height: 300, minWidth: 0, minHeight: 0 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={displayData}
-                cx="50%"
-                cy="50%"
-                innerRadius={80}
-                outerRadius={110}
-                paddingAngle={2}
-                dataKey="value"
-                stroke="none"
-                shape={(props: unknown) => {
-                  const p = props as { payload: { color: string } } & Record<string, unknown>;
-                  return <Sector {...p} fill={getThemeColor(p.payload.color)} />;
-                }}
-              >
-                <Label
-                  content={props => {
-                    const viewBox = props.viewBox;
-                    if (
-                      viewBox &&
-                      "cx" in viewBox &&
-                      "cy" in viewBox &&
-                      typeof viewBox.cx === "number" &&
-                      typeof viewBox.cy === "number"
-                    ) {
-                      return (
-                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="central">
-                          <tspan x={viewBox.cx} y={viewBox.cy - 10} fontSize="14" fill={theme.palette.text.secondary}>
-                            Total
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy + 18}
-                            fontSize="28"
-                            fontWeight="bold"
-                            fill={theme.palette.text.primary}
-                          >
-                            {totalVehicles}
-                          </tspan>
-                        </text>
-                      );
-                    }
-                    return null;
+          {mounted && (
+            <ResponsiveContainer width="100%" height={300} minWidth={0}>
+              <PieChart>
+                <Pie
+                  data={displayData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={80}
+                  outerRadius={110}
+                  paddingAngle={2}
+                  dataKey="value"
+                  stroke="none"
+                  shape={(props: unknown) => {
+                    const p = props as { payload: { color: string } } & Record<string, unknown>;
+                    return <Sector {...p} fill={getThemeColor(p.payload.color)} />;
+                  }}
+                >
+                  <Label
+                    content={props => {
+                      const viewBox = props.viewBox;
+                      if (
+                        viewBox &&
+                        "cx" in viewBox &&
+                        "cy" in viewBox &&
+                        typeof viewBox.cx === "number" &&
+                        typeof viewBox.cy === "number"
+                      ) {
+                        return (
+                          <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="central">
+                            <tspan x={viewBox.cx} y={viewBox.cy - 10} fontSize="14" fill={theme.palette.text.secondary}>
+                              Total
+                            </tspan>
+                            <tspan
+                              x={viewBox.cx}
+                              y={viewBox.cy + 18}
+                              fontSize="28"
+                              fontWeight="bold"
+                              fill={theme.palette.text.primary}
+                            >
+                              {totalVehicles}
+                            </tspan>
+                          </text>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: `1px solid ${theme.palette.border.main}`,
+                    boxShadow: theme.palette.shadow.card,
+                    backgroundColor: theme.palette.background.paper,
                   }}
                 />
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 12,
-                  border: `1px solid ${theme.palette.border.main}`,
-                  boxShadow: theme.palette.shadow.card,
-                  backgroundColor: theme.palette.background.paper,
-                }}
-              />
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </Box>
       </CardContent>
     </Card>

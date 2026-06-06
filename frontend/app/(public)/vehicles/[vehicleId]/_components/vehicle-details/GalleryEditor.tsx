@@ -6,7 +6,7 @@ import { Box, ButtonBase, Stack, IconButton, Typography, Button, Tooltip } from 
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import StarOutlineRoundedIcon from "@mui/icons-material/StarOutlineRounded";
+import StarOutlinedRoundedIcon from "@mui/icons-material/StarOutlineRounded";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { toImageUrl } from "@/utils/image-url";
 
@@ -100,7 +100,7 @@ export default function GalleryEditor() {
           bgcolor: "action.hover",
         }}
       >
-        {activeImage.url.startsWith("blob:") || toImageUrl(activeImage.url) ? (
+        {activeImage?.url && (activeImage.url.startsWith("blob:") || toImageUrl(activeImage.url)) ? (
           <Image
             src={activeImage.url.startsWith("blob:") ? activeImage.url : (toImageUrl(activeImage.url) as string)}
             alt="Vehicle"
@@ -131,7 +131,7 @@ export default function GalleryEditor() {
                   boxShadow: 2,
                 }}
               >
-                {images[activeIndex].isPrimary ? <StarRoundedIcon /> : <StarOutlineRoundedIcon />}
+                {images[activeIndex].isPrimary ? <StarRoundedIcon /> : <StarOutlinedRoundedIcon />}
               </IconButton>
             </Tooltip>
             <IconButton

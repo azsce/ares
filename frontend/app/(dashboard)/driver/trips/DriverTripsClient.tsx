@@ -122,7 +122,7 @@ export default function DriverTripsClient() {
       </Box>
 
       {currentTrips.length === 0 ? (
-        <Box sx={{ py: 8, textAlign: "center", bgcolor: "background.paper", borderRadius: 3 }}>
+        <Box sx={{ py: 8, textAlign: "center", bgcolor: "background.paper", borderRadius: 2 }}>
           <Typography variant="h6" color="text.secondary">
             No trips found in this category.
           </Typography>
@@ -137,7 +137,7 @@ export default function DriverTripsClient() {
               <Grid size={{ xs: 12, md: 6 }} key={trip.bookingId}>
                 <Card
                   sx={{
-                    borderRadius: 3,
+                    borderRadius: 2,
                     boxShadow: theme.palette.shadow.card,
                     border: `1px solid ${theme.palette.border.light}`,
                     display: "flex",

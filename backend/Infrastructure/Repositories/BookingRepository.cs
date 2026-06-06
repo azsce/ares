@@ -115,7 +115,8 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
             var nowUtc = DateTime.UtcNow;
             var reserving = BookingStatusPolicy.ReservingStatuses;
 
-            // Range-lock the overlapping-booking key range for this vehicle.
+            // Range-lock the overlapping-booking key range for this vehicle
+            // (and driver, if assigned).
             // UPDLOCK + HOLDLOCK forces a concurrent transaction to block here
             // (rather than also reading "no overlap"), and HOLDLOCK takes the
             // key-range / serializable lock that prevents phantom inserts. An
@@ -124,11 +125,28 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
             //
             // Exclude current user's own PaymentPending holds.
             //
-            // The status literals MUST match
-            // BookingStatusPolicy.ReservingStatuses.
-            var conflicts = await _context.Database
-                .SqlQueryRaw<int>(
-                    @"SELECT COUNT(*) AS [Value]
+            // The status literals MUST match BookingStatusPolicy.ReservingStatuses.
+            string sql;
+            object[] parameters;
+
+            if (booking.AssignedDriverProfileId.HasValue)
+            {
+                sql = @"SELECT COUNT(*) AS [Value]
+                      FROM [Bookings] WITH (UPDLOCK, HOLDLOCK)
+                      WHERE ([VehicleId] = {0} OR [AssignedDriverProfileId] = {6})
+                        AND [Id] <> {1}
+                        AND [Status] IN ('Pending','PaymentPending','Confirmed','Active','Approved','ReadyForDelivery','WaitingForDriver','NoDriverAvailable','InspectionFailed')
+                        AND NOT ([Status] = 'PaymentPending'
+                                 AND [HoldExpiresAt] IS NOT NULL
+                                 AND [HoldExpiresAt] <= {2})
+                        AND NOT ([UserId] = {5} AND [Status] = 'PaymentPending')
+                        AND [PickupDate] < {3}
+                        AND [ReturnDate] > {4}";
+                parameters = new object[] { booking.VehicleId, booking.Id, nowUtc, ret, pickup, booking.UserId, booking.AssignedDriverProfileId.Value };
+            }
+            else
+            {
+                sql = @"SELECT COUNT(*) AS [Value]
                       FROM [Bookings] WITH (UPDLOCK, HOLDLOCK)
                       WHERE [VehicleId] = {0}
                         AND [Id] <> {1}
@@ -138,14 +156,18 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
                                  AND [HoldExpiresAt] <= {2})
                         AND NOT ([UserId] = {5} AND [Status] = 'PaymentPending')
                         AND [PickupDate] < {3}
-                        AND [ReturnDate] > {4}",
-                    booking.VehicleId, booking.Id, nowUtc, ret, pickup, booking.UserId)
+                        AND [ReturnDate] > {4}";
+                parameters = new object[] { booking.VehicleId, booking.Id, nowUtc, ret, pickup, booking.UserId };
+            }
+
+            var conflicts = await _context.Database
+                .SqlQueryRaw<int>(sql, parameters)
                 .ToListAsync(cancellationToken);
 
             if (conflicts.Count > 0 && conflicts[0] > 0)
             {
                 var conflictDetails = await _context.Bookings
-                    .Where(b => b.VehicleId == booking.VehicleId
+                    .Where(b => (b.VehicleId == booking.VehicleId || (booking.AssignedDriverProfileId != null && b.AssignedDriverProfileId == booking.AssignedDriverProfileId))
                         && b.Id != booking.Id
                         && reserving.Contains(b.Status)
                         && !(b.UserId == booking.UserId && b.Status == BookingStatus.PaymentPending)

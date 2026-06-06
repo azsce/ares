@@ -1,21 +1,21 @@
 import Link from "next/link";
-import { Card, CardContent, Typography, Box, Stack, Avatar, Button, Palette } from "@mui/material";
+import { Card, CardContent, Typography, Box, Stack, Avatar, Button, alpha } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { DashboardAlert } from "./mockData";
 
 export default function AlertsCenter({ alerts }: { readonly alerts: readonly DashboardAlert[] }) {
-  const getColorKey = (type: string): keyof Pick<Palette, "error" | "warning" | "success" | "info"> => {
+  const getStatusKey = (type: string): "active" | "completed" | "pending" | "cancelled" | "confirmed" | "blocked" => {
     switch (type) {
       case "error":
-        return "error";
+        return "cancelled";
       case "warning":
-        return "warning";
+        return "pending";
       case "success":
-        return "success";
+        return "completed";
       case "info":
       default:
-        return "info";
+        return "active";
     }
   };
 
@@ -61,15 +61,15 @@ export default function AlertsCenter({ alerts }: { readonly alerts: readonly Das
         </Box>
         <Stack spacing={3}>
           {alerts.map(alert => {
-            const colorKey = getColorKey(alert.type);
+            const statusKey = getStatusKey(alert.type);
             return (
               <Box key={alert.id} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar
                   sx={theme => {
-                    const color = theme.palette[colorKey];
+                    const colorMain = theme.palette.status[statusKey].main;
                     return {
-                      bgcolor: color.light,
-                      color: color.main,
+                      bgcolor: alpha(colorMain, 0.12),
+                      color: colorMain,
                       width: 40,
                       height: 40,
                     };

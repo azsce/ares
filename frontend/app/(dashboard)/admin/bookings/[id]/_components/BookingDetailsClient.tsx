@@ -294,7 +294,7 @@ function SectionCard({ icon, title, subtitle, action, children }: SectionCardPro
       elevation={0}
       sx={{
         p: { xs: 2.5, md: 3 },
-        borderRadius: 3,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "divider",
         bgcolor: "background.paper",
@@ -1231,7 +1231,7 @@ function BookingDetailsHeader({
       sx={{
         p: { xs: 2, md: 2.5 },
         mb: 3,
-        borderRadius: 3,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "divider",
       }}

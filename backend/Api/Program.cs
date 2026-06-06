@@ -345,8 +345,8 @@ Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
     var seedOnly = args.Any(arg => string.Equals(arg, "--seed-only", StringComparison.OrdinalIgnoreCase));
     var seedDemoData = string.Equals(Environment.GetEnvironmentVariable("SEED_DEMO_DATA"), "true", StringComparison.OrdinalIgnoreCase);
 
-    // Initialize database and seed roles ONLY when explicitly requested via --seed-only
-    if (seedOnly)
+    // Initialize database and seed roles if requested OR if auto-seed is enabled
+    if (seedOnly || seedDemoData)
     {
         using (var scope = app.Services.CreateScope())
         {
@@ -357,7 +357,9 @@ Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
                 var db = services.GetRequiredService<ApplicationDbContext>();
                 await db.Database.MigrateAsync();
 
-                await DbInitializer.InitializeAsync(services, seedDemoData);
+                // DbInitializer handles the 'IsSeeded' check internally to prevent 
+                // re-seeding demo data on every start.
+                await DbInitializer.InitializeAsync(services, seedDemoData, seedOnly);
             }
             catch (Exception ex)
             {
@@ -366,8 +368,11 @@ Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
             }
         }
 
-        Log.Information("Seed-only mode completed successfully.");
-        return;
+        if (seedOnly)
+        {
+            Log.Information("Seed-only mode completed successfully.");
+            return;
+        }
     }
 
     app.Run();

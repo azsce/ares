@@ -39,6 +39,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { performLogoutCleanup } from "@/utils/auth-cleanup";
 
 const drawerWidth = 280;
 
@@ -65,6 +66,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
   // الدالة الجديدة لمعالجة تسجيل الخروج بشكل صحيح
   const handleLogout = async () => {
     // إيقاف التوجيه التلقائي لمسح حالة الجلسة تمامًا
+    performLogoutCleanup();
     await signOut({ redirect: false });
     // إجبار المتصفح على إعادة التحميل والانتقال للصفحة الرئيسية لمسح الكاش
     window.location.href = "/";
@@ -106,7 +108,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
             width: 40,
             height: 40,
             bgcolor: "primary.main",
-            borderRadius: 3,
+            borderRadius: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -135,7 +137,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
                     }
                   }}
                   sx={{
-                    borderRadius: 3,
+                    borderRadius: 2,
                     bgcolor: isActive ? "primary.main" : "transparent",
                     color: isActive ? "common.white" : "text.secondary",
                     transition: "all 0.2s",
@@ -166,7 +168,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
           onClick={() => {
             void handleLogout();
           }}
-          sx={{ borderRadius: 3, color: "error.main", "&:hover": { bgcolor: "error.light", color: "error.dark" } }}
+          sx={{ borderRadius: 2, color: "error.main", "&:hover": { bgcolor: "error.light", color: "error.dark" } }}
         >
           <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
             <LogoutIcon />
@@ -240,7 +242,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
                 setAnchorEl(null);
               }}
               slotProps={{
-                paper: { elevation: 3, sx: { mt: 1.5, borderRadius: 3, minWidth: 200 } },
+                paper: { elevation: 3, sx: { mt: 1.5, borderRadius: 2, minWidth: 200 } },
               }}
             >
               <MenuItem

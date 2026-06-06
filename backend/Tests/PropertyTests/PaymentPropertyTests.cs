@@ -41,7 +41,8 @@ public class PaymentPropertyTests : IDisposable
             _context,
             new Mock<IPaymobClient>().Object,
             new RefundCalculator(),
-            Options.Create(new PaymobSettings()));
+            Options.Create(new PaymobSettings()),
+            new Mock<Microsoft.Extensions.Logging.ILogger<PaymentService>>().Object);
 
         _context.Database.EnsureCreated();
     }

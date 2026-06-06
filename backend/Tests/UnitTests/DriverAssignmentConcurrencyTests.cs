@@ -34,6 +34,7 @@ public class DriverAssignmentConcurrencyTests
     private readonly Mock<IDriverRequestRepository> _requests = new();
     private readonly Mock<IDriverNotificationService> _notifications = new();
     private readonly Mock<IDriverRequestService> _requestService = new();
+    private readonly Mock<IApplicationDbContext> _context = new();
     private readonly DriverAssignmentService _service;
 
     private readonly Guid _customerId = Guid.NewGuid();
@@ -54,7 +55,7 @@ public class DriverAssignmentConcurrencyTests
 
         _service = new DriverAssignmentService(
             _profiles.Object, _bookings.Object, _requests.Object,
-            _notifications.Object, _requestService.Object);
+            _notifications.Object, _requestService.Object, _context.Object);
     }
 
     private Booking ValidBooking(Guid? assigned = null) => new Booking

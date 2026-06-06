@@ -84,22 +84,23 @@ The project supports **Paymob** for payment processing. To enable payments:
 
 #### B. Get Your Credentials
 
-Collect these 4 values from your Paymob dashboard:
+Navigate to the new Paymob Dashboard **(Settings -> Developers)** to find your credentials:
 
-1. **API Key** (Settings → Account Info)
-2. **Integration ID** (Settings → Payment Integrations → Online Card)
-3. **iFrame ID** (Payment Integrations section)
-4. **HMAC Secret** (Settings → Security Settings)
+1. **API Key & HMAC Secret** (Found under **Developers -> API Keys**)
+2. **Integration ID** (Found under **Developers -> Payment Integrations**)
+3. **iFrame ID** (Found under **Developers -> Iframes**)
 
-#### C. Set Up ngrok for Webhooks
+#### C. Set Up Redirect and Webhook URLs
 
-Since the backend runs on `localhost`, Paymob needs a public URL to reach it:
+In your Paymob Dashboard, under your Payment Integration (Integration ID), you need to configure two important URLs so the user and the system return to your application successfully:
 
-1. **Start ngrok**: `npx ngrok http 5000`
-2. **Copy the HTTPS URL** (e.g., `https://abc123xyz.ngrok.io`)
-3. **Configure Callbacks in Paymob Dashboard**:
-   - **Transaction Processed Callback**: `https://YOUR_NGROK_URL/api/payments/callback`
-   - **Transaction Response Callback**: `https://YOUR_NGROK_URL/api/payments/webhook`
+1. **Transaction Response Callback (Redirect URL - For the User)**
+   - **URL:** `http://localhost:5000/api/payments/callback`
+   - **Why?** Paymob will redirect the user's browser back to this URL after payment. `localhost` works perfectly because this redirect happens in the user's browser. Our backend will then securely redirect the user to the frontend confirmation page.
+
+2. **Transaction Processed Callback (Webhook URL - Server-to-Server)**
+   - **URL:** `https://YOUR_NGROK_URL/api/payments/webhook`
+   - **Why?** This is for server-to-server communication. Paymob's servers cannot reach `localhost`, so you must use a tunneling service like [ngrok](https://ngrok.com/) (`npx ngrok http 5000`) if you want to test background webhooks locally. In production, this will be your real backend domain.
 
 #### D. Test Payment Flow
 

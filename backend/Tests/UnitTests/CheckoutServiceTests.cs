@@ -32,6 +32,9 @@ public class CheckoutServiceTests
 
     public CheckoutServiceTests()
     {
+        // Initialize empty sets by default so ResolveDisplayLocationAsync doesn't crash
+        SetupUserAddresses();
+
         _service = new CheckoutService(
             _bookingRepositoryMock.Object,
             _vehicleRepositoryMock.Object,
@@ -49,6 +52,12 @@ public class CheckoutServiceTests
     {
         var set = licenses.AsQueryable().BuildMockDbSet();
         _contextMock.Setup(x => x.Drivers).Returns(set.Object);
+    }
+
+    private void SetupUserAddresses(params UserAddress[] addresses)
+    {
+        var set = addresses.AsQueryable().BuildMockDbSet();
+        _contextMock.Setup(x => x.UserAddresses).Returns(set.Object);
     }
 
     private void SetupHappyVehicle(Guid vehicleId, Guid customerId)

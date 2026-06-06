@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import { performLogoutCleanup } from "@/utils/auth-cleanup";
 import { SessionProvider } from "next-auth/react";
 import { Component, type ReactNode } from "react";
 import { useSessionMonitor } from "@/hooks/useSessionMonitor";
@@ -17,6 +18,7 @@ class JwtErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
 
   componentDidCatch(error: Error) {
     if (error.message.includes("decryption operation failed") || error.message.includes("JWEDecryptionFailed")) {
+      performLogoutCleanup();
       void signOut({ redirect: false }).then(() => {
         // Clear the stale cookie and reload cleanly
         window.location.reload();

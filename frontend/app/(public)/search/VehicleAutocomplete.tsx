@@ -46,7 +46,7 @@ export default function VehicleAutocomplete({ vehicles }: VehicleAutocompletePro
   };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: "1000px", mx: "auto" }}>
+    <Box sx={{ width: "100%", mx: "auto" }}>
       <Autocomplete
         options={filteredVehicles}
         getOptionLabel={option => `${option.make} ${option.model}`}

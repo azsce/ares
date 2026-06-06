@@ -6,7 +6,7 @@ import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 export default function SystemHealth() {
   return (
-    <Card elevation={0} sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider", height: "100%" }}>
+    <Card elevation={0} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", height: "100%" }}>
       <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
@@ -36,7 +36,7 @@ export default function SystemHealth() {
                 variant="determinate"
                 value={item.amount}
                 color={item.color as "primary" | "secondary" | "error" | "info" | "success" | "warning"}
-                sx={{ height: 8, borderRadius: 4, bgcolor: "border.light" }}
+                sx={{ height: 8, borderRadius: 2, bgcolor: "border.light" }}
               />
             </Box>
           ))}
@@ -45,7 +45,7 @@ export default function SystemHealth() {
             sx={{
               mt: 1,
               p: 2,
-              borderRadius: 3,
+              borderRadius: 2,
               bgcolor: "success.lighter",
               display: "flex",
               alignItems: "flex-start",

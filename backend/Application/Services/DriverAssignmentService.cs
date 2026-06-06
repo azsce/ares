@@ -19,39 +19,74 @@ namespace Backend.Application.Services
         private readonly IDriverRequestRepository _requestRepository;
         private readonly IDriverNotificationService _notificationService;
         private readonly IDriverRequestService _driverRequestService;
+        private readonly IApplicationDbContext _context;
 
         public DriverAssignmentService(
             IDriverProfileRepository profileRepository,
             IBookingRepository bookingRepository,
             IDriverRequestRepository requestRepository,
             IDriverNotificationService notificationService,
-            IDriverRequestService driverRequestService)
+            IDriverRequestService driverRequestService,
+            IApplicationDbContext context)
         {
             _profileRepository = profileRepository;
             _bookingRepository = bookingRepository;
             _requestRepository = requestRepository;
             _notificationService = notificationService;
             _driverRequestService = driverRequestService;
+            _context = context;
         }
 
         public async Task<IEnumerable<DriverAssignmentDto>> GetDriverAssignmentsAsync(Guid driverProfileId, CancellationToken cancellationToken = default)
         {
             var bookings = await _bookingRepository.GetAssignmentsForDriverAsync(driverProfileId, cancellationToken);
-            return bookings.Select(b => new DriverAssignmentDto
+
+            var results = new List<DriverAssignmentDto>();
+            foreach (var b in bookings)
             {
-                BookingId = b.Id,
-                BookingNumber = b.Id.ToString(),
-                PickupDate = b.PickupDate ?? DateTime.MinValue,
-                ReturnDate = b.ReturnDate ?? DateTime.MinValue,
-                PickupLocation = b.PickupLocation,
-                DropoffLocation = b.PickupLocation,
-                CustomerName = b.User != null ? $"{b.User.FirstName} {b.User.LastName}".Trim() : string.Empty,
-                CustomerPhone = b.User?.PhoneNumber ?? string.Empty,
-                VehicleName = b.Vehicle != null ? $"{b.Vehicle.Make} {b.Vehicle.Model}".Trim() : string.Empty,
-                Earnings = b.DriverFee ?? 0m,
-                Status = b.Status.ToString()
-            }).ToList();
+                var pickupName = await ResolveDisplayLocationAsync(b.PickupLocation, cancellationToken);
+                var dropoffName = await ResolveDisplayLocationAsync(b.DropoffLocation, cancellationToken);
+
+                results.Add(new DriverAssignmentDto
+                {
+                    BookingId = b.Id,
+                    BookingNumber = b.BookingNumber ?? b.Id.ToString(),
+                    PickupDate = b.PickupDate ?? DateTime.MinValue,
+                    ReturnDate = b.ReturnDate ?? DateTime.MinValue,
+                    PickupLocation = pickupName,
+                    DropoffLocation = dropoffName,
+                    CustomerName = b.User != null ? $"{b.User.FirstName} {b.User.LastName}".Trim() : string.Empty,
+                    CustomerPhone = b.User?.PhoneNumber ?? string.Empty,
+                    VehicleName = b.Vehicle != null ? $"{b.Vehicle.Make} {b.Vehicle.Model}".Trim() : string.Empty,
+                    Earnings = b.DriverFee ?? 0m,
+                    Status = b.Status.ToString()
+                });
+            }
+            return results;
         }
+
+        private async Task<string> ResolveDisplayLocationAsync(string? locationStr, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(locationStr))
+                return string.Empty;
+
+            if (Guid.TryParse(locationStr, out var guid))
+            {
+                var loc = await _context.UserAddresses.FirstOrDefaultAsync(l => l.Id == guid, cancellationToken);
+                if (loc != null)
+                {
+                    var parts = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(loc.City)) parts.Add(loc.City);
+                    if (!string.IsNullOrWhiteSpace(loc.Governorate)) parts.Add(loc.Governorate);
+                    if (!string.IsNullOrWhiteSpace(loc.Country)) parts.Add(loc.Country);
+                    if (parts.Count > 0) return string.Join(", ", parts);
+                }
+                return "Unknown Location";
+            }
+
+            return locationStr;
+        }
+
 
         public async Task SelectDriverAsync(Guid bookingId, Guid driverProfileId, Guid customerId, CancellationToken cancellationToken = default)
         {

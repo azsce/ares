@@ -20,5 +20,7 @@ public interface IDashboardService
 
     Task<LiveTrackingDto> GetLiveTrackingAsync(Guid? supplierId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<TopVehicleDto>> GetTopVehiclesAsync(Guid? supplierId, int limit = 5, CancellationToken cancellationToken = default);
+
     Task<SystemStatusDto> GetSystemStatusAsync(CancellationToken cancellationToken = default);
 }

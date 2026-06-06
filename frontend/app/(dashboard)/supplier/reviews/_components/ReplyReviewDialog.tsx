@@ -32,8 +32,8 @@ import {
   useTheme,
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
-import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import ChatBubbleOutlinedRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+import PersonOutlinedRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import RatingStars from "./RatingStars";
 import type { SupplierReviewListItem } from "@/api-clients/supplier-reviews/supplier-reviews";
 
@@ -128,7 +128,7 @@ function ReplyReviewDialogInner({ open, review, submitting, onClose, onSubmit }:
         }}
       >
         <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
-          <ChatBubbleOutlineRoundedIcon color="primary" />
+          <ChatBubbleOutlinedRoundedIcon color="primary" />
           <span>{isEdit ? "Edit your reply" : "Reply to review"}</span>
         </Stack>
         <IconButton size="small" onClick={onClose} disabled={submitting} aria-label="close" sx={{ borderRadius: 2 }}>
@@ -160,7 +160,7 @@ function ReplyReviewDialogInner({ open, review, submitting, onClose, onSubmit }:
                   height: 36,
                 }}
               >
-                <PersonOutlineRoundedIcon fontSize="small" />
+                <PersonOutlinedRoundedIcon fontSize="small" />
               </Avatar>
               <Box>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>

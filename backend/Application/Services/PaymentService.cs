@@ -8,6 +8,7 @@ using Backend.Application.Settings;
 using Backend.Domain.Entities;
 using Backend.Domain.Entities.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Backend.Application.Services;
@@ -20,6 +21,7 @@ public class PaymentService : IPaymentService
     private readonly IPaymobClient _paymob;
     private readonly IRefundCalculator _refundCalculator;
     private readonly PaymobSettings _paymobSettings;
+    private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IPaymentRepository paymentRepository,
@@ -27,7 +29,8 @@ public class PaymentService : IPaymentService
         IApplicationDbContext context,
         IPaymobClient paymob,
         IRefundCalculator refundCalculator,
-        IOptions<PaymobSettings> paymobSettings)
+        IOptions<PaymobSettings> paymobSettings,
+        ILogger<PaymentService> logger)
     {
         _paymentRepository = paymentRepository;
         _bookingRepository = bookingRepository;
@@ -35,6 +38,7 @@ public class PaymentService : IPaymentService
         _paymob = paymob;
         _refundCalculator = refundCalculator;
         _paymobSettings = paymobSettings.Value;
+        _logger = logger;
     }
 
     public async Task<PaymentResponse> ProcessPaymentAsync(
@@ -404,7 +408,10 @@ Thank you for your business!
         var amountCents = (long)(amount * 100);
 
         var authToken = await _paymob.GetAuthTokenAsync(ct);
-        var orderId = await _paymob.CreateOrderAsync(authToken, amountCents, "EGP", bookingId.ToString(), ct);
+        
+        // Ensure merchant_order_id is unique across retries
+        var merchantOrderId = $"{bookingId}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        var orderId = await _paymob.CreateOrderAsync(authToken, amountCents, "EGP", merchantOrderId, ct);
 
         // Load user for billing data
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
@@ -441,22 +448,38 @@ Thank you for your business!
 
     public async Task<(bool Success, Guid BookingId)> ProcessPaymobCallbackAsync(IReadOnlyDictionary<string, string> queryParams, CancellationToken ct = default)
     {
+        // Try to extract BookingId from merchant_order_id as early as possible for redirection safety
+        Guid extractedBookingId = Guid.Empty;
+        if (queryParams.TryGetValue("merchant_order_id", out var mOrderId) && !string.IsNullOrEmpty(mOrderId))
+        {
+            var parts = mOrderId.Split('_');
+            if (parts.Length > 0 && Guid.TryParse(parts[0], out var bId))
+                extractedBookingId = bId;
+        }
+
         if (!queryParams.TryGetValue("hmac", out var receivedHmac) || !VerifyHmac(_paymobSettings.HmacSecret, queryParams, receivedHmac))
-            return (false, Guid.Empty);
+        {
+            _logger.LogWarning("Paymob HMAC verification failed for order {OrderId}. Received: {Hmac}", 
+                queryParams.GetValueOrDefault("order"), receivedHmac);
+            return (false, extractedBookingId);
+        }
 
         var success = queryParams.TryGetValue("success", out var s) && s.Equals("true", StringComparison.OrdinalIgnoreCase);
         queryParams.TryGetValue("order", out var orderId);
         queryParams.TryGetValue("id", out var txIdStr);
 
         if (string.IsNullOrEmpty(orderId))
-            return (false, Guid.Empty);
+            return (false, extractedBookingId);
 
         var payment = await _context.Payments
             .Include(p => p.Booking)
             .FirstOrDefaultAsync(p => p.PaymobOrderId == orderId, ct);
 
         if (payment == null)
-            return (false, Guid.Empty);
+        {
+            _logger.LogWarning("Payment record not found for Paymob Order {OrderId}", orderId);
+            return (false, extractedBookingId);
+        }
 
         payment.Status = success ? "Captured" : "Failed";
         payment.ProcessedAt = DateTime.UtcNow;
@@ -479,23 +502,19 @@ Thank you for your business!
         "amount_cents", "created_at", "currency", "error_occured", "has_parent_transaction",
         "id", "integration_id", "is_3d_secure", "is_auth", "is_capture", "is_refunded",
         "is_standalone_payment", "is_voided", "order", "owner", "pending",
-        "source_data_pan", "source_data_sub_type", "source_data_type", "success"
+        "source_data.pan", "source_data.sub_type", "source_data.type", "success"
     ];
 
     private static bool VerifyHmac(string secret, IReadOnlyDictionary<string, string> data, string received)
     {
-        // Paymob uses dot-separated keys in the query string but underscore-joined for HMAC
-        var concatenated = string.Concat(HmacFields.Select(f =>
-        {
-            var key = f.Replace("_", ".") == f ? f : f; // keep as-is; Paymob sends them underscore-joined
-            return data.TryGetValue(f, out var v) ? v : string.Empty;
-        }));
+        var concatenated = string.Concat(HmacFields.Select(f => data.TryGetValue(f, out var v) ? v : string.Empty));
 
         var keyBytes = Encoding.UTF8.GetBytes(secret);
         var msgBytes = Encoding.UTF8.GetBytes(concatenated);
         var hash = HMACSHA512.HashData(keyBytes, msgBytes);
         var computed = Convert.ToHexString(hash).ToLowerInvariant();
-        return computed == received.ToLowerInvariant();
+
+        return computed.Equals(received, StringComparison.OrdinalIgnoreCase);
     }
 
     // ── Task 5: Refund preview + refund ─────────────────────────────────
@@ -554,5 +573,34 @@ Thank you for your business!
 
         await _context.SaveChangesAsync(ct);
         return new RefundResponse(true, refundAmount, result.RefundPercentage, $"Booking cancelled. Refund of {refundAmount:C} ({result.RefundPercentage}%) initiated.");
+    }
+
+    public async Task<bool> SyncPaymentStatusAsync(Guid bookingId, Guid userId, CancellationToken ct = default)
+    {
+        var payment = await _context.Payments
+            .Include(p => p.Booking)
+            .FirstOrDefaultAsync(p => p.BookingId == bookingId && p.Status == "Pending" && p.Booking!.UserId == userId, ct);
+
+        if (payment == null || string.IsNullOrEmpty(payment.PaymobOrderId))
+            return false;
+
+        var authToken = await _paymob.GetAuthTokenAsync(ct);
+        var tx = await _paymob.GetTransactionsByOrderIdAsync(authToken, payment.PaymobOrderId, ct);
+        
+        if (tx == null)
+            return false;
+
+        payment.Status = tx.Success ? "Captured" : "Failed";
+        payment.ProcessedAt = DateTime.UtcNow;
+        payment.PaymobTransactionId = tx.Id;
+        
+        if (!tx.Success && !string.IsNullOrEmpty(tx.Reason))
+            payment.FailureReason = tx.Reason;
+
+        if (tx.Success && payment.Booking != null)
+            payment.Booking.Status = BookingStatus.Confirmed;
+
+        await _context.SaveChangesAsync(ct);
+        return tx.Success;
     }
 }

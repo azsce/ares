@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, Box, Button, Chip, Divider, Skeleton, Stack, Typography } from "@mui/material";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import HourglassTopRoundedIcon from "@mui/icons-material/HourglassTopRounded";
-import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import ErrorOutlinedRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
 
@@ -209,7 +209,7 @@ export default function IdentityVerificationCard({
             <>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip
-                  icon={<ErrorOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                  icon={<ErrorOutlinedRoundedIcon sx={{ fontSize: 16 }} />}
                   label="Rejected"
                   size="small"
                   color="error"
@@ -241,7 +241,7 @@ export default function IdentityVerificationCard({
             <>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip
-                  icon={<ErrorOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                  icon={<ErrorOutlinedRoundedIcon sx={{ fontSize: 16 }} />}
                   label="Not verified"
                   size="small"
                   color="warning"

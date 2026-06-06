@@ -12,6 +12,7 @@ import {
   TableRow,
   Avatar,
   Button,
+  alpha,
 } from "@mui/material";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -37,19 +38,21 @@ export default function LiveActivity({ activities }: { readonly activities: read
     }
   };
 
-  const getActivityColor = (type: string): "primary" | "success" | "warning" | "error" | "info" => {
+  const getActivityColor = (
+    type: string
+  ): "active" | "completed" | "pending" | "cancelled" | "confirmed" | "blocked" => {
     switch (type.toLowerCase()) {
       case "booking":
-        return "primary";
+        return "active";
       case "registration":
-        return "success";
+        return "completed";
       case "inspection":
-        return "warning";
+        return "pending";
       case "payment":
       case "refund":
-        return "error";
+        return "cancelled";
       default:
-        return "info";
+        return "active";
     }
   };
 
@@ -112,7 +115,7 @@ export default function LiveActivity({ activities }: { readonly activities: read
             <TableBody>
               {activities.length > 0 ? (
                 activities.map((activity, index) => {
-                  const colorKey = getActivityColor(activity.type);
+                  const statusKey = getActivityColor(activity.type);
                   return (
                     <TableRow
                       key={index}
@@ -122,10 +125,10 @@ export default function LiveActivity({ activities }: { readonly activities: read
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                           <Avatar
                             sx={theme => {
-                              const color = theme.palette[colorKey];
+                              const colorMain = theme.palette.status[statusKey].main;
                               return {
-                                bgcolor: color.light,
-                                color: color.main,
+                                bgcolor: alpha(colorMain, 0.12),
+                                color: colorMain,
                                 width: 32,
                                 height: 32,
                               };

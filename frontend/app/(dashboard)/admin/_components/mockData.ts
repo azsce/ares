@@ -26,7 +26,7 @@ export interface TopVehicle {
   bookingsCount: number;
   revenue: number;
   imageUrl: string;
-  trendPercentage: number;
+  trendPercentage?: number;
 }
 
 export interface AlertActivity {

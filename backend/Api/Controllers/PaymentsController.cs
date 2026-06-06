@@ -232,7 +232,7 @@ public class PaymentCreationController : ControllerBase
         var (success, bookingId) = await _paymentService.ProcessPaymobCallbackAsync(queryParams, ct);
         if (success && bookingId != Guid.Empty)
             return Redirect($"http://localhost:3000/bookings/confirmation/{bookingId}");
-        return Redirect($"http://localhost:3000/booking/checkout/{bookingId}?payment_failed=1");
+        return Redirect($"http://localhost:3000/booking/payment/{bookingId}?payment_failed=1");
     }
 
     [AllowAnonymous]

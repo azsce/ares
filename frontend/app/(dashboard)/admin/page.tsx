@@ -15,7 +15,6 @@ import {
   QuickAction,
   mockQuickActions,
   TopVehicle,
-  mockTopVehicles,
 } from "./_components/mockData";
 import { logger } from "@/utils/logger";
 import { redirect } from "next/navigation";
@@ -173,7 +172,7 @@ async function getRecentBookings(
     return bookingsList.map(b => ({
       id: String(b.id ?? b._id ?? ""),
       customer: b.driver?.fullName ?? "Guest",
-      customerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(b.driver?.fullName ?? "Guest")}&background=random`,
+      customerAvatar: undefined, // Let client-side Avatar handle themed fallback
       car: b.car?.name ?? "Vehicle",
       date: b.from ? new Date(b.from).toLocaleDateString() : "",
       status: b.status ?? "Pending",
@@ -228,10 +227,9 @@ async function getQuickActions(accessToken: string): Promise<readonly QuickActio
 
 async function getTopVehicles(accessToken: string): Promise<readonly TopVehicle[]> {
   try {
-    const data = await apiFetchJson<TopVehicle[]>("api/dashboard/top-vehicles", { accessToken });
-    return data.length > 0 ? data : mockTopVehicles;
+    return await apiFetchJson<TopVehicle[]>("api/dashboard/top-vehicles", { accessToken });
   } catch {
-    return mockTopVehicles;
+    return [];
   }
 }
 

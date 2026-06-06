@@ -208,7 +208,7 @@ export default function CompleteProfileClient() {
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4, boxShadow: theme.palette.shadow.card }}>
+      <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2, boxShadow: theme.palette.shadow.card }}>
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <Box
             sx={{

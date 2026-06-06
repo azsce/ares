@@ -116,7 +116,7 @@ export default function DriverProfileClient() {
         elevation={0}
         sx={{
           p: 4,
-          borderRadius: 4,
+          borderRadius: 2,
           boxShadow: theme.palette.shadow.card,
           mb: 4,
         }}

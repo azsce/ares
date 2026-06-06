@@ -1,11 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, Typography, Box, useTheme, FormControl, Select, MenuItem } from "@mui/material";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { RevenueDataPoint } from "./mockData";
 
 export default function RevenueChart({ data }: { readonly data: readonly RevenueDataPoint[] }) {
   const theme = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
   const totalRevenue = data.reduce((sum, item) => sum + (item.revenue || 0), 0);
   const totalBookings = data.reduce((sum, item) => sum + (item.bookings || 0), 0);
@@ -84,60 +95,62 @@ export default function RevenueChart({ data }: { readonly data: readonly Revenue
         </Box>
 
         <Box sx={{ width: "100%", height: 300, minWidth: 0, minHeight: 0 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.border.light} />
-              <XAxis
-                dataKey="date"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
-                tickFormatter={(value: number) => `$${value === 0 ? "0" : (value / 1000).toString() + "K"}`}
-                dx={-10}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 12,
-                  border: `1px solid ${theme.palette.border.main}`,
-                  boxShadow: theme.palette.shadow.card,
-                  backgroundColor: theme.palette.background.paper,
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="bookings"
-                name="Bookings"
-                stroke={theme.palette.success.main}
-                strokeWidth={3}
-                dot={{ r: 4, strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                name="Revenue"
-                stroke={theme.palette.primary.main}
-                strokeWidth={3}
-                dot={{ r: 4, strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="refunds"
-                name="Refunds"
-                stroke={theme.palette.error.main}
-                strokeWidth={3}
-                dot={{ r: 4, strokeWidth: 2 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {mounted && (
+            <ResponsiveContainer width="100%" height={300} minWidth={0}>
+              <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.border.light} />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                  tickFormatter={(value: number) => `$${value === 0 ? "0" : (value / 1000).toString() + "K"}`}
+                  dx={-10}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: `1px solid ${theme.palette.border.main}`,
+                    boxShadow: theme.palette.shadow.card,
+                    backgroundColor: theme.palette.background.paper,
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="bookings"
+                  name="Bookings"
+                  stroke={theme.palette.success.main}
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  name="Revenue"
+                  stroke={theme.palette.primary.main}
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="refunds"
+                  name="Refunds"
+                  stroke={theme.palette.error.main}
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </Box>
       </CardContent>
     </Card>

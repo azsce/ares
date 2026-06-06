@@ -34,6 +34,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { performLogoutCleanup } from "@/utils/auth-cleanup";
 import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 import NotificationsBell from "./NotificationsBell";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
@@ -105,6 +106,7 @@ export default function DashboardShell({
   };
 
   const handleLogout = async () => {
+    performLogoutCleanup();
     await signOut({ redirect: false });
     window.location.href = "/";
   };

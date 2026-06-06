@@ -21,7 +21,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -420,7 +420,7 @@ export default function NotificationsBell({
                             "&:hover": { opacity: 1, bgcolor: "action.hover" },
                           }}
                         >
-                          <DeleteOutlineIcon sx={{ fontSize: "0.95rem" }} />
+                          <DeleteOutlinedIcon sx={{ fontSize: "0.95rem" }} />
                         </IconButton>
                       </Stack>
                     </Box>

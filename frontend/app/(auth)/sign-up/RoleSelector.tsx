@@ -108,7 +108,7 @@ export default function RoleSelector({ value, onChange, disabled = false }: Role
                 cursor: disabled ? "not-allowed" : "pointer",
                 textAlign: "left",
                 p: 2.25,
-                borderRadius: 3,
+                borderRadius: 2,
                 border: "2px solid",
                 borderColor: selected ? "primary.main" : "divider",
                 bgcolor: selected ? alpha(theme.palette.primary.main, 0.08) : "background.paper",

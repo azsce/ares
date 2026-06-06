@@ -86,9 +86,10 @@ namespace Backend.Application.Services
                 DriverRequired: !hasApprovedLicense);
         }
 
-        public async Task<IEnumerable<AvailableDriverDto>> GetAvailableDriversAsync(
+        public async Task<AvailableDriversResponse> GetAvailableDriversAsync(
             DateTime pickupDate,
             DateTime returnDate,
+            Guid? bookingId = null,
             CancellationToken cancellationToken = default)
         {
             if (pickupDate >= returnDate)
@@ -100,15 +101,15 @@ namespace Backend.Application.Services
             var dailyRate = await _driverPricingService.GetDailyRateAsync(cancellationToken);
             var driverFee = dailyRate * totalDays;
 
-            var profiles = await _driverProfileRepository.GetAvailableDriversForWindowAsync(pickupDate, returnDate, cancellationToken);
+            var profiles = await _driverProfileRepository.GetAvailableDriversForWindowAsync(pickupDate, returnDate, bookingId, cancellationToken);
 
-            var result = new List<AvailableDriverDto>();
+            var driversList = new List<AvailableDriverDto>();
             foreach (var p in profiles)
             {
                 var (avgRating, totalTrips) = await _driverReviewRepository.GetDriverRatingStatsAsync(p.Id, cancellationToken);
                 var experienceYears = Math.Max(0, (int)((DateTime.UtcNow - p.CreatedAt).TotalDays / 365));
 
-                result.Add(new AvailableDriverDto
+                driversList.Add(new AvailableDriverDto
                 {
                     DriverProfileId = p.Id,
                     FirstName = p.User?.FirstName,
@@ -121,7 +122,25 @@ namespace Backend.Application.Services
                 });
             }
 
-            return result;
+            // Calculate "nearby but unavailable" count (Phase 5 §7 requirements).
+            int unavailableCount = 0;
+            if (bookingId.HasValue)
+            {
+                var booking = await _bookingRepository.GetByIdAsync(bookingId.Value, cancellationToken);
+                if (booking != null && Guid.TryParse(booking.PickupLocation, out var serviceAreaId))
+                {
+                    // Total verified drivers in this service area...
+                    var totalInArea = await _context.DriverProfiles
+                        .Where(p => p.Status == DriverProfileStatus.Verified && p.IsActive
+                            && p.WorkAreas.Any(wa => wa.ServiceAreaId == serviceAreaId))
+                        .CountAsync(cancellationToken);
+
+                    // ...minus those already in the "Available" list.
+                    unavailableCount = Math.Max(0, totalInArea - driversList.Count);
+                }
+            }
+
+            return new AvailableDriversResponse(driversList, unavailableCount);
         }
 
         public async Task<BookingResponse> CheckoutAsync(
@@ -221,11 +240,11 @@ namespace Backend.Application.Services
 
             // ── Resolve pickup / dropoff labels (free-text wins over the id) ──
             var pickupLabel = !string.IsNullOrWhiteSpace(request.PickupLocation)
-                ? request.PickupLocation!.Trim()
-                : (request.PickupLocationId != Guid.Empty ? request.PickupLocationId.ToString() : null);
+                ? await ResolveDisplayLocationAsync(request.PickupLocation!.Trim(), cancellationToken)
+                : (request.PickupLocationId != Guid.Empty ? await ResolveDisplayLocationAsync(request.PickupLocationId.ToString(), cancellationToken) : null);
             var dropoffLabel = !string.IsNullOrWhiteSpace(request.DropOffLocation)
-                ? request.DropOffLocation!.Trim()
-                : (request.DropOffLocationId != Guid.Empty ? request.DropOffLocationId.ToString() : null);
+                ? await ResolveDisplayLocationAsync(request.DropOffLocation!.Trim(), cancellationToken)
+                : (request.DropOffLocationId != Guid.Empty ? await ResolveDisplayLocationAsync(request.DropOffLocationId.ToString(), cancellationToken) : null);
 
             // ── Process payment (simulated gateway — mirrors PaymentService) ──
             var paymentSuccessful = await SimulatePaymentAsync(cancellationToken);
@@ -343,11 +362,11 @@ namespace Backend.Application.Services
                 var vehicleFee = (vehicle.PricePerDay ?? 0) * totalDays;
 
                 var pickupLabel = !string.IsNullOrWhiteSpace(request.PickupLocation)
-                    ? request.PickupLocation!.Trim()
-                    : (request.PickupLocationId != Guid.Empty ? request.PickupLocationId.ToString() : null);
+                    ? await ResolveDisplayLocationAsync(request.PickupLocation!.Trim(), cancellationToken)
+                    : (request.PickupLocationId != Guid.Empty ? await ResolveDisplayLocationAsync(request.PickupLocationId.ToString(), cancellationToken) : null);
                 var dropoffLabel = !string.IsNullOrWhiteSpace(request.DropOffLocation)
-                    ? request.DropOffLocation!.Trim()
-                    : (request.DropOffLocationId != Guid.Empty ? request.DropOffLocationId.ToString() : null);
+                    ? await ResolveDisplayLocationAsync(request.DropOffLocation!.Trim(), cancellationToken)
+                    : (request.DropOffLocationId != Guid.Empty ? await ResolveDisplayLocationAsync(request.DropOffLocationId.ToString(), cancellationToken) : null);
 
                 var booking = new Booking
                 {
@@ -410,13 +429,8 @@ namespace Backend.Application.Services
 
                 DriverProfile? driverProfile = null;
                 decimal driverFee = 0m;
-                if (effectiveNeedDriver)
+                if (effectiveNeedDriver && request.DriverProfileId.HasValue)
                 {
-                    if (!request.DriverProfileId.HasValue)
-                    {
-                        throw new BadRequestException("Please select a driver before continuing.");
-                    }
-
                     driverProfile = await _driverProfileRepository.GetByIdWithUserAsync(request.DriverProfileId.Value, cancellationToken)
                         ?? throw new NotFoundException("Selected driver was not found.");
                     if (driverProfile.Status != DriverProfileStatus.Verified
@@ -438,11 +452,17 @@ namespace Backend.Application.Services
                 }
 
                 booking.RequiresDriver = effectiveNeedDriver;
-                booking.AssignedDriverProfileId = effectiveNeedDriver ? driverProfile!.Id : (Guid?)null;
-                booking.DriverFee = effectiveNeedDriver ? driverFee : (decimal?)null;
-                booking.GrandTotal = vehicleFee + (effectiveNeedDriver ? driverFee : 0m);
+                booking.AssignedDriverProfileId = (effectiveNeedDriver && request.DriverProfileId.HasValue) ? driverProfile!.Id : (Guid?)null;
+                booking.DriverFee = (effectiveNeedDriver && request.DriverProfileId.HasValue) ? driverFee : (decimal?)null;
+                booking.GrandTotal = vehicleFee + (booking.DriverFee ?? 0m);
                 booking.TotalPrice = booking.GrandTotal;
-                booking.Status = BookingStatus.Draft; // still does NOT reserve the vehicle
+                booking.Status = BookingStatus.Draft;
+                
+                // Keep assignment status in sync for filtering.
+                booking.DriverAssignmentStatus = effectiveNeedDriver 
+                    ? (booking.AssignedDriverProfileId.HasValue ? DriverAssignmentStatus.Assigned : DriverAssignmentStatus.Waiting)
+                    : DriverAssignmentStatus.NotRequired;
+
                 await _bookingRepository.SaveChangesAsync(cancellationToken);
 
                 return await BuildStateAsync(booking, cancellationToken);
@@ -719,6 +739,9 @@ namespace Backend.Application.Services
                 _ => "vehicle"
             };
 
+            var pickupName = await ResolveDisplayLocationAsync(booking.PickupLocation, cancellationToken);
+            var dropoffName = await ResolveDisplayLocationAsync(booking.DropoffLocation, cancellationToken);
+
             return new CheckoutStateDto(
                 BookingId: booking.Id,
                 BookingNumber: booking.BookingNumber,
@@ -729,8 +752,8 @@ namespace Backend.Application.Services
                 VehicleImageUrl: imageUrl,
                 PickupDate: booking.PickupDate ?? default,
                 ReturnDate: booking.ReturnDate ?? default,
-                PickupLocation: booking.PickupLocation,
-                DropoffLocation: booking.DropoffLocation,
+                PickupLocation: pickupName,
+                DropoffLocation: dropoffName,
                 TotalDays: booking.TotalDays ?? 0,
                 VehicleFee: booking.VehicleFee ?? 0m,
                 RequiresDriver: booking.RequiresDriver,
@@ -767,6 +790,28 @@ namespace Backend.Application.Services
         {
             await Task.Delay(50, cancellationToken);
             return true;
+        }
+
+        private async Task<string> ResolveDisplayLocationAsync(string? locationStr, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(locationStr))
+                return string.Empty;
+
+            if (Guid.TryParse(locationStr, out var guid))
+            {
+                var loc = await _context.UserAddresses.FirstOrDefaultAsync(l => l.Id == guid, cancellationToken);
+                if (loc != null)
+                {
+                    var parts = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(loc.City)) parts.Add(loc.City);
+                    if (!string.IsNullOrWhiteSpace(loc.Governorate)) parts.Add(loc.Governorate);
+                    if (!string.IsNullOrWhiteSpace(loc.Country)) parts.Add(loc.Country);
+                    if (parts.Count > 0) return string.Join(", ", parts);
+                }
+                return "Unknown Location";
+            }
+
+            return locationStr;
         }
 
         private static string GenerateUniqueBookingNumber()

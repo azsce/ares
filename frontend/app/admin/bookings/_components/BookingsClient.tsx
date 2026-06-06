@@ -201,7 +201,7 @@ export default function BookingsClient() {
       </Box>
 
       {/* جدول الحجوزات */}
-      <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 3, overflow: "hidden" }}>
+      <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
         <TableContainer>
           <Table sx={{ minWidth: 800 }}>
             <TableHead sx={{ bgcolor: "action.hover" }}>

@@ -22,7 +22,7 @@ export default function QuickActions() {
     <Card
       elevation={0}
       sx={theme => ({
-        borderRadius: 4,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "border.main",
         height: "100%",

@@ -173,4 +173,23 @@ public class DashboardController : ControllerBase
         var result = await _dashboardService.GetSystemStatusAsync(cancellationToken);
         return Ok(result);
     }
+
+    [HttpGet("top-vehicles")]
+    [ProducesResponseType(typeof(IReadOnlyList<TopVehicleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IReadOnlyList<TopVehicleDto>>> GetTopVehicles([FromQuery] int limit = 5, CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized(new { Message = "User not authenticated" });
+
+        var userId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.IsInRole("Admin");
+        var isSupplier = User.IsInRole("Supplier");
+
+        Guid? targetSupplierId = isSupplier && !isAdmin ? userId : null;
+
+        var result = await _dashboardService.GetTopVehiclesAsync(targetSupplierId, limit, cancellationToken);
+        return Ok(result);
+    }
 }

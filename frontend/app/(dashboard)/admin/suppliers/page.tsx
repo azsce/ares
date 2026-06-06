@@ -43,7 +43,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import BlockIcon from "@mui/icons-material/Block";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BusinessIcon from "@mui/icons-material/Business";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import { deleteSupplier } from "@/api-clients/suppliers/suppliers";
 import { getSuppliers, type Supplier } from "@/api-clients/suppliers/suppliers";
 import { logger } from "@/utils/logger";
@@ -133,7 +133,7 @@ function SupplierMobileCard({ s, theme, onDeleteClick }: SupplierMobileCardProps
                 onDeleteClick(s);
               }}
             >
-              <DeleteOutlineIcon fontSize="small" />
+              <DeleteOutlinedIcon fontSize="small" />
             </IconButton>
           </span>
         </Tooltip>
@@ -465,7 +465,7 @@ export default function SuppliersPage() {
                                     setDeleteTarget(s);
                                   }}
                                 >
-                                  <DeleteOutlineIcon fontSize="small" />
+                                  <DeleteOutlinedIcon fontSize="small" />
                                 </IconButton>
                               </span>
                             </Tooltip>
@@ -547,7 +547,7 @@ export default function SuppliersPage() {
             disabled={deleting}
             variant="contained"
             color="error"
-            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : <DeleteOutlineIcon />}
+            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : <DeleteOutlinedIcon />}
           >
             {deleting ? "Deleting..." : "Delete"}
           </Button>

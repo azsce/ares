@@ -55,7 +55,7 @@ export default function LogoutConfirmDialog({ open, onOpenChange, onConfirm }: L
       slotProps={{
         paper: {
           sx: {
-            borderRadius: 3,
+            borderRadius: 2,
             p: 1,
             minWidth: { xs: "90%", sm: 400 },
           },

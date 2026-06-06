@@ -21,7 +21,7 @@ public class PaymobClient : IPaymobClient
 
     public async Task<string> GetAuthTokenAsync(CancellationToken ct = default)
     {
-        var response = await _http.PostAsJsonAsync("/api/auth", new { api_key = _settings.ApiKey }, ct);
+        var response = await _http.PostAsJsonAsync("/api/auth/tokens", new { api_key = _settings.ApiKey }, ct);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
         return result.GetProperty("token").GetString()!;
@@ -84,5 +84,43 @@ public class PaymobClient : IPaymobClient
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
         return result.TryGetProperty("success", out var s) && s.GetBoolean();
+    }
+
+    public async Task<PaymobTransactionResult?> GetTransactionsByOrderIdAsync(string authToken, string orderId, CancellationToken ct = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/acceptance/transactions?order_id={orderId}");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+        
+        var response = await _http.SendAsync(request, ct);
+        if (!response.IsSuccessStatusCode)
+            return null;
+            
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
+        if (!result.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array || results.GetArrayLength() == 0)
+            return null;
+
+        // Try to find a successful transaction, otherwise take the first one (most recent usually)
+        JsonElement? bestTx = null;
+        foreach (var tx in results.EnumerateArray())
+        {
+            if (tx.TryGetProperty("success", out var s) && s.GetBoolean())
+            {
+                bestTx = tx;
+                break;
+            }
+            if (bestTx == null) bestTx = tx;
+        }
+
+        if (bestTx == null) return null;
+
+        var id = bestTx.Value.GetProperty("id").GetInt64();
+        var success = bestTx.Value.GetProperty("success").GetBoolean();
+        string? reason = null;
+        if (bestTx.Value.TryGetProperty("data", out var data) && data.TryGetProperty("txn_response_code", out var rCode))
+        {
+            reason = rCode.GetString();
+        }
+
+        return new PaymobTransactionResult(id, success, reason);
     }
 }

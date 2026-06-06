@@ -168,10 +168,10 @@ public class BookingService : IBookingService
         // Resolve pickup/dropoff label — prefer the explicit string, fall
         // back to the legacy Id. We will resolve it to a human-readable address if it's a GUID.
         var pickupLabel = !string.IsNullOrWhiteSpace(request.PickupLocation)
-            ? request.PickupLocation!.Trim()
+            ? await ResolveDisplayLocationAsync(request.PickupLocation!.Trim(), cancellationToken)
             : (request.PickupLocationId != Guid.Empty ? await ResolveDisplayLocationAsync(request.PickupLocationId.ToString(), cancellationToken) : null);
         var dropoffLabel = !string.IsNullOrWhiteSpace(request.DropOffLocation)
-            ? request.DropOffLocation!.Trim()
+            ? await ResolveDisplayLocationAsync(request.DropOffLocation!.Trim(), cancellationToken)
             : (request.DropOffLocationId != Guid.Empty ? await ResolveDisplayLocationAsync(request.DropOffLocationId.ToString(), cancellationToken) : null);
 
         // Business rule 13 (mandatory driver): a customer who does NOT hold an
@@ -345,14 +345,32 @@ public class BookingService : IBookingService
                 .Where(p => bookingIds.Contains(p.BookingId))
                 .ToListAsync(cancellationToken);
 
-        var bookingDtos = pagedBookings.Select(b =>
+        var bookingDtos = new List<BookingListDto>();
+        foreach (var b in pagedBookings)
         {
             var payment = payments
                 .Where(p => p.BookingId == b.Id)
                 .OrderByDescending(p => p.CreatedAt)
                 .FirstOrDefault();
-            return MapToBookingListDto(b, payment);
-        }).ToList();
+
+            // Resolve location labels on the fly. This ensures that even if an ID was
+            // stored in the database (e.g. from an older checkout logic), the UI
+            // sees a human-readable address.
+            var pickupLabel = await ResolveDisplayLocationAsync(b.PickupLocation, cancellationToken);
+            var dropoffLabel = await ResolveDisplayLocationAsync(b.DropoffLocation, cancellationToken);
+
+            // We temporarily override the labels for the DTO without modifying the entity's tracked state.
+            // MapToBookingListDto uses these properties to build the LocationDtos.
+            var originalPickup = b.PickupLocation;
+            var originalDropoff = b.DropoffLocation;
+            b.PickupLocation = pickupLabel;
+            b.DropoffLocation = dropoffLabel;
+
+            bookingDtos.Add(MapToBookingListDto(b, payment));
+
+            b.PickupLocation = originalPickup;
+            b.DropoffLocation = originalDropoff;
+        }
 
         return new PagedResult<BookingListDto>(
             bookingDtos,
@@ -529,14 +547,32 @@ public class BookingService : IBookingService
                 .Where(p => bookingIds.Contains(p.BookingId))
                 .ToListAsync(cancellationToken);
 
-        var bookingDtos = pagedBookings.Select(b =>
+        var bookingDtos = new List<BookingListDto>();
+        foreach (var b in pagedBookings)
         {
             var payment = payments
                 .Where(p => p.BookingId == b.Id)
                 .OrderByDescending(p => p.CreatedAt)
                 .FirstOrDefault();
-            return MapToBookingListDto(b, payment);
-        }).ToList();
+
+            // Resolve location labels on the fly. This ensures that even if an ID was
+            // stored in the database (e.g. from an older checkout logic), the UI
+            // sees a human-readable address.
+            var pickupLabel = await ResolveDisplayLocationAsync(b.PickupLocation, cancellationToken);
+            var dropoffLabel = await ResolveDisplayLocationAsync(b.DropoffLocation, cancellationToken);
+
+            // We temporarily override the labels for the DTO without modifying the entity's tracked state.
+            // MapToBookingListDto uses these properties to build the LocationDtos.
+            var originalPickup = b.PickupLocation;
+            var originalDropoff = b.DropoffLocation;
+            b.PickupLocation = pickupLabel;
+            b.DropoffLocation = dropoffLabel;
+
+            bookingDtos.Add(MapToBookingListDto(b, payment));
+
+            b.PickupLocation = originalPickup;
+            b.DropoffLocation = originalDropoff;
+        }
 
         return new PagedResult<BookingListDto>(
             bookingDtos,
@@ -747,11 +783,11 @@ public class BookingService : IBookingService
         // Locations — free-text labels.
         if (request.PickupLocation is not null)
         {
-            booking.PickupLocation = request.PickupLocation.Trim();
+            booking.PickupLocation = await ResolveDisplayLocationAsync(request.PickupLocation.Trim(), cancellationToken);
         }
         if (request.DropOffLocation is not null)
         {
-            booking.DropoffLocation = request.DropOffLocation.Trim();
+            booking.DropoffLocation = await ResolveDisplayLocationAsync(request.DropOffLocation.Trim(), cancellationToken);
         }
 
         // Status — only operational transitions allowed via this endpoint.

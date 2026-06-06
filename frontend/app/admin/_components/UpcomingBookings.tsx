@@ -10,7 +10,7 @@ export default function UpcomingBookings({ bookings }: { readonly bookings: read
     <Card
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "border.main",
         height: "100%",

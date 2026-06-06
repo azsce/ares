@@ -3,7 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  Typography,
+  Skeleton,
+} from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -11,7 +22,6 @@ import { toApiUrl } from "@/utils/api-client";
 import { formatCurrency } from "@/utils/currency-helpers";
 import { logger } from "@/utils/logger";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
-import VerificationRequiredCard from "./VerificationRequiredCard";
 import type { BookingLocationOption, VehicleDetailsViewModel } from "./types";
 
 interface BookingCardProps {
@@ -62,7 +72,7 @@ function getFallbackVehicle(vehicleId?: string, basePrice?: number): VehicleDeta
 }
 
 export default function BookingCard({ vehicle, locationOptions, vehicleId, basePrice }: BookingCardProps) {
-  const { data: session } = useSession();
+  const { data: session, status: authStatus } = useSession();
   const router = useRouter();
 
   // Identity-verification gate. Approved users see the booking form as
@@ -70,8 +80,10 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
   // warning card that routes to Profile → Verification. Guests are
   // unaffected — they hit the auth gate at checkout already.
   const verification = useVerificationStatus();
-  const isSignedIn = Boolean(session?.accessToken);
-  const showVerificationGate = isSignedIn && (verification.loading || !verification.isApproved);
+  const isAuthLoading = authStatus === "loading";
+  const isSignedIn = authStatus === "authenticated";
+
+  const isGlobalLoading = isAuthLoading || (isSignedIn && verification.loading);
 
   const resolvedVehicle: VehicleDetailsViewModel = useMemo(
     () => vehicle ?? getFallbackVehicle(vehicleId, basePrice),
@@ -185,28 +197,29 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
       ? Math.max(1, Math.ceil((returnDate.getTime() - pickupDate.getTime()) / (1000 * 60 * 60 * 24)))
       : 1;
 
-  // When a signed-in customer is not approved, we replace the booking
-  // form entirely with the verification warning card so there's no way to
-  // accidentally trigger a booking attempt that the backend would 403.
-  if (showVerificationGate) {
+  // Unified loading skeleton for the entire card to prevent flicking
+  if (isGlobalLoading) {
     return (
       <Stack spacing={2} sx={{ p: { xs: 2, md: 3 } }}>
-        <Stack spacing={0.5}>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Reserve this vehicle
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {formatCurrency(resolvedVehicle.pricePerDay)} / day
-          </Typography>
+        <Stack spacing={1}>
+          <Skeleton variant="text" width="60%" height={32} />
+          <Skeleton variant="text" width="40%" height={24} />
         </Stack>
-        <VerificationRequiredCard
-          status={verification.status}
-          loading={verification.loading}
-          error={verification.error}
-        />
+        <Stack spacing={2}>
+          <Skeleton variant="rounded" width="100%" height={56} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={56} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={56} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={56} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={64} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={48} sx={{ borderRadius: 999 }} />
+        </Stack>
       </Stack>
     );
   }
+
+  // If a signed-in customer is not approved, we disable the booking
+  // button and show a hint. Guests are unaffected.
+  const isBookingDisabled = isSignedIn && !verification.isApproved;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -222,7 +235,7 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
 
         {resolvedLocations.length > 0 ? (
           <Stack spacing={2}>
-            <FormControl fullWidth error={Boolean(errors.pickupLocationId)}>
+            <FormControl fullWidth error={Boolean(errors.pickupLocationId)} disabled={isBookingDisabled}>
               <InputLabel id="pickup-location-label">Pickup location</InputLabel>
               <Select
                 labelId="pickup-location-label"
@@ -245,7 +258,7 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
               </Typography>
             )}
 
-            <FormControl fullWidth error={Boolean(errors.dropoffLocationId)}>
+            <FormControl fullWidth error={Boolean(errors.dropoffLocationId)} disabled={isBookingDisabled}>
               <InputLabel id="dropoff-location-label">Drop-off location</InputLabel>
               <Select
                 labelId="dropoff-location-label"
@@ -275,6 +288,7 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
         <DatePicker
           label="Pickup date"
           value={pickupDate}
+          disabled={isBookingDisabled}
           onChange={value => {
             setPickupDate(value);
           }}
@@ -289,6 +303,7 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
         <DatePicker
           label="Return date"
           value={returnDate}
+          disabled={isBookingDisabled}
           onChange={value => {
             setReturnDate(value);
           }}
@@ -317,10 +332,16 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
           onClick={() => {
             void handleSubmit();
           }}
-          disabled={resolvedLocations.length === 0 || resolvedVehicle.vehicleId === ""}
+          disabled={isBookingDisabled || resolvedLocations.length === 0 || resolvedVehicle.vehicleId === ""}
         >
-          Reserve now
+          {isBookingDisabled ? "Verification Required" : "Reserve now"}
         </Button>
+
+        {isBookingDisabled && (
+          <Typography variant="caption" color="warning.main" sx={{ textAlign: "center", fontWeight: 600 }}>
+            Please complete verification to enable booking.
+          </Typography>
+        )}
 
         {!session?.accessToken && (
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>

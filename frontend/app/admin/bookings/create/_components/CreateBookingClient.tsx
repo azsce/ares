@@ -200,7 +200,7 @@ export default function CreateBookingClient() {
     p: 3,
     border: "1px solid",
     borderColor: "divider",
-    borderRadius: 3,
+    borderRadius: 2,
     bgcolor: "background.paper",
   };
 

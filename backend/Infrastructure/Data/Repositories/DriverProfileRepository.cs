@@ -139,7 +139,7 @@ namespace Backend.Infrastructure.Data.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<DriverProfile>> GetAvailableDriversForWindowAsync(DateTime pickup, DateTime ret, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<DriverProfile>> GetAvailableDriversForWindowAsync(DateTime pickup, DateTime ret, Guid? excludeBookingId = null, CancellationToken cancellationToken = default)
         {
             // Same "active assignment" statuses used by the overlap check, so a
             // driver already committed to an overlapping booking is hidden from
@@ -160,6 +160,7 @@ namespace Backend.Infrastructure.Data.Repositories
                             && x.IsActive
                             && !_context.Bookings.Any(b =>
                                 b.AssignedDriverProfileId == x.Id
+                                && (excludeBookingId == null || b.Id != excludeBookingId)
                                 && blocking.Contains(b.Status)
                                 && !(b.Status == BookingStatus.PaymentPending && b.HoldExpiresAt != null && b.HoldExpiresAt <= nowUtc)
                                 && b.PickupDate.HasValue && b.ReturnDate.HasValue

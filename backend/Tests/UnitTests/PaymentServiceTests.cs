@@ -6,6 +6,7 @@ using Backend.Application.Services;
 using Backend.Application.Settings;
 using Backend.Domain.Entities;
 using Backend.Domain.Entities.Enums;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -19,6 +20,7 @@ public class PaymentServiceTests
     private readonly Mock<IApplicationDbContext> _contextMock;
     private readonly Mock<IPaymobClient> _paymobMock;
     private readonly Mock<IRefundCalculator> _refundCalculatorMock;
+    private readonly Mock<ILogger<PaymentService>> _loggerMock;
     private readonly PaymentService _paymentService;
 
     public PaymentServiceTests()
@@ -28,6 +30,7 @@ public class PaymentServiceTests
         _contextMock = new Mock<IApplicationDbContext>();
         _paymobMock = new Mock<IPaymobClient>();
         _refundCalculatorMock = new Mock<IRefundCalculator>();
+        _loggerMock = new Mock<ILogger<PaymentService>>();
 
         _paymentService = new PaymentService(
             _paymentRepositoryMock.Object,
@@ -35,7 +38,8 @@ public class PaymentServiceTests
             _contextMock.Object,
             _paymobMock.Object,
             _refundCalculatorMock.Object,
-            Options.Create(new PaymobSettings()));
+            Options.Create(new PaymobSettings()),
+            _loggerMock.Object);
     }
 
     #region ProcessPaymentAsync Tests
@@ -613,6 +617,99 @@ public class PaymentServiceTests
         Assert.Equal(10, result.PageSize);
         Assert.Equal(25, result.TotalCount);
         Assert.Equal(3, result.TotalPages); // 25 items / 10 per page = 3 pages
+    }
+
+    #endregion
+
+    #region InitiatePaymentAsync Tests
+
+    [Fact]
+    public async Task InitiatePaymentAsync_WithValidRequest_ShouldReturnIframeUrl()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+        var amount = 150.00m;
+        var amountCents = 15000L;
+        var authToken = "auth-token-123";
+        var orderId = "paymob-order-id-456";
+        var paymentKey = "payment-key-789";
+
+        var booking = new Booking
+        {
+            Id = bookingId,
+            UserId = userId,
+            Status = BookingStatus.PaymentPending,
+            TotalPrice = amount
+        };
+
+        var user = new ApplicationUser
+        {
+            Id = userId,
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@example.com",
+            PhoneNumber = "+20123456789"
+        };
+
+        var users = new List<ApplicationUser> { user }.AsQueryable();
+        // Since IApplicationDbContext.Users is IQueryable<ApplicationUser>, 
+        // we can use a simpler mock if we don't need full EF behavior,
+        // but for FirstOrDefaultAsync to work, it needs to be an IAsyncEnumerable.
+        // We'll use the TestAsyncEnumerable from MockDbSetExtensions indirectly if possible,
+        // or just mock the property to return a queryable that supports async.
+        
+        _contextMock.Setup(x => x.Users).Returns(new TestUtilities.TestAsyncEnumerable<ApplicationUser>(users));
+
+        _bookingRepositoryMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _paymobMock.Setup(x => x.GetAuthTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(authToken);
+
+        _paymobMock.Setup(x => x.CreateOrderAsync(authToken, amountCents, "EGP", It.Is<string>(s => s.StartsWith(bookingId.ToString())), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(orderId);
+
+        _paymobMock.Setup(x => x.RequestPaymentKeyAsync(
+            authToken, 
+            orderId, 
+            amountCents, 
+            "EGP", 
+            It.IsAny<int>(), 
+            It.IsAny<PaymobBillingData>(), 
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(paymentKey);
+
+        _paymentRepositoryMock.Setup(x => x.AddAsync(It.IsAny<BookingPayment>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(It.IsAny<BookingPayment>());
+
+        _contextMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _paymentService.InitiatePaymentAsync(bookingId, userId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Contains(paymentKey, result.IframeUrl);
+        Assert.Equal(orderId, result.PaymobOrderId);
+
+        _paymobMock.Verify(x => x.GetAuthTokenAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _paymobMock.Verify(x => x.CreateOrderAsync(authToken, amountCents, "EGP", It.Is<string>(s => s.StartsWith(bookingId.ToString())), It.IsAny<CancellationToken>()), Times.Once);
+        _paymobMock.Verify(x => x.RequestPaymentKeyAsync(
+            authToken, 
+            orderId, 
+            amountCents, 
+            "EGP", 
+            It.IsAny<int>(), 
+            It.Is<PaymobBillingData>(b => b.Email == user.Email), 
+            It.IsAny<CancellationToken>()), Times.Once);
+        
+        _paymentRepositoryMock.Verify(x => x.AddAsync(It.Is<BookingPayment>(p => 
+            p.BookingId == bookingId && 
+            p.PaymobOrderId == orderId &&
+            p.Amount == amount), It.IsAny<CancellationToken>()), Times.Once);
+        _contextMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion

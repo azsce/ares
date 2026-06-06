@@ -15,6 +15,7 @@ import {
   TableBody,
   Chip,
   Avatar,
+  alpha,
 } from "@mui/material";
 
 export interface BookingListItem {
@@ -147,7 +148,18 @@ export default function RecentBookingsTable({
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Avatar src={row.customerAvatar} sx={{ width: 32, height: 32 }} />
+                      <Avatar
+                        src={row.customerAvatar}
+                        alt={row.customer}
+                        sx={theme => ({
+                          width: 32,
+                          height: 32,
+                          fontSize: "0.875rem",
+                          fontWeight: 700,
+                          bgcolor: alpha(theme.palette.primary.main, 0.1),
+                          color: theme.palette.primary.main,
+                        })}
+                      />
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {row.customer}
                       </Typography>
@@ -161,20 +173,25 @@ export default function RecentBookingsTable({
                       label={row.status}
                       size="small"
                       sx={theme => {
+                        const status = row.status.toLowerCase();
                         const statusKey: "active" | "completed" | "pending" | "cancelled" | "confirmed" | "blocked" =
-                          row.status === "Active"
+                          status === "active"
                             ? "active"
-                            : row.status === "Completed"
+                            : status === "completed"
                               ? "completed"
-                              : row.status === "Pending"
+                              : status === "pending" || status === "paymentpending"
                                 ? "pending"
-                                : "cancelled";
+                                : status === "confirmed"
+                                  ? "confirmed"
+                                  : "cancelled";
+
+                        const colorMain = theme.palette.status[statusKey].main;
 
                         return {
                           fontWeight: "700",
                           borderRadius: 2,
-                          bgcolor: theme.palette.status[statusKey].light,
-                          color: theme.palette.status[statusKey].main,
+                          bgcolor: alpha(colorMain, 0.12),
+                          color: colorMain,
                           "& .MuiChip-label": { px: 2 },
                         };
                       }}

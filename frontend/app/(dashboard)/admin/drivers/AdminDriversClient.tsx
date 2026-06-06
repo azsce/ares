@@ -287,7 +287,7 @@ export default function AdminDriversClient() {
       ) : filtered.length === 0 ? (
         <Paper
           elevation={0}
-          sx={{ p: 8, textAlign: "center", borderRadius: 4, border: `1px dashed ${theme.palette.divider}` }}
+          sx={{ p: 8, textAlign: "center", borderRadius: 2, border: `1px dashed ${theme.palette.divider}` }}
         >
           <Typography variant="h6" color="text.secondary">
             No drivers found
@@ -297,7 +297,7 @@ export default function AdminDriversClient() {
         <TableContainer
           component={Paper}
           elevation={0}
-          sx={{ borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}
+          sx={{ borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}
         >
           <Table sx={{ minWidth: 800 }}>
             <TableHead sx={{ bgcolor: "background.default" }}>

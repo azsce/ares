@@ -15,13 +15,16 @@ namespace Backend.Api.Controllers;
 public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;
+    private readonly IPaymentService _paymentService;
     private readonly ILogger<BookingController> _logger;
 
     public BookingController(
         IBookingService bookingService,
+        IPaymentService paymentService,
         ILogger<BookingController> logger)
     {
         _bookingService = bookingService;
+        _paymentService = paymentService;
         _logger = logger;
     }
 
@@ -52,6 +55,12 @@ public class BookingController : ControllerBase
 
         var userId = Guid.Parse(userIdClaim.Value);
         var isAdmin = User.IsInRole("Admin");
+
+        if (!isAdmin)
+        {
+            // Sync payment status with Paymob in case a webhook was missed
+            await _paymentService.SyncPaymentStatusAsync(id, userId, cancellationToken);
+        }
 
         var result = await _bookingService.GetBookingDetailsAsync(id, userId, isAdmin, cancellationToken);
 

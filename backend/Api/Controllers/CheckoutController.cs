@@ -21,11 +21,16 @@ namespace Backend.Api.Controllers
     public class CheckoutController : ControllerBase
     {
         private readonly ICheckoutService _checkoutService;
+        private readonly IPaymentService _paymentService;
         private readonly ILogger<CheckoutController> _logger;
 
-        public CheckoutController(ICheckoutService checkoutService, ILogger<CheckoutController> logger)
+        public CheckoutController(
+            ICheckoutService checkoutService, 
+            IPaymentService paymentService,
+            ILogger<CheckoutController> logger)
         {
             _checkoutService = checkoutService;
+            _paymentService = paymentService;
             _logger = logger;
         }
 
@@ -44,22 +49,23 @@ namespace Backend.Api.Controllers
         }
 
         /// <summary>
-        /// Verified, available drivers for the supplied rental window, including
-        /// the per-booking driver fee.
+        /// Verified, available, active drivers for the supplied rental window,
+        /// including the per-booking driver fee and nearby availability stats.
         /// </summary>
         [HttpGet("drivers")]
-        [ProducesResponseType(typeof(IEnumerable<AvailableDriverDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AvailableDriversResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<AvailableDriverDto>>> GetAvailableDrivers(
+        public async Task<ActionResult<AvailableDriversResponse>> GetAvailableDrivers(
             [FromQuery] DateTime pickupDate,
             [FromQuery] DateTime returnDate,
+            [FromQuery] Guid? bookingId,
             CancellationToken cancellationToken)
         {
             var userId = TryGetUserId();
             if (userId is null) return Unauthorized();
-            var drivers = await _checkoutService.GetAvailableDriversAsync(pickupDate, returnDate, cancellationToken);
-            return Ok(drivers);
+            var response = await _checkoutService.GetAvailableDriversAsync(pickupDate, returnDate, bookingId, cancellationToken);
+            return Ok(response);
         }
 
         /// <summary>
@@ -198,6 +204,12 @@ namespace Backend.Api.Controllers
             var userId = TryGetUserId();
             if (userId is null) return Unauthorized();
             var state = await _checkoutService.GetActiveAsync(userId.Value, cancellationToken);
+            if (state != null && state.Status == "PaymentPending")
+            {
+                var synced = await _paymentService.SyncPaymentStatusAsync(state.BookingId, userId.Value, cancellationToken);
+                if (synced)
+                    state = await _checkoutService.GetActiveAsync(userId.Value, cancellationToken);
+            }
             return state is null ? NoContent() : Ok(state);
         }
 
@@ -210,6 +222,10 @@ namespace Backend.Api.Controllers
         {
             var userId = TryGetUserId();
             if (userId is null) return Unauthorized();
+            
+            // Sync payment status with Paymob in case a webhook was missed
+            await _paymentService.SyncPaymentStatusAsync(bookingId, userId.Value, cancellationToken);
+            
             var state = await _checkoutService.GetStateAsync(bookingId, userId.Value, cancellationToken);
             return state is null ? NotFound() : Ok(state);
         }

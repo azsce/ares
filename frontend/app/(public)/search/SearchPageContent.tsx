@@ -238,7 +238,7 @@ function VehicleCard({ vehicle }: Readonly<{ vehicle: PublicVehicleCard }>) {
   );
 }
 
-function SearchResults({ vehicles }: Readonly<{ vehicles: readonly PublicVehicleCard[] }>) {
+function SearchResults({ vehicles, idle }: Readonly<{ vehicles: readonly PublicVehicleCard[]; idle?: boolean }>) {
   const theme = useTheme();
 
   if (vehicles.length === 0) {
@@ -256,25 +256,29 @@ function SearchResults({ vehicles }: Readonly<{ vehicles: readonly PublicVehicle
         <Stack spacing={2} sx={{ alignItems: "center" }}>
           <SearchRoundedIcon color="primary" sx={{ fontSize: 44 }} />
           <Typography variant="h5" sx={{ fontWeight: 800 }}>
-            No cars matched that search
+            {idle ? "Start your search" : "No cars matched that search"}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Try another location or stretch the dates a bit wider.
+            {idle
+              ? "Select a pickup location above to see available vehicles."
+              : "Try another location or stretch the dates a bit wider."}
           </Typography>
-          <Button
-            href="/"
-            variant="contained"
-            color="primary"
-            sx={{
-              borderRadius: "999px",
-              boxShadow: theme.palette.shadow.button,
-              "&:hover": {
-                boxShadow: theme.palette.shadow.buttonHover,
-              },
-            }}
-          >
-            Back to landing page
-          </Button>
+          {!idle && (
+            <Button
+              href="/"
+              variant="contained"
+              color="primary"
+              sx={{
+                borderRadius: "999px",
+                boxShadow: theme.palette.shadow.button,
+                "&:hover": {
+                  boxShadow: theme.palette.shadow.buttonHover,
+                },
+              }}
+            >
+              Back to landing page
+            </Button>
+          )}
         </Stack>
       </Paper>
     );
@@ -452,7 +456,7 @@ export default function SearchPageContent({
 
       {/* Results section */}
       <Container maxWidth="xl" sx={{ py: { xs: 4, lg: 6 } }}>
-        <SearchResults vehicles={vehicles} />
+        <SearchResults vehicles={vehicles} idle={!pickupLocationId} />
       </Container>
     </Box>
   );

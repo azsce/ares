@@ -3,7 +3,7 @@
 import { Box, Button, Card, Chip, Divider, Grid, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
+import CheckCircleOutlinedRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 
 export interface AboutSection {
   id: string;
@@ -20,7 +20,7 @@ function HeroSection({ section }: Readonly<{ section: AboutSection }>) {
       sx={{
         bgcolor: "primary.main",
         color: "primary.contrastText",
-        borderRadius: 4,
+        borderRadius: 2,
         p: { xs: 5, md: 8 },
         mb: 6,
         position: "relative",
@@ -116,11 +116,11 @@ function OfferSection({ section }: Readonly<{ section: AboutSection }>) {
                 border: "1px solid",
                 borderColor: "divider",
                 boxShadow: "none",
-                borderRadius: 3,
+                borderRadius: 2,
               }}
             >
               <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
-                <CheckCircleOutlineRoundedIcon color="primary" sx={{ mt: 0.3, flexShrink: 0 }} />
+                <CheckCircleOutlinedRoundedIcon color="primary" sx={{ mt: 0.3, flexShrink: 0 }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
                     {item.label}
@@ -157,7 +157,7 @@ function StatsSection({ section }: Readonly<{ section: AboutSection }>) {
         bgcolor: "background.paper",
         border: "1px solid",
         borderColor: "divider",
-        borderRadius: 4,
+        borderRadius: 2,
         p: { xs: 4, md: 6 },
         mb: 6,
       }}
@@ -203,7 +203,7 @@ function ValuesSection({ section }: Readonly<{ section: AboutSection }>) {
       <Grid container spacing={2}>
         {items.map((item, i) => (
           <Grid key={i} size={{ xs: 12, sm: 6 }}>
-            <Card sx={{ p: 3, border: "1px solid", borderColor: "divider", boxShadow: "none", borderRadius: 3 }}>
+            <Card sx={{ p: 3, border: "1px solid", borderColor: "divider", boxShadow: "none", borderRadius: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
                 {item.label}
               </Typography>
@@ -227,7 +227,7 @@ function CtaSection({ section }: Readonly<{ section: AboutSection }>) {
       sx={{
         bgcolor: "primary.main",
         color: "primary.contrastText",
-        borderRadius: 4,
+        borderRadius: 2,
         p: { xs: 5, md: 8 },
         textAlign: "center",
         mt: 2,

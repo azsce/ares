@@ -159,7 +159,7 @@ export default function DriverEarningsClient() {
       {recentEarnings.length === 0 ? (
         <Paper
           elevation={0}
-          sx={{ p: 4, textAlign: "center", border: `1px dashed ${theme.palette.divider}`, borderRadius: 4 }}
+          sx={{ p: 4, textAlign: "center", border: `1px dashed ${theme.palette.divider}`, borderRadius: 2 }}
         >
           <Typography color="text.secondary">You haven't completed any trips yet.</Typography>
         </Paper>
@@ -167,7 +167,7 @@ export default function DriverEarningsClient() {
         <TableContainer
           component={Paper}
           elevation={0}
-          sx={{ borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}
+          sx={{ borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}
         >
           <Table sx={{ minWidth: 650 }} aria-label="earnings history table">
             <TableHead sx={{ bgcolor: "background.default" }}>

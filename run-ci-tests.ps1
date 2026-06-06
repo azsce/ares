@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Continue"
-Write-Host "=== Frontend format:check ==="
-bun run --cwd frontend format:check
+Write-Host "=== Frontend format ==="
+bun run --cwd frontend format
 if ($LASTEXITCODE -ne 0) { Write-Host "❌ format:check failed"; exit 1 }
 
 Write-Host "=== Frontend tsgo ==="

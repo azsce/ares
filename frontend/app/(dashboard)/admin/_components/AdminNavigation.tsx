@@ -40,6 +40,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { performLogoutCleanup } from "@/utils/auth-cleanup";
 
 const drawerWidth = 280;
 
@@ -66,6 +67,7 @@ export default function AdminNavigation({ children }: Readonly<{ children: React
   // الدالة الجديدة لمعالجة تسجيل الخروج بشكل صحيح
   const handleLogout = async () => {
     // إيقاف التوجيه التلقائي لمسح حالة الجلسة تمامًا
+    performLogoutCleanup();
     await signOut({ redirect: false });
     // إجبار المتصفح على إعادة التحميل والانتقال للصفحة الرئيسية لمسح الكاش
     window.location.href = "/";

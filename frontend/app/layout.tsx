@@ -56,7 +56,7 @@ export default async function RootLayout({ children }: { readonly children: Reac
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} preload`}
-        style={{ backgroundColor: bgFallbackColor }}
+        style={{ backgroundColor: bgFallbackColor, color: theme.palette.text.primary }}
       >
         <ThemeWatcher />
         <MuiProvider initialTheme={initialTheme}>

@@ -34,8 +34,8 @@ export function AppThemeProvider({ children, initialTheme = "light" }: AppThemeP
 
   const toggleTheme = () => {
     const newMode = mode === "light" ? "dark" : "light";
+    // setThemePreference will save to storage/cookies and trigger a page reload
     setThemePreference(newMode);
-    setMode(newMode);
   };
 
   const theme = createAppTheme(mode);

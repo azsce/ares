@@ -330,7 +330,7 @@ export default function GoogleSignInButton({
         maxWidth="xs"
         fullWidth
         slotProps={{
-          paper: { sx: { borderRadius: 3, p: 1 } },
+          paper: { sx: { borderRadius: 2, p: 1 } },
         }}
       >
         <DialogTitle sx={{ fontWeight: 700 }}>Choose your role</DialogTitle>

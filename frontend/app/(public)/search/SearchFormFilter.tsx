@@ -170,6 +170,9 @@ export default function SearchFormFilter({
               },
             }}
           >
+            <MenuItem value="">
+              <em>Select a location</em>
+            </MenuItem>
             {locations.map(location => (
               <MenuItem key={location.id} value={location.id}>
                 {location.label}
@@ -398,7 +401,7 @@ export default function SearchFormFilter({
         </Box>
 
         {/* Vehicle Autocomplete Search */}
-        <Box sx={{ width: "100%", maxWidth: "1000px", mt: 3 }}>
+        <Box sx={{ width: "100%", mt: 3 }}>
           <VehicleAutocomplete vehicles={vehicles} />
         </Box>
       </Paper>

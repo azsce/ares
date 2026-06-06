@@ -31,6 +31,14 @@ namespace Backend.Application.DTOs.Checkout
     }
 
     /// <summary>
+    /// Wrapper for the driver catalog, including availability statistics for
+    /// the requested location.
+    /// </summary>
+    public record AvailableDriversResponse(
+        IEnumerable<AvailableDriverDto> Drivers,
+        int NearbyUnavailableCount);
+
+    /// <summary>
     /// Single-call checkout payload: reservation details + driver choice +
     /// payment method. The booking and payment records are created together
     /// only after payment succeeds, so a booking can never appear paid without

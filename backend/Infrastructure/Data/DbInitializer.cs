@@ -47,7 +47,7 @@ public static class DbInitializer
         return util.Format(parsed, PhoneNumberFormat.E164);
     }
 
-    public static async Task InitializeAsync(IServiceProvider serviceProvider, bool seedDemoData = false)
+    public static async Task InitializeAsync(IServiceProvider serviceProvider, bool seedDemoData = false, bool force = false)
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -61,8 +61,33 @@ public static class DbInitializer
 
             if (seedDemoData)
             {
+                // Check if already seeded to prevent multiple automatic runs
+                var isSeeded = await context.SystemSettings
+                    .AnyAsync(s => s.Key == "IsSeeded" && s.Value == "true");
+
+                if (isSeeded && !force)
+                {
+                    logger.LogInformation("Database already seeded. Skipping automatic demo data seeding.");
+                    return;
+                }
+
                 await SyncSeederAssetsAsync(env, logger);
                 await SeedDemoDataAsync(context, userManager, logger);
+
+                // Mark as seeded
+                if (!isSeeded)
+                {
+                    var setting = await context.SystemSettings.FirstOrDefaultAsync(s => s.Key == "IsSeeded");
+                    if (setting == null)
+                    {
+                        await context.SystemSettings.AddAsync(new SystemSetting { Id = Guid.NewGuid(), Key = "IsSeeded", Value = "true" });
+                    }
+                    else
+                    {
+                        setting.Value = "true";
+                    }
+                    await context.SaveChangesAsync();
+                }
             }
 
             logger.LogInformation("Database initialization completed successfully");

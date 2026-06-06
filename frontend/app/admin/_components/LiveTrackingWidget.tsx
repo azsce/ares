@@ -47,7 +47,7 @@ export default function LiveTrackingWidget() {
     <Card
       elevation={0}
       sx={theme => ({
-        borderRadius: 4,
+        borderRadius: 2,
         border: "1px solid",
         borderColor: "divider",
         boxShadow: theme.palette.shadow.card,
@@ -96,7 +96,7 @@ export default function LiveTrackingWidget() {
             variant="determinate"
             value={connectionHealth}
             color="success"
-            sx={{ height: 8, borderRadius: 4, bgcolor: "action.hover" }}
+            sx={{ height: 8, borderRadius: 2, bgcolor: "action.hover" }}
           />
         </Box>
       </CardContent>
