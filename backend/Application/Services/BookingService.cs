@@ -1595,8 +1595,13 @@ public class BookingService : IBookingService
         var booking = await _bookingRepository.GetByIdAsync(bookingId, ct)
             ?? throw new NotFoundException($"Booking {bookingId} not found");
         var payment = await _context.Payments
-            .FirstOrDefaultAsync(p => p.BookingId == bookingId && p.Status == "Captured", ct)
-            ?? throw new NotFoundException("No captured payment found for this booking");
+            .FirstOrDefaultAsync(p => p.BookingId == bookingId && p.Status == "Captured", ct);
+
+        if (payment == null || booking.Status == BookingStatus.PaymentPending || booking.Status == BookingStatus.Draft)
+        {
+            return new Application.Interfaces.RefundResult(100m, 0m, 0m, Domain.Entities.Enums.PolicyType.Free);
+        }
+
         return new RefundCalculator().Calculate(booking.Status, booking.PickupDate ?? DateTime.UtcNow.AddDays(1), payment.Amount);
     }
 }
