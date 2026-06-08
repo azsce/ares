@@ -24,10 +24,7 @@ export default function InspectorDashboardPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [assignedData, historyData] = await Promise.all([
-        listMyInspections(false),
-        getInspectionHistory()
-      ]);
+      const [assignedData, historyData] = await Promise.all([listMyInspections(false), getInspectionHistory()]);
       setItems(assignedData);
       setHistory(historyData);
     } catch (err) {
@@ -44,10 +41,10 @@ export default function InspectorDashboardPage() {
   const stats = useMemo(() => {
     const pending = items.filter(i => i.status === "Pending" && !i.isSubmitted);
     const completed = history.filter(i => i.isSubmitted);
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const todaysInspections = [...items, ...history].filter(i => {
       const d = new Date(i.inspectionDate);
       d.setHours(0, 0, 0, 0);
@@ -91,7 +88,10 @@ export default function InspectorDashboardPage() {
 
       <Grid container spacing={3} sx={{ mt: 1 }}>
         <Grid size={{ xs: 12, md: 8 }}>
-          <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%" }}>
+          <Paper
+            elevation={0}
+            sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%" }}
+          >
             <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>
                 Recent & Upcoming Assignments
@@ -136,7 +136,17 @@ export default function InspectorDashboardPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%", bgcolor: "background.default" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, md: 3 },
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              height: "100%",
+              bgcolor: "background.default",
+            }}
+          >
             <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>
                 Quick Actions
@@ -194,7 +204,7 @@ function InspectionListItem({ item }: { readonly item: InspectionSummary }) {
         border: "1px solid",
         borderColor: "divider",
         "&:hover": { borderColor: "primary.main", bgcolor: alpha(theme.palette.primary.main, 0.02) },
-        transition: "all 0.2s"
+        transition: "all 0.2s",
       }}
     >
       <Stack

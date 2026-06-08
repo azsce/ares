@@ -34,7 +34,11 @@ export default function InspectorProfilePage() {
           bgcolor: "background.paper",
         }}
       >
-        <Stack direction={{ xs: "column", md: "row" }} spacing={4} sx={{ alignItems: { xs: "center", md: "flex-start" } }}>
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={4}
+          sx={{ alignItems: { xs: "center", md: "flex-start" } }}
+        >
           <Avatar
             sx={{
               width: 120,
@@ -52,11 +56,7 @@ export default function InspectorProfilePage() {
             <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, textAlign: { xs: "center", md: "left" } }}>
               {user.firstName} {user.lastName}
             </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ mb: 3, textAlign: { xs: "center", md: "left" } }}
-            >
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3, textAlign: { xs: "center", md: "left" } }}>
               {user.roles.join(", ")}
             </Typography>
 

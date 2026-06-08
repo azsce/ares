@@ -74,12 +74,24 @@ export default function InspectionHistoryPage() {
       </Box>
 
       {items.length > 0 && (
-        <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+          }}
+        >
           <TextField
             fullWidth
             placeholder="Search by Booking Number, Vehicle, or Status..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); }}
+            onChange={e => {
+              setSearch(e.target.value);
+            }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -87,8 +99,8 @@ export default function InspectionHistoryPage() {
                     <SearchIcon color="action" />
                   </InputAdornment>
                 ),
-                sx: { borderRadius: 2, bgcolor: "background.default" }
-              }
+                sx: { borderRadius: 2, bgcolor: "background.default" },
+              },
             }}
           />
         </Paper>
@@ -109,7 +121,7 @@ export default function InspectionHistoryPage() {
             border: "1px dashed",
             borderColor: "divider",
             textAlign: "center",
-            bgcolor: "background.paper"
+            bgcolor: "background.paper",
           }}
         >
           <HistoryIcon sx={{ fontSize: 60, mb: 2, color: "text.disabled" }} />
@@ -125,8 +137,12 @@ export default function InspectionHistoryPage() {
           elevation={0}
           sx={{ p: 6, borderRadius: 3, border: "1px solid", borderColor: "divider", textAlign: "center" }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>No results found</Typography>
-          <Typography variant="body2" color="text.secondary">Try adjusting your search query.</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            No results found
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Try adjusting your search query.
+          </Typography>
         </Paper>
       ) : isMobile ? (
         <Stack spacing={2}>
@@ -137,7 +153,9 @@ export default function InspectionHistoryPage() {
               sx={{ p: 2.5, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
             >
               <Stack direction="row" sx={{ justifyContent: "space-between", mb: 1.5, alignItems: "center" }}>
-                <Typography sx={{ fontWeight: 800, fontSize: "1.1rem" }}>{i.bookingNumber || `BKG-${i.bookingId.split("-")[0].toUpperCase()}`}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: "1.1rem" }}>
+                  {i.bookingNumber || `BKG-${i.bookingId.split("-")[0].toUpperCase()}`}
+                </Typography>
                 <InspectionStatusBadge status={i.status} />
               </Stack>
               <Typography variant="body1" sx={{ fontWeight: 600, mb: 1, color: "text.primary" }}>
@@ -174,15 +192,21 @@ export default function InspectionHistoryPage() {
                 <TableCell sx={{ fontWeight: 700 }}>Submitted At</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Photos</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Action</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700 }}>
+                  Action
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredItems.map(i => (
                 <TableRow key={i.inspectionId} hover sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                  <TableCell sx={{ fontWeight: 800 }}>{i.bookingNumber || `BKG-${i.bookingId.split("-")[0].toUpperCase()}`}</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>
+                    {i.bookingNumber || `BKG-${i.bookingId.split("-")[0].toUpperCase()}`}
+                  </TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>{i.vehicleDisplayName}</TableCell>
-                  <TableCell color="text.secondary">{i.submittedAt ? new Date(i.submittedAt).toLocaleString() : "—"}</TableCell>
+                  <TableCell color="text.secondary">
+                    {i.submittedAt ? new Date(i.submittedAt).toLocaleString() : "—"}
+                  </TableCell>
                   <TableCell>{i.imageCount}</TableCell>
                   <TableCell>
                     <InspectionStatusBadge status={i.status} />

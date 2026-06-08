@@ -179,7 +179,18 @@ export default function InspectorsPage() {
       <VehicleStats items={inspectorStatsItems} />
 
       {/* FILTERS */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, mt: 1, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 3,
+          mt: 1,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
           <TextField
             fullWidth
@@ -196,7 +207,7 @@ export default function InspectorsPage() {
                     <SearchIcon color="action" />
                   </InputAdornment>
                 ),
-                sx: { borderRadius: 2, bgcolor: "background.default" }
+                sx: { borderRadius: 2, bgcolor: "background.default" },
               },
             }}
           />
@@ -241,7 +252,9 @@ export default function InspectorsPage() {
                 <TableCell sx={{ fontWeight: 700 }}>Employee Code</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Availability</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Actions</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700 }}>
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -383,7 +396,10 @@ function InspectorMobileCard({
 }) {
   const theme = useTheme();
   return (
-    <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+    <Paper
+      elevation={0}
+      sx={{ p: 2, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
+    >
       <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
           <Avatar sx={{ bgcolor: theme.palette.primary.light, fontWeight: 700, width: 40, height: 40 }}>
