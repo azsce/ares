@@ -19,10 +19,7 @@ export default function AssignedInspectionsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [assignedData, historyData] = await Promise.all([
-        listMyInspections(false),
-        getInspectionHistory()
-      ]);
+      const [assignedData, historyData] = await Promise.all([listMyInspections(false), getInspectionHistory()]);
       setItems(assignedData);
       setHistory(historyData);
     } catch (err) {
@@ -52,30 +49,42 @@ export default function AssignedInspectionsPage() {
       </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-        <Tabs 
-          value={tabIndex} 
-          onChange={(_, newVal: number) => { setTabIndex(newVal); }}
+        <Tabs
+          value={tabIndex}
+          onChange={(_, newVal: number) => {
+            setTabIndex(newVal);
+          }}
           variant="scrollable"
           scrollButtons="auto"
           sx={{
             "& .MuiTab-root": { fontWeight: 700, textTransform: "none", fontSize: "1rem" },
           }}
         >
-          <Tab 
+          <Tab
             label={
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <span>Pending</span>
-                <Chip label={pendingItems.length} size="small" color={tabIndex === 0 ? "primary" : "default"} sx={{ height: 20, fontWeight: 700 }} />
+                <Chip
+                  label={pendingItems.length}
+                  size="small"
+                  color={tabIndex === 0 ? "primary" : "default"}
+                  sx={{ height: 20, fontWeight: 700 }}
+                />
               </Stack>
-            } 
+            }
           />
-          <Tab 
+          <Tab
             label={
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <span>Completed</span>
-                <Chip label={history.length} size="small" color={tabIndex === 1 ? "primary" : "default"} sx={{ height: 20, fontWeight: 700 }} />
+                <Chip
+                  label={history.length}
+                  size="small"
+                  color={tabIndex === 1 ? "primary" : "default"}
+                  sx={{ height: 20, fontWeight: 700 }}
+                />
               </Stack>
-            } 
+            }
           />
         </Tabs>
       </Box>
@@ -97,7 +106,7 @@ export default function AssignedInspectionsPage() {
             border: "1px dashed",
             borderColor: "divider",
             textAlign: "center",
-            bgcolor: "background.paper"
+            bgcolor: "background.paper",
           }}
         >
           <AssignmentIcon sx={{ fontSize: 60, mb: 2, color: "text.disabled" }} />
@@ -105,7 +114,9 @@ export default function AssignedInspectionsPage() {
             {tabIndex === 0 ? "No pending inspections" : "No completed inspections"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {tabIndex === 0 ? "You're all caught up. New tasks will appear here when assigned." : "You haven't completed any inspections yet."}
+            {tabIndex === 0
+              ? "You're all caught up. New tasks will appear here when assigned."
+              : "You haven't completed any inspections yet."}
           </Typography>
         </Paper>
       ) : (
@@ -137,10 +148,10 @@ function InspectionCard({ item }: { readonly item: InspectionSummary }) {
         display: "flex",
         flexDirection: "column",
         transition: "all 0.2s",
-        "&:hover": { 
-          borderColor: "primary.main", 
+        "&:hover": {
+          borderColor: "primary.main",
           transform: "translateY(-4px)",
-          boxShadow: theme.shadows[4]
+          boxShadow: theme.shadows[4],
         },
       }}
     >
@@ -157,18 +168,30 @@ function InspectionCard({ item }: { readonly item: InspectionSummary }) {
 
       <Stack spacing={1} sx={{ mb: 3, flex: 1 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="body2" color="text.secondary">Scheduled:</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date(item.inspectionDate).toLocaleDateString()}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Scheduled:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {new Date(item.inspectionDate).toLocaleDateString()}
+          </Typography>
         </Box>
         {item.submittedAt && (
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="body2" color="text.secondary">Submitted:</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date(item.submittedAt).toLocaleDateString()}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Submitted:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {new Date(item.submittedAt).toLocaleDateString()}
+            </Typography>
           </Box>
         )}
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="body2" color="text.secondary">Photos Attached:</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.imageCount}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Photos Attached:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {item.imageCount}
+          </Typography>
         </Box>
       </Stack>
 
@@ -179,10 +202,10 @@ function InspectionCard({ item }: { readonly item: InspectionSummary }) {
           fullWidth
           variant={isCompleted ? "outlined" : "contained"}
           startIcon={<AssignmentTurnedInIcon />}
-          sx={{ 
+          sx={{
             borderRadius: 2,
             py: 1.2,
-            fontWeight: 700
+            fontWeight: 700,
           }}
         >
           {isCompleted ? "View Report" : "Start Inspection"}

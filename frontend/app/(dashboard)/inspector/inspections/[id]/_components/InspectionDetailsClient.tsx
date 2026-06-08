@@ -256,7 +256,10 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
       {/* Header */}
-      <Stack direction={{ xs: "column", sm: "row" }} sx={{ alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", mb: 4, gap: 2 }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        sx={{ alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", mb: 4, gap: 2 }}
+      >
         <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <IconButton
             onClick={() => {
@@ -375,7 +378,11 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
 function InfoRow({ label, value }: { readonly label: string; readonly value: string }) {
   return (
     <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: "block", mb: 0.5, textTransform: "uppercase", letterSpacing: 0.5 }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontWeight: 600, display: "block", mb: 0.5, textTransform: "uppercase", letterSpacing: 0.5 }}
+      >
         {label}
       </Typography>
       <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -387,7 +394,17 @@ function InfoRow({ label, value }: { readonly label: string; readonly value: str
 
 function BookingInfoSection({ details }: { readonly details: InspectionDetails }) {
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%", bgcolor: "background.paper" }}>
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: "divider",
+        height: "100%",
+        bgcolor: "background.paper",
+      }}
+    >
       <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
         Details
       </Typography>
@@ -449,7 +466,16 @@ function InspectionReportForm({
   theme,
 }: InspectionReportFormProps) {
   return (
-    <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 2, sm: 4 },
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
+      }}
+    >
       {isLocked && (
         <Alert icon={<LockIcon />} severity="info" sx={{ borderRadius: 2, mb: 4 }}>
           This inspection report has been submitted and is locked for editing.
@@ -486,8 +512,8 @@ function InspectionReportForm({
                     </InputAdornment>
                   ),
                   endAdornment: <InputAdornment position="end">km</InputAdornment>,
-                  sx: { borderRadius: 2 }
-                }
+                  sx: { borderRadius: 2 },
+                },
               }}
             />
           </Grid>
@@ -495,7 +521,18 @@ function InspectionReportForm({
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
               Fuel Level: {fuelLevel}%
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", height: 56, px: 2, border: "1px solid", borderColor: "divider", borderRadius: 2, bgcolor: isLocked ? "action.disabledBackground" : "transparent" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                height: 56,
+                px: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 2,
+                bgcolor: isLocked ? "action.disabledBackground" : "transparent",
+              }}
+            >
               <LocalGasStationIcon color={isLocked ? "disabled" : "primary"} sx={{ mr: 2 }} />
               <Slider
                 value={fuelLevel}
@@ -503,13 +540,15 @@ function InspectionReportForm({
                 max={100}
                 step={5}
                 marks={[
-                  { value: 0, label: 'E' },
+                  { value: 0, label: "E" },
                   { value: 25 },
-                  { value: 50, label: '1/2' },
+                  { value: 50, label: "1/2" },
                   { value: 75 },
-                  { value: 100, label: 'F' },
+                  { value: 100, label: "F" },
                 ]}
-                onChange={(_, newVal) => { if (typeof newVal === "number") setFuelLevel(newVal); }}
+                onChange={(_, newVal) => {
+                  if (typeof newVal === "number") setFuelLevel(newVal);
+                }}
                 disabled={isLocked || submitting}
                 sx={{ mx: 2 }}
               />
@@ -561,7 +600,7 @@ function InspectionReportForm({
               cursor: isLocked ? "default" : "pointer",
               bgcolor: alpha(theme.palette.background.default, 0.5),
               transition: "all 0.2s",
-              "&:hover": { bgcolor: isLocked ? "inherit" : "action.hover" }
+              "&:hover": { bgcolor: isLocked ? "inherit" : "action.hover" },
             }}
             onClick={() => {
               if (!isLocked) fileInputRef.current?.click();
@@ -590,7 +629,7 @@ function InspectionReportForm({
                     border: "1px solid",
                     borderColor: "divider",
                     bgcolor: "background.default",
-                    boxShadow: theme.shadows[1]
+                    boxShadow: theme.shadows[1],
                   }}
                 >
                   {img.src && (
@@ -619,7 +658,7 @@ function InspectionReportForm({
                         color: "white",
                         backdropFilter: "blur(4px)",
                         "&:hover": { bgcolor: theme.palette.error.main, transform: "scale(1.1)" },
-                        transition: "all 0.2s"
+                        transition: "all 0.2s",
                       }}
                     >
                       <DeleteOutlinedIcon fontSize="small" />
@@ -644,7 +683,7 @@ function InspectionReportForm({
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
           Condition & Notes
         </Typography>
-        
+
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
           Damage Report / General Condition (Optional)
         </Typography>
