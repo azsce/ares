@@ -1409,7 +1409,7 @@ public class BookingService : IBookingService
         return new BookingInspectionFullDto(
             InspectionId: inspection.InspectionId,
             InspectionType: inspection.InspectionType,
-            InspectorId: inspection.InspectorId,
+            InspectorId: inspection.InspectorId ?? Guid.Empty,
             InspectorName: inspectorName,
             Status: inspection.Status.ToString(),
             InspectionDate: inspection.InspectionDate,
