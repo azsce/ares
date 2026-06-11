@@ -1,4 +1,5 @@
 using Backend.Application.DTOs.Inspection;
+using Backend.Application.Features.VehicleInspections.Queries.GetInspectorTasks;
 using Backend.Application.Features.VehicleInspections.Queries.GetInspectorTodayStats;
 using Backend.Application.Services;
 using MediatR;
@@ -43,16 +44,18 @@ public class InspectorDashboardController : ControllerBase
         return Ok(stats);
     }
 
-    /// <summary>Open inspections currently assigned to me.</summary>
-    [HttpGet("inspections")]
-    [ProducesResponseType(typeof(IReadOnlyList<InspectionDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<InspectionDto>>> GetAssigned(
-        [FromQuery] bool includeSubmitted = false,
+    /// <summary>
+    /// Today's enriched task list for the inspector mobile dashboard.
+    /// Returns vehicle, customer and scheduling data in a single projection.
+    /// </summary>
+    [HttpGet("tasks")]
+    [ProducesResponseType(typeof(IReadOnlyList<InspectorTaskDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<InspectorTaskDto>>> GetTodayTasks(
         CancellationToken cancellationToken = default)
     {
         if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
-        var inspections = await _inspectionService.GetAssignedAsync(userId, includeSubmitted, cancellationToken);
-        return Ok(inspections);
+        var tasks = await _mediator.Send(new GetInspectorTasksQuery(userId), cancellationToken);
+        return Ok(tasks);
     }
 
     /// <summary>Full details for one of my inspections.</summary>
