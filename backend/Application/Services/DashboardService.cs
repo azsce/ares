@@ -399,20 +399,30 @@ public class DashboardService : IDashboardService
         var dataPoints = await _context.Bookings
             .Where(b => b.CreatedAt >= startDate && b.CreatedAt <= endDate)
             .GroupJoin(
-                _context.Payments,
+                _context.BookingCancellations,
                 b => b.Id,
-                p => p.BookingId,
-                (b, p) => new { Booking = b, Payments = p }
+                c => c.BookingId,
+                (b, c) => new { Booking = b, Cancellations = c }
+            )
+            .SelectMany(
+                x => x.Cancellations.DefaultIfEmpty(),
+                (x, c) => new { x.Booking, Cancellation = c }
             )
             .GroupBy(x => x.Booking.CreatedAt.Date)
             .Select(g => new
             {
                 Date = g.Key,
                 Revenue = g.Sum(x => x.Booking.TotalPrice ?? 0),
-                PlatformRevenue = g.Sum(x => x.Booking.CommissionAmount ?? 0),
-                SupplierRevenue = g.Sum(x => x.Booking.SupplierAmount ?? x.Booking.TotalPrice ?? 0),
+                PlatformRevenue = g.Sum(x => x.Booking.Status == BookingStatus.Cancelled && x.Cancellation != null 
+                    ? x.Cancellation.RefundCommissionAmount 
+                    : (x.Booking.CommissionAmount ?? 0)),
+                SupplierRevenue = g.Sum(x => x.Booking.Status == BookingStatus.Cancelled && x.Cancellation != null 
+                    ? x.Cancellation.RefundSupplierAmount 
+                    : (x.Booking.SupplierAmount ?? x.Booking.TotalPrice ?? 0)),
                 Bookings = g.Sum(x => x.Booking.Status == BookingStatus.Active || x.Booking.Status == BookingStatus.Completed || x.Booking.Status == BookingStatus.Confirmed ? (x.Booking.TotalPrice ?? 0) : 0),
-                Refunds = g.Sum(x => x.Booking.Status == BookingStatus.Cancelled ? (x.Booking.TotalPrice ?? 0) : 0)
+                Refunds = g.Sum(x => x.Booking.Status == BookingStatus.Cancelled && x.Cancellation != null 
+                    ? x.Cancellation.RefundAmount 
+                    : 0)
             })
             .OrderBy(x => x.Date)
             .ToListAsync(cancellationToken);
@@ -422,6 +432,7 @@ public class DashboardService : IDashboardService
         var totalSupplierRevenue = dataPoints.Sum(x => x.SupplierRevenue);
         var totalBookings = dataPoints.Sum(x => x.Bookings);
         var totalRefunds = dataPoints.Sum(x => x.Refunds);
+        var totalNetRevenue = totalRevenue - totalRefunds;
 
         var chartData = dataPoints.Select(x => new ChartDataPointDto(
             Date: x.Date.ToString("MMM d"),
@@ -429,7 +440,8 @@ public class DashboardService : IDashboardService
             PlatformRevenue: x.PlatformRevenue,
             SupplierRevenue: x.SupplierRevenue,
             Bookings: x.Bookings,
-            Refunds: x.Refunds
+            Refunds: x.Refunds,
+            NetRevenue: x.Revenue - x.Refunds
         )).ToList().AsReadOnly();
 
         return new RevenueOverviewDto(
@@ -438,6 +450,7 @@ public class DashboardService : IDashboardService
             SupplierRevenue: totalSupplierRevenue,
             TotalBookings: totalBookings,
             TotalRefunds: totalRefunds,
+            NetRevenue: totalNetRevenue,
             ChartData: chartData
         );
     }

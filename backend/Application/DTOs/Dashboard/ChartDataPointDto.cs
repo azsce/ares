@@ -6,5 +6,6 @@ public record ChartDataPointDto(
     decimal PlatformRevenue,
     decimal SupplierRevenue,
     decimal Bookings,
-    decimal Refunds
+    decimal Refunds,
+    decimal NetRevenue
 );

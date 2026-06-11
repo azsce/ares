@@ -6,5 +6,6 @@ public record RevenueOverviewDto(
     decimal SupplierRevenue,
     decimal TotalBookings,
     decimal TotalRefunds,
+    decimal NetRevenue,
     IReadOnlyList<ChartDataPointDto> ChartData
 );
