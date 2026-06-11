@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System;
+using System.Collections.Generic;
 using Backend.Domain.Entities.Enums;
 
 namespace Backend.Domain.Entities
@@ -24,5 +25,8 @@ namespace Backend.Domain.Entities
         public decimal DiscountPercentage { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+        public ICollection<Promotion> Promotions { get; set; } = new List<Promotion>();
     }
 }
