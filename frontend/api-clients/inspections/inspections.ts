@@ -83,14 +83,6 @@ export async function assignInspectorToBooking(
   });
 }
 
-// ─── Inspector dashboard ──────────────────────────────────────────────
-export async function listMyInspections(includeSubmitted = false): Promise<InspectionSummary[]> {
-  return apiFetchJson<InspectionSummary[]>(`/api/inspector/inspections?includeSubmitted=${String(includeSubmitted)}`, {
-    method: "GET",
-    accessToken: await token(),
-  });
-}
-
 export async function getInspectionDetails(inspectionId: string): Promise<InspectionDetails> {
   return apiFetchJson<InspectionDetails>(`/api/inspector/inspections/${inspectionId}`, {
     method: "GET",
@@ -161,6 +153,27 @@ export interface InspectorTodayStats {
 
 export async function getInspectorTodayStats(): Promise<InspectorTodayStats> {
   return apiFetchJson<InspectorTodayStats>(`/api/inspector/today-stats`, {
+    method: "GET",
+    accessToken: await token(),
+  });
+}
+
+// ─── Inspector today enriched task list ──────────────────────────────
+export type InspectionTaskType = "CheckOut" | "CheckIn";
+
+export interface InspectorTask {
+  inspectionId: string;
+  inspectionType: InspectionTaskType;
+  vehicleName: string;
+  plateNumber: string;
+  customerName: string;
+  customerPhone: string;
+  scheduledTime: string; // ISO datetime string
+  address: string;
+}
+
+export async function getInspectorTasks(): Promise<InspectorTask[]> {
+  return apiFetchJson<InspectorTask[]>(`/api/inspector/tasks`, {
     method: "GET",
     accessToken: await token(),
   });
