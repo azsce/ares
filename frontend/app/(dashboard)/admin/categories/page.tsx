@@ -56,7 +56,7 @@ export default function AdminCategoriesPage() {
       setError(null);
       const data = await getCategories();
       setCategories(data);
-    } catch (err) {
+    } catch {
       setError("Failed to load categories. Please try again later.");
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export default function AdminCategoriesPage() {
 
   useEffect(() => {
     if (session?.accessToken) {
-      fetchCategories();
+      void fetchCategories();
     }
   }, [session, fetchCategories]);
 
@@ -81,8 +81,13 @@ export default function AdminCategoriesPage() {
       await deleteCategory(id);
       setCategories(prev => prev.filter(c => c.id !== id));
       setSnackbar({ open: true, message: "Category deleted successfully.", severity: "success" });
-    } catch (err: any) {
-      setSnackbar({ open: true, message: err?.response?.data?.message || "Failed to delete category.", severity: "error" });
+    } catch (err: unknown) {
+      const errorResponse = err as { response?: { data?: { message?: string } } };
+      setSnackbar({
+        open: true,
+        message: errorResponse.response?.data?.message || "Failed to delete category.",
+        severity: "error",
+      });
     }
   };
 
@@ -98,7 +103,7 @@ export default function AdminCategoriesPage() {
 
   const handleFormSuccess = () => {
     setFormOpen(false);
-    fetchCategories();
+    void fetchCategories();
     setSnackbar({ open: true, message: "Category saved successfully.", severity: "success" });
   };
 
@@ -134,7 +139,9 @@ export default function AdminCategoriesPage() {
         ) : error ? (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Alert severity="error">{error}</Alert>
-            <Button onClick={fetchCategories} sx={{ mt: 2 }}>Retry</Button>
+            <Button onClick={() => { void fetchCategories(); }} sx={{ mt: 2 }}>
+              Retry
+            </Button>
           </Box>
         ) : (
           <TableContainer>
@@ -151,7 +158,12 @@ export default function AdminCategoriesPage() {
               <TableBody>
                 {categories.length > 0 ? (
                   categories.map(c => (
-                    <TableRow key={c.id} hover onClick={() => router.push(`/admin/categories/${c.id}`)} sx={{ cursor: "pointer" }}>
+                    <TableRow
+                      key={c.id}
+                      hover
+                      onClick={() => { router.push(`/admin/categories/${c.id}`); }}
+                      sx={{ cursor: "pointer" }}
+                    >
                       <TableCell>
                         <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                           <Avatar sx={{ bgcolor: t => alpha(t.palette.primary.main, 0.1), color: "primary.main" }}>
@@ -183,16 +195,29 @@ export default function AdminCategoriesPage() {
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
                           <Tooltip title="Edit">
-                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleEdit(c); }}>
+                            <IconButton
+                              size="small"
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleEdit(c);
+                              }}
+                            >
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title={c.vehicleCount && c.vehicleCount > 0 ? "Cannot delete category with vehicles" : "Delete"}>
+                          <Tooltip
+                            title={
+                              c.vehicleCount && c.vehicleCount > 0 ? "Cannot delete category with vehicles" : "Delete"
+                            }
+                          >
                             <span>
                               <IconButton
                                 size="small"
                                 disabled={!!(c.vehicleCount && c.vehicleCount > 0)}
-                                onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.vehicleCount || 0); }}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  void handleDelete(c.id, c.vehicleCount || 0);
+                                }}
                                 sx={{ color: "error.main" }}
                               >
                                 <DeleteIcon fontSize="small" />
@@ -220,7 +245,7 @@ export default function AdminCategoriesPage() {
         <CategoryForm
           open={formOpen}
           category={editingCategory}
-          onClose={() => setFormOpen(false)}
+          onClose={() => { setFormOpen(false); }}
           onSuccess={handleFormSuccess}
         />
       )}
@@ -228,7 +253,7 @@ export default function AdminCategoriesPage() {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={() => { setSnackbar({ ...snackbar, open: false }); }}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert severity={snackbar.severity} sx={{ width: "100%" }}>

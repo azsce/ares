@@ -399,8 +399,6 @@ export default function BookingDetailsView({
               </Paper>
             ) : null}
 
-
-
             {accessToken ? (
               <BookingReviewSection
                 bookingId={bookingRef}

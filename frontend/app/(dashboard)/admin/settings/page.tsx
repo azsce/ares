@@ -37,7 +37,12 @@ export default function AdminSettingsPage() {
       <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
         <Tabs value={tab} onChange={handleTabChange}>
           <Tab icon={<SettingsRoundedIcon fontSize="small" />} iconPosition="start" label="General" value="general" />
-          <Tab icon={<AccountBalanceRoundedIcon fontSize="small" />} iconPosition="start" label="Commission" value="commission" />
+          <Tab
+            icon={<AccountBalanceRoundedIcon fontSize="small" />}
+            iconPosition="start"
+            label="Commission"
+            value="commission"
+          />
           <Tab
             icon={<GavelRoundedIcon fontSize="small" />}
             iconPosition="start"

@@ -37,7 +37,7 @@ export default function CommissionSettingsTab() {
       setLoading(true);
       setError(null);
       if (!session?.accessToken) return;
-      
+
       const res = await apiFetchJson<{ globalCommissionPercentage?: number }>("api/admin/commission/global", {
         accessToken: session.accessToken,
       });
@@ -53,7 +53,7 @@ export default function CommissionSettingsTab() {
   const handleSave = async () => {
     try {
       if (!session?.accessToken) return;
-      
+
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -100,8 +100,8 @@ export default function CommissionSettingsTab() {
               Global Commission Rate
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Set the default commission percentage the platform takes from each booking. 
-              This applies to all vehicles unless overridden by a category-specific commission.
+              Set the default commission percentage the platform takes from each booking. This applies to all vehicles
+              unless overridden by a category-specific commission.
             </Typography>
           </Box>
 
@@ -114,7 +114,7 @@ export default function CommissionSettingsTab() {
               fullWidth
               type="number"
               value={percentage}
-              onChange={(e) => setPercentage(e.target.value)}
+              onChange={e => { setPercentage(e.target.value); }}
               slotProps={{
                 input: {
                   startAdornment: (

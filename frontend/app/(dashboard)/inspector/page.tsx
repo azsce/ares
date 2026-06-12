@@ -25,10 +25,7 @@ export default function InspectorDashboardPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [tasksData, statsData] = await Promise.all([
-        getInspectorTasks(),
-        getInspectorTodayStats(),
-      ]);
+      const [tasksData, statsData] = await Promise.all([getInspectorTasks(), getInspectorTodayStats()]);
       setTasks(tasksData);
       setStats(statsData);
     } catch (err) {

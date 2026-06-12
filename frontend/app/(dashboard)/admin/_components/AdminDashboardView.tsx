@@ -61,10 +61,10 @@ export default function AdminDashboardView({
           <QuickActions actions={quickActions} />
         </Grid>
       </Grid>
-      
+
       <Grid container spacing={3} sx={{ mt: 2 }}>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <VehiclesPerCategoryCard data={(rawSummaryData as DashboardSummary)?.vehiclesPerCategory} />
+          <VehiclesPerCategoryCard data={rawSummaryData ? (rawSummaryData as DashboardSummary).vehiclesPerCategory : undefined} />
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }}>
           <Grid container spacing={3}>

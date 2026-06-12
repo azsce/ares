@@ -41,10 +41,7 @@ function findLocationById(locations: PublicLocation[], locationId: string): Publ
 export default async function SearchPage({ searchParams }: Readonly<PageProps>) {
   const resolvedSearchParams = await searchParams;
   const defaultDates = getDefaultDates();
-  const [locations, categories] = await Promise.all([
-    fetchPublicLocations(),
-    fetchPublicCategories()
-  ]);
+  const [locations, categories] = await Promise.all([fetchPublicLocations(), fetchPublicCategories()]);
 
   const requestedLocationId = firstValue(resolvedSearchParams.pickupLocationId);
   // Don't default to locations[0] if no location is requested

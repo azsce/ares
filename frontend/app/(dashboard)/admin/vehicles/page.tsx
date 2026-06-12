@@ -580,7 +580,7 @@ function DesktopVehicleList({
                   onDelete={handleDelete}
                   onNavigate={handleNavigate}
                   selected={selectedVehicleIds.has(v.vehicleId || v.id)}
-                  onToggle={() => toggleVehicleSelection(v.vehicleId || v.id)}
+                  onToggle={() => { toggleVehicleSelection(v.vehicleId || v.id); }}
                 />
               ))
             ) : (
@@ -1042,7 +1042,7 @@ export default function AdminCarsPage() {
             <Button
               variant="outlined"
               color="primary"
-              onClick={() => setOpenBulkAssign(true)}
+              onClick={() => { setOpenBulkAssign(true); }}
               sx={{ fontWeight: 700, borderRadius: 2 }}
             >
               Bulk Assign Category ({selectedVehicleIds.size})
@@ -1253,7 +1253,7 @@ export default function AdminCarsPage() {
       {/* BULK ASSIGN DIALOG */}
       <Dialog
         open={openBulkAssign}
-        onClose={() => setOpenBulkAssign(false)}
+        onClose={() => { setOpenBulkAssign(false); }}
         fullWidth
         maxWidth="xs"
         slotProps={{
@@ -1270,20 +1270,29 @@ export default function AdminCarsPage() {
             fullWidth
             label="Category"
             value={selectedCategoryId}
-            onChange={(e) => setSelectedCategoryId(e.target.value)}
+            onChange={e => { setSelectedCategoryId(e.target.value); }}
           >
-            <MenuItem value="" disabled>Select a category</MenuItem>
+            <MenuItem value="" disabled>
+              Select a category
+            </MenuItem>
             {categories.map(c => (
-              <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+              <MenuItem key={c.id} value={c.id}>
+                {c.name}
+              </MenuItem>
             ))}
           </TextField>
         </DialogContent>
         <DialogActions sx={{ flexWrap: "wrap", gap: 1, pb: 2, px: 2 }}>
-          <Button onClick={() => setOpenBulkAssign(false)} variant="outlined" sx={{ borderRadius: 2, flex: { xs: 1, sm: "none" } }} disabled={bulkAssignLoading}>
+          <Button
+            onClick={() => { setOpenBulkAssign(false); }}
+            variant="outlined"
+            sx={{ borderRadius: 2, flex: { xs: 1, sm: "none" } }}
+            disabled={bulkAssignLoading}
+          >
             Cancel
           </Button>
           <Button
-            onClick={handleBulkAssignSubmit}
+            onClick={() => { void handleBulkAssignSubmit(); }}
             color="primary"
             variant="contained"
             disabled={!selectedCategoryId || bulkAssignLoading}

@@ -33,7 +33,7 @@ export default function VehiclesPerCategoryCard({ data }: VehiclesPerCategoryCar
             Vehicles Per Category
           </Typography>
         </Box>
-        
+
         {entries.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No categories available.

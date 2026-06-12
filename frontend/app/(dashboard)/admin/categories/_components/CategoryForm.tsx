@@ -18,10 +18,10 @@ import {
 import { createCategory, updateCategory, Category } from "@/api-clients/categories/categories";
 
 interface CategoryFormProps {
-  open: boolean;
-  category: Category | null;
-  onClose: () => void;
-  onSuccess: () => void;
+  readonly open: boolean;
+  readonly category: Category | null;
+  readonly onClose: () => void;
+  readonly onSuccess: () => void;
 }
 
 export default function CategoryForm({ open, category, onClose, onSuccess }: CategoryFormProps) {
@@ -62,7 +62,7 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setError("Name is required.");
@@ -72,15 +72,16 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
     try {
       setLoading(true);
       setError(null);
-      
+
       if (category) {
         await updateCategory(category.id, formData);
       } else {
         await createCategory(formData);
       }
       onSuccess();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to save category. Please try again.");
+    } catch (err: unknown) {
+      const errorResponse = err as { response?: { data?: { message?: string } } };
+      setError(errorResponse.response?.data?.message || "Failed to save category. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -88,10 +89,8 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
 
   return (
     <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>
-        {category ? "Edit Category" : "Add Category"}
-      </DialogTitle>
-      <form onSubmit={handleSubmit}>
+      <DialogTitle sx={{ fontWeight: 700 }}>{category ? "Edit Category" : "Add Category"}</DialogTitle>
+      <form onSubmit={(e) => { void handleSubmit(e); }}>
         <DialogContent dividers>
           <Stack spacing={3}>
             <TextField
@@ -103,7 +102,7 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
               required
               disabled={loading}
             />
-            
+
             <TextField
               label="Description"
               name="description"
@@ -114,7 +113,7 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
               rows={3}
               disabled={loading}
             />
-            
+
             <TextField
               label="Commission Percentage"
               name="commissionPercentage"
@@ -127,7 +126,7 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
                 input: {
                   endAdornment: <InputAdornment position="end">%</InputAdornment>,
                 },
-                htmlInput: { min: 0, max: 100, step: "0.01" }
+                htmlInput: { min: 0, max: 100, step: "0.01" },
               }}
             />
 

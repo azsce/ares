@@ -20,13 +20,9 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
 
   const isCheckOut = task.inspectionType === "CheckOut";
 
-  const accentColor = isCheckOut
-    ? theme.palette.status.active.main
-    : theme.palette.status.cancelled.main;
+  const accentColor = isCheckOut ? theme.palette.status.active.main : theme.palette.status.cancelled.main;
 
-  const accentLight = isCheckOut
-    ? theme.palette.status.active.light
-    : theme.palette.status.cancelled.light;
+  const accentLight = isCheckOut ? theme.palette.status.active.light : theme.palette.status.cancelled.light;
 
   const typeLabel = isCheckOut ? "Check-Out 🟢" : "Check-In 🔴";
   const TypeIcon = isCheckOut ? DirectionsCarIcon : CarRepairIcon;
@@ -84,10 +80,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
       >
         <Stack direction="row" sx={{ alignItems: "center", gap: 0.75 }}>
           <TypeIcon sx={{ fontSize: 16, color: accentColor }} />
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 700, color: accentColor, letterSpacing: "0.03em" }}
-          >
+          <Typography variant="caption" sx={{ fontWeight: 700, color: accentColor, letterSpacing: "0.03em" }}>
             {typeLabel}
           </Typography>
         </Stack>
@@ -102,11 +95,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
         {/* Vehicle info — prominent */}
         <Stack direction="row" sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 800, lineHeight: 1.2, mb: 0.25 }}
-              noWrap
-            >
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, mb: 0.25 }} noWrap>
               {task.vehicleName}
             </Typography>
             <Box
@@ -120,10 +109,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
                 py: 0.25,
               }}
             >
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, color: accentColor, letterSpacing: "0.08em" }}
-              >
+              <Typography variant="caption" sx={{ fontWeight: 700, color: accentColor, letterSpacing: "0.08em" }}>
                 {task.plateNumber || "—"}
               </Typography>
             </Box>
@@ -141,10 +127,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
           {task.address && (
             <Stack direction="row" sx={{ alignItems: "flex-start", gap: 0.75 }}>
               <PlaceIcon sx={{ fontSize: 14, color: "text.secondary", flexShrink: 0, mt: 0.2 }} />
-              <Typography
-                variant="caption"
-                sx={{ color: "text.secondary", lineHeight: 1.4 }}
-              >
+              <Typography variant="caption" sx={{ color: "text.secondary", lineHeight: 1.4 }}>
                 {task.address}
               </Typography>
             </Stack>

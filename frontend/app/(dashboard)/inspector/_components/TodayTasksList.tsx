@@ -1,17 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Box,
-  InputAdornment,
-  Paper,
-  Skeleton,
-  Stack,
-  TextField,
-  Typography,
-  useTheme,
-  alpha,
-} from "@mui/material";
+import { Box, InputAdornment, Paper, Skeleton, Stack, TextField, Typography, useTheme, alpha } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SearchIcon from "@mui/icons-material/Search";
 import type { InspectorTask, InspectionTaskType } from "@/api-clients/inspections/inspections";
@@ -49,9 +39,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
 
     const trimmedPlate = plateSearch.trim().toUpperCase();
     if (trimmedPlate) {
-      result = result.filter(t =>
-        t.plateNumber.toUpperCase().includes(trimmedPlate)
-      );
+      result = result.filter(t => t.plateNumber.toUpperCase().includes(trimmedPlate));
     }
 
     return result;
@@ -67,7 +55,9 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
             <Box
               key={tab.value}
               component="button"
-              onClick={() => { setActiveFilter(tab.value); }}
+              onClick={() => {
+                setActiveFilter(tab.value);
+              }}
               sx={{
                 px: 2,
                 py: 0.75,
@@ -83,9 +73,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
                 boxShadow: isActive ? theme.palette.shadow.button : "none",
                 "&:hover": {
                   borderColor: "primary.main",
-                  bgcolor: isActive
-                    ? "primary.main"
-                    : alpha(theme.palette.primary.main, 0.06),
+                  bgcolor: isActive ? "primary.main" : alpha(theme.palette.primary.main, 0.06),
                   color: isActive ? "primary.contrastText" : "primary.main",
                 },
               }}
@@ -101,7 +89,9 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
         id="plate-search"
         placeholder="Search by plate number…"
         value={plateSearch}
-        onChange={e => { setPlateSearch(e.target.value); }}
+        onChange={e => {
+          setPlateSearch(e.target.value);
+        }}
         size="small"
         sx={{ mb: 2.5 }}
         slotProps={{
@@ -154,9 +144,7 @@ function EmptyState({ hasSearch }: { readonly hasSearch: boolean }) {
         {hasSearch ? "No matching tasks" : "All caught up!"}
       </Typography>
       <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        {hasSearch
-          ? "Try adjusting the filter or search term."
-          : "You have no pending tasks for today."}
+        {hasSearch ? "Try adjusting the filter or search term." : "You have no pending tasks for today."}
       </Typography>
     </Paper>
   );

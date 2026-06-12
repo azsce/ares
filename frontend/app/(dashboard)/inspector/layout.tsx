@@ -1,11 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Dashboard as DashboardIcon,
-  History as HistoryIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
+import { Dashboard as DashboardIcon, History as HistoryIcon, Person as PersonIcon } from "@mui/icons-material";
 import DashboardShell, { type DashboardMenuItem } from "../_components/DashboardShell";
 
 const menuItems: DashboardMenuItem[] = [

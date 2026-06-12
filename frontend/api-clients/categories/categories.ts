@@ -92,7 +92,7 @@ export async function deleteCategory(id: string): Promise<void> {
   });
 }
 
-export async function bulkAssignVehicles(categoryId: string, vehicleIds: string[]): Promise<any> {
+export async function bulkAssignVehicles(categoryId: string, vehicleIds: string[]): Promise<unknown> {
   const session = await getSession();
 
   return apiFetchJson(`/api/admin/categories/bulk-assign`, {
