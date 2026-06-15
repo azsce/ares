@@ -230,7 +230,11 @@ export default function BookingCard({ vehicle, locationOptions, vehicleId, baseP
           </Typography>
           {resolvedVehicle.discountPercentage ? (
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through", fontWeight: 500 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textDecoration: "line-through", fontWeight: 500 }}
+              >
                 {formatCurrency(resolvedVehicle.originalPricePerDay ?? 0)}
               </Typography>
               <Typography variant="body2" color="primary.main" sx={{ fontWeight: 700 }}>

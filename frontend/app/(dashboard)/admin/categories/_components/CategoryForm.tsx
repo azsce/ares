@@ -50,8 +50,12 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
         isActive: category.isActive,
         offerName: category.activeOffer?.offerName || "",
         offerDiscountPercentage: category.activeOffer?.discountPercentage || 0,
-        offerStartDate: category.activeOffer?.startDate ? new Date(category.activeOffer.startDate).toISOString().split('T')[0] : "",
-        offerEndDate: category.activeOffer?.endDate ? new Date(category.activeOffer.endDate).toISOString().split('T')[0] : "",
+        offerStartDate: category.activeOffer?.startDate
+          ? new Date(category.activeOffer.startDate).toISOString().split("T")[0]
+          : "",
+        offerEndDate: category.activeOffer?.endDate
+          ? new Date(category.activeOffer.endDate).toISOString().split("T")[0]
+          : "",
         offerIsActive: category.activeOffer?.isActive ?? true,
       });
     } else {
@@ -211,7 +215,7 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
               fullWidth
               disabled={loading}
               slotProps={{
-                inputLabel: { shrink: true }
+                inputLabel: { shrink: true },
               }}
             />
 
@@ -224,7 +228,7 @@ export default function CategoryForm({ open, category, onClose, onSuccess }: Cat
               fullWidth
               disabled={loading}
               slotProps={{
-                inputLabel: { shrink: true }
+                inputLabel: { shrink: true },
               }}
             />
 

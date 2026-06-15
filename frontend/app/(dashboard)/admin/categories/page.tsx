@@ -198,7 +198,9 @@ export default function AdminCategoriesPage() {
                             variant="outlined"
                           />
                         ) : (
-                          <Typography variant="caption" color="text.secondary">None</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            None
+                          </Typography>
                         )}
                       </TableCell>
                       <TableCell>

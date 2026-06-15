@@ -145,9 +145,7 @@ export default function OrderSummary({ booking }: OrderSummaryProps) {
               Rental ({days} {days === 1 ? "Day" : "Days"})
             </Typography>
             <Typography variant="body2" sx={{ fontFamily: "monospace", fontWeight: 500 }}>
-              {booking.originalPrice 
-                ? formatCurrency(booking.originalPrice)
-                : formatCurrency(booking.price)}
+              {booking.originalPrice ? formatCurrency(booking.originalPrice) : formatCurrency(booking.price)}
             </Typography>
           </Box>
           {booking.discountAmount ? (
