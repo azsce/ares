@@ -156,6 +156,7 @@ export default function AdminCategoriesPage() {
                   <TableCell>Name</TableCell>
                   <TableCell>Commission</TableCell>
                   <TableCell>Vehicles</TableCell>
+                  <TableCell>Offer</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -188,6 +189,18 @@ export default function AdminCategoriesPage() {
                       </TableCell>
                       <TableCell>{c.commissionPercentage}%</TableCell>
                       <TableCell>{c.vehicleCount || 0}</TableCell>
+                      <TableCell>
+                        {c.activeOffer ? (
+                          <Chip
+                            label={`${c.activeOffer.discountPercentage}% off`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">None</Typography>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={c.isActive ? "Active" : "Inactive"}
