@@ -37,6 +37,7 @@ public class BookingService : IBookingService
     private readonly IDriverPricingService? _driverPricingService;
     private readonly IDriverProfileRepository? _driverProfileRepository;
     private readonly ICommissionService? _commissionService;
+    private readonly IPricingService _pricingService;
 
     public BookingService(
         IBookingRepository bookingRepository,
@@ -47,7 +48,8 @@ public class BookingService : IBookingService
         IVerificationService? verificationService = null,
         IDriverPricingService? driverPricingService = null,
         IDriverProfileRepository? driverProfileRepository = null,
-        ICommissionService? commissionService = null)
+        ICommissionService? commissionService = null,
+        IPricingService? pricingService = null)
     {
         _bookingRepository = bookingRepository;
         _vehicleRepository = vehicleRepository;
@@ -58,6 +60,7 @@ public class BookingService : IBookingService
         _driverPricingService = driverPricingService;
         _driverProfileRepository = driverProfileRepository;
         _commissionService = commissionService;
+        _pricingService = pricingService ?? throw new ArgumentNullException(nameof(pricingService));
     }
 
     public async Task<BookingResponse> CreateBookingAsync(
@@ -155,7 +158,15 @@ public class BookingService : IBookingService
         // Requirement 4.2: Calculate total price (days * pricePerDay) — always
         // server-side, never trust a client-provided total.
         var totalDays = (request.ReturnDate - request.PickupDate).Days;
-        var totalPrice = (vehicle.PricePerDay ?? 0) * totalDays;
+        var pricingResult = await _pricingService.CalculateBookingPricingAsync(
+            request.VehicleId,
+            request.PickupDate,
+            request.ReturnDate,
+            cancellationToken);
+            
+        var originalPrice = pricingResult.OriginalPrice;
+        var discountAmount = pricingResult.DiscountAmount;
+        var totalPrice = pricingResult.FinalPrice;
 
         // Requirement 4.5: Generate unique booking number
         var bookingNumber = GenerateUniqueBookingNumber();
@@ -207,6 +218,8 @@ public class BookingService : IBookingService
             PickupLocation = pickupLabel,
             DropoffLocation = dropoffLabel,
             TotalDays = totalDays,
+            OriginalPrice = originalPrice,
+            DiscountAmount = discountAmount,
             TotalPrice = totalPrice,
             // The driver-module assignment is NEVER set here. A driver is only
             // attached through the request → accept → select workflow, which
@@ -1402,6 +1415,8 @@ public class BookingService : IBookingService
             Timeline: timeline,
             AssignedDriverProfile: assignedDriverDto,
             VehicleFee: booking.VehicleFee,
+            OriginalPrice: booking.OriginalPrice,
+            DiscountAmount: booking.DiscountAmount,
             DriverFee: booking.DriverFee,
             GrandTotal: booking.GrandTotal,
             RequiresDriver: booking.RequiresDriver);

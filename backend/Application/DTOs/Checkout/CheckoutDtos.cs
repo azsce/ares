@@ -103,6 +103,8 @@ namespace Backend.Application.DTOs.Checkout
         string? DropoffLocation,
         int TotalDays,
         decimal VehicleFee,
+        decimal? OriginalVehicleFee,
+        decimal? DiscountAmount,
         bool RequiresDriver,
         Guid? DriverProfileId,
         string? DriverName,
