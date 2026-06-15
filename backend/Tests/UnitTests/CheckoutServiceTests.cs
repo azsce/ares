@@ -27,6 +27,7 @@ public class CheckoutServiceTests
     private readonly Mock<IVerificationService> _verificationServiceMock = new();
     private readonly Mock<ICommissionService> _commissionServiceMock = new();
     private readonly Mock<IApplicationDbContext> _contextMock = new();
+    private readonly Mock<IPricingService> _pricingServiceMock = new();
     private readonly IConfiguration _configuration =
         new ConfigurationBuilder().AddInMemoryCollection().Build();
     private readonly CheckoutService _service;
@@ -45,6 +46,7 @@ public class CheckoutServiceTests
             _driverPricingServiceMock.Object,
             _verificationServiceMock.Object,
             _commissionServiceMock.Object,
+            _pricingServiceMock.Object,
             _contextMock.Object,
             _configuration,
             notificationService: null);

@@ -33,6 +33,7 @@ namespace Backend.Application.Services
         private readonly IDriverPricingService _driverPricingService;
         private readonly IVerificationService _verificationService;
         private readonly ICommissionService _commissionService;
+        private readonly IPricingService _pricingService;
         private readonly INotificationService? _notificationService;
         private readonly IApplicationDbContext _context;
         private readonly IConfiguration _configuration;
@@ -49,6 +50,7 @@ namespace Backend.Application.Services
             IDriverPricingService driverPricingService,
             IVerificationService verificationService,
             ICommissionService commissionService,
+            IPricingService pricingService,
             IApplicationDbContext context,
             IConfiguration configuration,
             INotificationService? notificationService = null)
@@ -61,6 +63,7 @@ namespace Backend.Application.Services
             _driverPricingService = driverPricingService;
             _verificationService = verificationService;
             _commissionService = commissionService;
+            _pricingService = pricingService;
             _context = context;
             _configuration = configuration;
             _notificationService = notificationService;
@@ -367,8 +370,9 @@ namespace Backend.Application.Services
                     return await BuildStateAsync(existing, cancellationToken);
                 }
 
+                var pricingResult = await _pricingService.CalculateBookingPricingAsync(request.VehicleId, request.PickupDate, request.ReturnDate, cancellationToken);
                 var totalDays = CalculateDays(request.PickupDate, request.ReturnDate);
-                var vehicleFee = (vehicle.PricePerDay ?? 0) * totalDays;
+                var vehicleFee = pricingResult.FinalPrice;
 
                 var pickupLabel = !string.IsNullOrWhiteSpace(request.PickupLocation)
                     ? await ResolveDisplayLocationAsync(request.PickupLocation!.Trim(), cancellationToken)
@@ -388,6 +392,8 @@ namespace Backend.Application.Services
                     PickupLocation = pickupLabel,
                     DropoffLocation = dropoffLabel,
                     TotalDays = totalDays,
+                    OriginalPrice = pricingResult.OriginalPrice,
+                    DiscountAmount = pricingResult.DiscountAmount,
                     VehicleFee = vehicleFee,
                     GrandTotal = vehicleFee,
                     TotalPrice = vehicleFee,
@@ -771,6 +777,8 @@ namespace Backend.Application.Services
                 DropoffLocation: dropoffName,
                 TotalDays: booking.TotalDays ?? 0,
                 VehicleFee: booking.VehicleFee ?? 0m,
+                OriginalVehicleFee: booking.OriginalPrice,
+                DiscountAmount: booking.DiscountAmount,
                 RequiresDriver: booking.RequiresDriver,
                 DriverProfileId: booking.AssignedDriverProfileId,
                 DriverName: driverName,
