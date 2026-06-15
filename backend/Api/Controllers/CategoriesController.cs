@@ -28,15 +28,26 @@ namespace Backend.Api.Controllers
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var categories = await _context.Categories
+                .Include(c => c.Offers)
                 .OrderBy(c => c.Name)
-                .Select(c => new
+                .Select(c => new CategoryResponseDto
                 {
-                    c.Id,
-                    c.Name,
-                    c.Description,
-                    c.CommissionPercentage,
-                    c.IsActive,
-                    VehicleCount = _context.Vehicles.Count(v => v.CategoryId == c.Id)
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    CommissionPercentage = c.CommissionPercentage,
+                    IsActive = c.IsActive,
+                    VehicleCount = _context.Vehicles.Count(v => v.CategoryId == c.Id),
+                    ActiveOffer = c.Offers.Where(o => o.IsActive && o.EndDate >= DateTime.UtcNow)
+                        .OrderByDescending(o => o.CreatedAt)
+                        .Select(o => new CategoryOfferDto
+                        {
+                            OfferName = o.OfferName,
+                            DiscountPercentage = o.DiscountPercentage,
+                            StartDate = o.StartDate,
+                            EndDate = o.EndDate,
+                            IsActive = o.IsActive
+                        }).FirstOrDefault()
                 })
                 .ToListAsync(cancellationToken);
 
@@ -55,16 +66,33 @@ namespace Backend.Api.Controllers
                 IsActive = request.IsActive
             };
 
+            if (request.OfferDiscountPercentage.HasValue && request.OfferDiscountPercentage.Value > 0)
+            {
+                category.Offers.Add(new CategoryOffer
+                {
+                    Id = Guid.NewGuid(),
+                    CategoryId = category.Id,
+                    OfferName = request.OfferName ?? "Special Offer",
+                    DiscountPercentage = request.OfferDiscountPercentage.Value,
+                    StartDate = request.OfferStartDate ?? DateTime.UtcNow,
+                    EndDate = request.OfferEndDate ?? DateTime.UtcNow.AddMonths(1),
+                    IsActive = request.OfferIsActive ?? true
+                });
+            }
+
             _context.AddCategory(category);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return Ok(category);
+            var response = await GetCategoryResponseAsync(category.Id, cancellationToken);
+            return Ok(response);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CategoryDto request, CancellationToken cancellationToken)
         {
-            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+            var category = await _context.Categories
+                .Include(c => c.Offers)
+                .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
             if (category == null) return NotFound();
 
             category.Name = request.Name;
@@ -72,9 +100,47 @@ namespace Backend.Api.Controllers
             category.CommissionPercentage = request.CommissionPercentage;
             category.IsActive = request.IsActive;
 
+            // Handle Offer Update
+            if (request.OfferDiscountPercentage.HasValue)
+            {
+                var currentOffer = category.Offers.FirstOrDefault(o => o.IsActive);
+                if (currentOffer != null)
+                {
+                    currentOffer.OfferName = request.OfferName ?? currentOffer.OfferName;
+                    currentOffer.DiscountPercentage = request.OfferDiscountPercentage.Value;
+                    currentOffer.StartDate = request.OfferStartDate ?? currentOffer.StartDate;
+                    currentOffer.EndDate = request.OfferEndDate ?? currentOffer.EndDate;
+                    currentOffer.IsActive = request.OfferIsActive ?? currentOffer.IsActive;
+                }
+                else if (request.OfferDiscountPercentage.Value > 0)
+                {
+                    var newOffer = new CategoryOffer
+                    {
+                        Id = Guid.NewGuid(),
+                        CategoryId = category.Id,
+                        OfferName = request.OfferName ?? "Special Offer",
+                        DiscountPercentage = request.OfferDiscountPercentage.Value,
+                        StartDate = request.OfferStartDate ?? DateTime.UtcNow,
+                        EndDate = request.OfferEndDate ?? DateTime.UtcNow.AddMonths(1),
+                        IsActive = request.OfferIsActive ?? true
+                    };
+                    _context.AddCategoryOffer(newOffer);
+                }
+            }
+            else
+            {
+                // Deactivate current offer if discount is cleared
+                var currentOffer = category.Offers.FirstOrDefault(o => o.IsActive);
+                if (currentOffer != null)
+                {
+                    currentOffer.IsActive = false;
+                }
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
 
-            return Ok(category);
+            var response = await GetCategoryResponseAsync(category.Id, cancellationToken);
+            return Ok(response);
         }
 
         [HttpDelete("{id}")]
@@ -109,10 +175,18 @@ namespace Backend.Api.Controllers
                     c.Description,
                     c.CommissionPercentage,
                     c.IsActive,
+                    ActiveOffer = c.Offers.Where(o => o.IsActive && o.EndDate >= DateTime.UtcNow).OrderByDescending(o => o.CreatedAt).Select(o => new
+                    {
+                        o.OfferName,
+                        o.DiscountPercentage,
+                        o.StartDate,
+                        o.EndDate,
+                        o.IsActive
+                    }).FirstOrDefault(),
                     Vehicles = _context.Vehicles.Where(v => v.CategoryId == c.Id).Select(v => new { v.Id, v.Make, v.Model, v.LicensePlate }),
                     VehicleCount = _context.Vehicles.Count(v => v.CategoryId == c.Id),
-                    BookingCount = _context.Bookings.Count(b => b.Vehicle.CategoryId == c.Id),
-                    Revenue = _context.Payments.Where(p => p.Booking.Vehicle.CategoryId == c.Id && p.Status == "Succeeded").Sum(p => (decimal?)p.Amount) ?? 0m
+                    BookingCount = _context.Bookings.Count(b => b.Vehicle!.CategoryId == c.Id),
+                    Revenue = _context.Payments.Where(p => p.Booking!.Vehicle!.CategoryId == c.Id && p.Status == "Succeeded").Sum(p => (decimal?)p.Amount) ?? 0m
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -137,6 +211,52 @@ namespace Backend.Api.Controllers
 
             return Ok(new { message = $"Successfully assigned {vehicles.Count} vehicles to {category.Name}." });
         }
+
+        private async Task<CategoryResponseDto?> GetCategoryResponseAsync(Guid id, CancellationToken cancellationToken)
+        {
+            return await _context.Categories
+                .Where(c => c.Id == id)
+                .Select(c => new CategoryResponseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    CommissionPercentage = c.CommissionPercentage,
+                    IsActive = c.IsActive,
+                    VehicleCount = _context.Vehicles.Count(v => v.CategoryId == c.Id),
+                    ActiveOffer = c.Offers.Where(o => o.IsActive && o.EndDate >= DateTime.UtcNow)
+                        .OrderByDescending(o => o.CreatedAt)
+                        .Select(o => new CategoryOfferDto
+                        {
+                            OfferName = o.OfferName,
+                            DiscountPercentage = o.DiscountPercentage,
+                            StartDate = o.StartDate,
+                            EndDate = o.EndDate,
+                            IsActive = o.IsActive
+                        }).FirstOrDefault()
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+    }
+
+    public class CategoryResponseDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public decimal CommissionPercentage { get; set; }
+        public bool IsActive { get; set; }
+        public int VehicleCount { get; set; }
+        public CategoryOfferDto? ActiveOffer { get; set; }
+    }
+
+    public class CategoryOfferDto
+    {
+        public string OfferName { get; set; } = string.Empty;
+        public decimal DiscountPercentage { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class CategoryDto
@@ -145,6 +265,13 @@ namespace Backend.Api.Controllers
         public string? Description { get; set; }
         public decimal CommissionPercentage { get; set; }
         public bool IsActive { get; set; } = true;
+        
+        // Offer Fields
+        public string? OfferName { get; set; }
+        public decimal? OfferDiscountPercentage { get; set; }
+        public DateTime? OfferStartDate { get; set; }
+        public DateTime? OfferEndDate { get; set; }
+        public bool? OfferIsActive { get; set; }
     }
 
     public class BulkAssignDto

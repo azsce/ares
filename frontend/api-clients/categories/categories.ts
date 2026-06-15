@@ -1,6 +1,14 @@
 import { getSession } from "next-auth/react";
 import { apiFetchJson } from "@/utils/api-client";
 
+export interface ActiveOffer {
+  offerName: string;
+  discountPercentage: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -8,6 +16,7 @@ export interface Category {
   commissionPercentage: number;
   isActive: boolean;
   vehicleCount?: number;
+  activeOffer?: ActiveOffer | null;
 }
 
 export interface CategoryDetails extends Category {
@@ -55,6 +64,11 @@ export async function createCategory(payload: {
   description?: string;
   commissionPercentage: number;
   isActive: boolean;
+  offerName?: string | null;
+  offerDiscountPercentage?: number | null;
+  offerStartDate?: string | null;
+  offerEndDate?: string | null;
+  offerIsActive?: boolean | null;
 }): Promise<Category> {
   const session = await getSession();
 
@@ -72,6 +86,11 @@ export async function updateCategory(
     description?: string;
     commissionPercentage: number;
     isActive: boolean;
+    offerName?: string | null;
+    offerDiscountPercentage?: number | null;
+    offerStartDate?: string | null;
+    offerEndDate?: string | null;
+    offerIsActive?: boolean | null;
   }
 ): Promise<Category> {
   const session = await getSession();

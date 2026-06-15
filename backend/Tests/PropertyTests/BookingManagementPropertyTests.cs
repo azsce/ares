@@ -48,7 +48,18 @@ public class BookingManagementPropertyTests : IDisposable
         userManagerMock.Setup(x => x.IsInRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
             .ReturnsAsync(false);
 
-        _bookingService = new BookingService(_bookingRepository, _vehicleRepository, _context, userManagerMock.Object, null!);
+        var pricingService = new PricingService(_context);
+        _bookingService = new BookingService(
+            _bookingRepository,
+            _vehicleRepository,
+            _context,
+            userManagerMock.Object,
+            notificationService: null,
+            verificationService: null,
+            driverPricingService: null,
+            driverProfileRepository: null,
+            commissionService: null,
+            pricingService: pricingService);
 
         // Ensure database is created
         _context.Database.EnsureCreated();

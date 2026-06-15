@@ -114,6 +114,7 @@ try
     builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
     builder.Services.AddScoped<ILocationService, LocationService>();
     builder.Services.AddScoped<IVehicleService, VehicleService>();
+    builder.Services.AddScoped<IPricingService, PricingService>();
     builder.Services.AddScoped<IBookingService, BookingService>();
     builder.Services.AddScoped<ICheckoutService, CheckoutService>();
     builder.Services.AddScoped<IUserProfileService, UserProfileService>();

@@ -108,6 +108,8 @@ public record BookingDetailsDto(
     IReadOnlyList<BookingTimelineEventDto>? Timeline = null,
     PublicDriverDto? AssignedDriverProfile = null,
     decimal? VehicleFee = null,
+    decimal? OriginalPrice = null,
+    decimal? DiscountAmount = null,
     decimal? DriverFee = null,
     decimal? GrandTotal = null,
     bool RequiresDriver = false);
