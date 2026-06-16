@@ -10,6 +10,7 @@ namespace Backend.Domain.Entities.Enums
         Active,
         Completed,
         Cancelled,
+        CancelledByAdmin,
         Expired
     }
 

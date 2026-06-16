@@ -23,6 +23,8 @@ public class UserManagementServiceTests
     private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
     private readonly Mock<RoleManager<IdentityRole<Guid>>> _roleManagerMock;
     private readonly Mock<ILogger<UserManagementService>> _loggerMock;
+    private readonly Mock<ISupplierRestrictionService> _restrictionServiceMock;
+    private readonly Mock<Microsoft.AspNetCore.Http.IHttpContextAccessor> _httpContextAccessorMock;
     private readonly UserManagementService _userManagementService;
 
     public UserManagementServiceTests()
@@ -31,12 +33,16 @@ public class UserManagementServiceTests
         _userManagerMock = CreateMockUserManager();
         _roleManagerMock = CreateMockRoleManager();
         _loggerMock = new Mock<ILogger<UserManagementService>>();
+        _restrictionServiceMock = new Mock<ISupplierRestrictionService>();
+        _httpContextAccessorMock = new Mock<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
 
         _userManagementService = new UserManagementService(
             _userRepositoryMock.Object,
             _userManagerMock.Object,
             _roleManagerMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _restrictionServiceMock.Object,
+            _httpContextAccessorMock.Object);
     }
 
     #region GetUsersAsync Tests

@@ -3,6 +3,7 @@ using Backend.Application.DTOs.UserManagement;
 using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Backend.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,17 +19,23 @@ public class UserManagementService : IUserManagementService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly ILogger<UserManagementService> _logger;
+    private readonly ISupplierRestrictionService _supplierRestrictionService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public UserManagementService(
         IUserRepository userRepository,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
-        ILogger<UserManagementService> logger)
+        ILogger<UserManagementService> logger,
+        ISupplierRestrictionService supplierRestrictionService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userRepository = userRepository;
         _userManager = userManager;
         _roleManager = roleManager;
         _logger = logger;
+        _supplierRestrictionService = supplierRestrictionService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <summary>
@@ -259,6 +266,8 @@ public class UserManagementService : IUserManagementService
         // Update basic properties
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
+
+        var previousStatus = user.Status;
         user.Status = request.Status;
         user.UpdatedAt = DateTime.UtcNow;
 
@@ -321,6 +330,28 @@ public class UserManagementService : IUserManagementService
                 if (!roleResult.Succeeded)
                 {
                     _logger.LogWarning("Failed to assign role {RoleName} to user {UserId}", roleName, userId);
+                }
+            }
+        }
+
+        // Apply or remove supplier restriction
+        if (previousStatus != request.Status && request.Status != null)
+        {
+            var adminIdString = _httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var adminId = Guid.TryParse(adminIdString, out var parsedId) ? parsedId : Guid.Empty;
+            
+            if (await _userManager.IsInRoleAsync(user, "Supplier"))
+            {
+                if (request.Status.Equals("Restricted", StringComparison.OrdinalIgnoreCase) || 
+                    request.Status.Equals("Blocked", StringComparison.OrdinalIgnoreCase))
+                {
+                    await _supplierRestrictionService.ApplyRestrictionAsync(user.Id, adminId, cancellationToken);
+                }
+                else if (request.Status.Equals("Active", StringComparison.OrdinalIgnoreCase) && 
+                         (previousStatus == "Restricted" || previousStatus == "Blocked" || 
+                          previousStatus == "RESTRICTED" || previousStatus == "BLOCKED"))
+                {
+                    await _supplierRestrictionService.RemoveRestrictionAsync(user.Id, adminId, cancellationToken);
                 }
             }
         }
