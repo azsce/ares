@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Backend.Application.Exceptions;
 using Backend.Application.Features.VehicleInspections.Commands.AssignInspector;
 using Backend.Application.Interfaces;
 using MediatR;
@@ -23,7 +24,17 @@ namespace Backend.Infrastructure.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("VehicleInspectionAutoAssignmentBackgroundService is starting.");
+            _logger.LogInformation("Job Start: VehicleInspectionAutoAssignmentBackgroundService is starting.");
+
+            // Run immediately on startup
+            try
+            {
+                await AssignInspectorsAsync(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during initial execution of inspector auto-assignment.");
+            }
 
             // Run every 1 hour
             using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
@@ -32,6 +43,7 @@ namespace Backend.Infrastructure.BackgroundServices
             {
                 try
                 {
+                    _logger.LogInformation("Job Start: VehicleInspectionAutoAssignmentBackgroundService periodic tick triggered.");
                     await AssignInspectorsAsync(stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -54,15 +66,39 @@ namespace Backend.Infrastructure.BackgroundServices
             // Find bookings starting in <= 24 hours
             var targetTime = DateTime.UtcNow.AddHours(24);
 
-            var pendingBookings = await bookingRepository.GetBookingsForAutoAssignmentAsync(targetTime, cancellationToken);
+            var pendingBookings = (await bookingRepository.GetBookingsForAutoAssignmentAsync(targetTime, cancellationToken)).ToList();
+
+            _logger.LogInformation("Eligible Bookings Found: {Count} booking(s) found starting before {TargetTime}.", pendingBookings.Count, targetTime);
+
+            int successCount = 0;
+            int failureCount = 0;
 
             foreach (var booking in pendingBookings)
             {
-                _logger.LogInformation("Auto-assigning inspector for Booking {BookingId}", booking.Id);
-                
-                var command = new AssignInspectorCommand(booking.Id);
-                await mediator.Send(command, cancellationToken);
+                try
+                {
+                    _logger.LogInformation("Auto-assigning inspector for Booking {BookingId}", booking.Id);
+
+                    var command = new AssignInspectorCommand(booking.Id);
+                    await mediator.Send(command, cancellationToken);
+
+                    _logger.LogInformation("Assignment Success: Successfully assigned inspector for Booking {BookingId}", booking.Id);
+                    successCount++;
+                }
+                catch (ConflictException ex)
+                {
+                    _logger.LogWarning(ex, "Booking Skipped: Booking {BookingId} was skipped because of status conflict: {Message}", booking.Id, ex.Message);
+                    failureCount++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Assignment Failure: Failed to auto-assign inspector for Booking {BookingId}", booking.Id);
+                    failureCount++;
+                }
             }
+
+            _logger.LogInformation("Job Completion Summary: Total Processed: {Total}, Successes: {Successes}, Failures: {Failures}",
+                pendingBookings.Count, successCount, failureCount);
         }
     }
 }

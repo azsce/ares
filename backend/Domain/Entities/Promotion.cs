@@ -6,8 +6,7 @@ namespace Backend.Domain.Entities
 {
     public class Promotion : AuditableEntity
     {
-        [Key]
-        public Guid Id { get; set; }
+
 
         public Guid CategoryId { get; set; }
 
@@ -23,7 +22,7 @@ namespace Backend.Domain.Entities
         public decimal DiscountPercentage { get; set; }
 
         public DateTime StartDate { get; set; }
-        
+
         public DateTime EndDate { get; set; }
 
         [MaxLength(50)]

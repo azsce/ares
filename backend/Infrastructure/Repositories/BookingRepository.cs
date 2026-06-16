@@ -78,7 +78,7 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
                     _logger.LogWarning(
                         "ReserveVehicleAtomicAsync conflict detected (InMemory): VehicleId={VehicleId}, AttemptedBookingId={BookingId}, CustomerId={CustomerId}",
                         booking.VehicleId, booking.Id, booking.UserId);
-                    
+
                     foreach (var conflict in conflictDetails)
                     {
                         _logger.LogWarning(
@@ -182,7 +182,7 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
                     _logger.LogWarning(
                         "ReserveVehicleAtomicAsync conflict detected: VehicleId={VehicleId}, AttemptedBookingId={BookingId}, CustomerId={CustomerId}",
                         booking.VehicleId, booking.Id, booking.UserId);
-                    
+
                     foreach (var conflict in conflictDetails)
                     {
                         _logger.LogWarning(
@@ -445,7 +445,6 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
             .Where(b => b.Status == BookingStatus.Confirmed && b.PickupDate != null && b.PickupDate <= targetTime)
             .Where(b => b.InspectionStatus == InspectionStatus.NotRequired || b.InspectionStatus == InspectionStatus.Pending)
             .Where(b => b.AssignedInspectorId == null) // hasn't been assigned yet
-            .Where(b => !_context.VehicleInspections.Any(vi => vi.BookingId == b.Id))
             .ToListAsync(cancellationToken);
     }
 }

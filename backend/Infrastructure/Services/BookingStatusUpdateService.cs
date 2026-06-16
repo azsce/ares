@@ -51,6 +51,7 @@ public class BookingStatusUpdateService : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var supplierRestrictionService = scope.ServiceProvider.GetRequiredService<Backend.Application.Interfaces.ISupplierRestrictionService>();
 
         var now = DateTime.Now; // Using local time to match DB values in typical local dev
         var nowUtc = DateTime.UtcNow; // Hold timestamps are stored in UTC
@@ -74,15 +75,22 @@ public class BookingStatusUpdateService : BackgroundService
 
         // 2. Active -> Completed (Return date reached)
         var bookingsToComplete = await context.Bookings
+            .Include(b => b.Vehicle)
             .Where(b => b.Status == BookingStatus.Active &&
                         b.ReturnDate.HasValue &&
                         b.ReturnDate.Value <= now)
             .ToListAsync(cancellationToken);
 
+        var suppliersToCheck = new HashSet<Guid>();
+
         foreach (var booking in bookingsToComplete)
         {
             booking.Status = BookingStatus.Completed;
             booking.UpdatedAt = now;
+            if (booking.Vehicle != null && booking.Vehicle.UserId != Guid.Empty)
+            {
+                suppliersToCheck.Add(booking.Vehicle.UserId);
+            }
             _logger.LogInformation($"Booking {booking.Id} (Num: {booking.BookingNumber}) transitioned from Active to Completed.");
         }
 
@@ -99,17 +107,17 @@ public class BookingStatusUpdateService : BackgroundService
             booking.CancellationReason = "Automatic cancellation: Pickup date passed without confirmation.";
             booking.CancelledAt = now;
             booking.UpdatedAt = now;
-            
+
             if (booking.DriverAssignmentStatus == DriverAssignmentStatus.Waiting)
                 booking.DriverAssignmentStatus = DriverAssignmentStatus.Expired;
-                
+
             _logger.LogInformation($"Booking {booking.Id} (Num: {booking.BookingNumber}) automatically Cancelled (was Draft after pickup date).");
         }
 
         // 3b. Confirmed -> Cancelled (Failed workflows: Driver Expired or Inspection Rejected)
         var workflowFailedToCancel = await context.Bookings
             .Where(b => b.Status == BookingStatus.Confirmed &&
-                        (b.DriverAssignmentStatus == DriverAssignmentStatus.Expired || 
+                        (b.DriverAssignmentStatus == DriverAssignmentStatus.Expired ||
                          b.InspectionStatus == InspectionStatus.Rejected))
             .ToListAsync(cancellationToken);
 
@@ -178,6 +186,21 @@ public class BookingStatusUpdateService : BackgroundService
             await context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation(
                 $"Saved {bookingsToActivate.Count + bookingsToComplete.Count + pendingToCancel.Count + holdsToExpire.Count + abandonedDrafts.Count + workflowFailedToCancel.Count + driversToExpire.Count} status transitions.");
+
+            if (suppliersToCheck != null && suppliersToCheck.Any())
+            {
+                foreach (var supplierId in suppliersToCheck)
+                {
+                    try
+                    {
+                        await supplierRestrictionService.CheckAndConvertToBlockedAsync(supplierId, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to check supplier restriction status for {SupplierId}", supplierId);
+                    }
+                }
+            }
         }
     }
 }
