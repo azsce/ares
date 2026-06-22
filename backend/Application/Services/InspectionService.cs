@@ -126,7 +126,10 @@ public class InspectionService : IInspectionService
         }
 
         // Mirror onto booking.
-        booking.AssignedInspectorId = inspector.UserId;
+        if (string.Equals(request.InspectionType, "Pickup", StringComparison.OrdinalIgnoreCase))
+        {
+            booking.AssignedInspectorId = inspector.UserId;
+        }
         booking.InspectionStatus = InspectionStatus.Pending;
         booking.UpdatedAt = DateTime.UtcNow;
         await _bookingRepository.UpdateAsync(booking, cancellationToken);

@@ -441,9 +441,9 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         CancellationToken cancellationToken = default)
     {
         return await _dbSet
-            .AsNoTracking()
             .Where(b => b.Status == BookingStatus.Confirmed && b.PickupDate != null && b.PickupDate <= targetTime)
             .Where(b => b.PickupAssignmentAttempts < 6)
+            .Where(b => !_context.VehicleInspections.Any(vi => vi.BookingId == b.Id && vi.InspectionType == "Pickup" && vi.InspectorId != null))
             .ToListAsync(cancellationToken);
     }
 
@@ -452,9 +452,9 @@ public class BookingRepository : PaginatedRepository<Booking>, IBookingRepositor
         CancellationToken cancellationToken = default)
     {
         return await _dbSet
-            .AsNoTracking()
             .Where(b => b.Status == BookingStatus.Active && b.ReturnDate != null && b.ReturnDate <= targetTime)
             .Where(b => b.ReturnAssignmentAttempts < 6)
+            .Where(b => !_context.VehicleInspections.Any(vi => vi.BookingId == b.Id && vi.InspectionType == "Return" && vi.InspectorId != null))
             .ToListAsync(cancellationToken);
     }
 }
