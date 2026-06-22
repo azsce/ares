@@ -60,12 +60,23 @@ namespace Backend.Application.Features.VehicleInspections.Commands.AssignInspect
             }
 
             // Fetch available inspectors in the same region
-            var region = booking.PickupLocation; // Using PickupLocation as Region
+            var region = string.Equals(request.InspectionType, "Return", StringComparison.OrdinalIgnoreCase)
+                ? booking.DropoffLocation
+                : booking.PickupLocation;
 
             var availableInspectors = await _context.Inspectors
                 .Where(i => i.IsActive && i.IsAvailable)
-                .Where(i => string.IsNullOrEmpty(region) || i.Region == region) // Fallback to any if region is not set on booking, or match
                 .ToListAsync(cancellationToken);
+
+            // Filter inspectors by region matching (e.g., matching "Cairo" in "Cairo, Cairo Governorate, Egypt")
+            if (!string.IsNullOrEmpty(region))
+            {
+                availableInspectors = availableInspectors
+                    .Where(i => string.IsNullOrEmpty(i.Region) || 
+                                region.Contains(i.Region, StringComparison.OrdinalIgnoreCase) || 
+                                i.Region.Contains(region, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
 
             Guid? selectedInspectorUserId = null;
 
@@ -75,8 +86,12 @@ namespace Backend.Application.Features.VehicleInspections.Commands.AssignInspect
                 var inspectorUserIds = availableInspectors.Select(i => i.UserId).ToList();
 
                 var activeCounts = await _context.VehicleInspections
+                    .Include(vi => vi.Booking)
                     .Where(vi => vi.InspectorId != null && inspectorUserIds.Contains(vi.InspectorId.Value) && 
-                                 vi.Status == InspectionStatus.Pending)
+                                 vi.Status == InspectionStatus.Pending &&
+                                 vi.Booking != null &&
+                                 vi.Booking.Status != BookingStatus.Cancelled &&
+                                 vi.Booking.Status != BookingStatus.Completed)
                     .GroupBy(vi => vi.InspectorId)
                     .Select(g => new { InspectorId = g.Key, Count = g.Count() })
                     .ToDictionaryAsync(x => x.InspectorId ?? Guid.Empty, x => x.Count, cancellationToken);
@@ -95,6 +110,25 @@ namespace Backend.Application.Features.VehicleInspections.Commands.AssignInspect
                 {
                     selectedInspectorUserId = bestInspector.Inspector.UserId;
                     _logger.LogInformation("Inspector Selected: {UserId} for booking {BookingId} {InspectionType}", selectedInspectorUserId, request.BookingId, request.InspectionType);
+                }
+            }
+
+            if (selectedInspectorUserId == null)
+            {
+                _logger.LogWarning("No inspector available for booking {BookingId} in region {Region}.", request.BookingId, region);
+                try
+                {
+                    await _mediator.Publish(new NoInspectorAvailableEvent(booking.Id, region, booking.PickupDate ?? DateTime.UtcNow), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to publish NoInspectorAvailableEvent for booking {BookingId}", booking.Id);
+                }
+                
+                // If this is an auto-assignment, we'll want to bubble up an exception or status so it's counted as a failure for retry logic
+                if (!request.IsManual)
+                {
+                    throw new Exception("No eligible inspector found for auto-assignment.");
                 }
             }
 
@@ -140,7 +174,10 @@ namespace Backend.Application.Features.VehicleInspections.Commands.AssignInspect
             // Keep the overall booking inspection status and assigned inspector updated (mostly tracking the latest assignment)
             if (selectedInspectorUserId != null)
             {
-                booking.AssignedInspectorId = selectedInspectorUserId;
+                if (string.Equals(request.InspectionType, "Pickup", StringComparison.OrdinalIgnoreCase))
+                {
+                    booking.AssignedInspectorId = selectedInspectorUserId;
+                }
                 booking.InspectionStatus = InspectionStatus.Pending;
                 booking.UpdatedAt = DateTime.UtcNow;
             }
@@ -177,24 +214,6 @@ namespace Backend.Application.Features.VehicleInspections.Commands.AssignInspect
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to send assignment notification to inspector(s) for booking {BookingId}", booking.Id);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("No inspector available for booking {BookingId} in region {Region}. Assigning null.", request.BookingId, region);
-                try
-                {
-                    await _mediator.Publish(new NoInspectorAvailableEvent(booking.Id, region, booking.PickupDate ?? DateTime.UtcNow), cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to publish NoInspectorAvailableEvent for booking {BookingId}", booking.Id);
-                }
-                
-                // If this is an auto-assignment, we'll want to bubble up an exception or status so it's counted as a failure for retry logic
-                if (!request.IsManual)
-                {
-                    throw new Exception("No eligible inspector found for auto-assignment.");
                 }
             }
 
