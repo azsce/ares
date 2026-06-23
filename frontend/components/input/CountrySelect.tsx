@@ -64,7 +64,7 @@ export default function CountrySelect({
         if (typeof option === "string") {
           return option;
         }
-        return option.label ?? "";
+        return option.label;
       }}
       renderOption={(props, option) => {
         // When freeSolo is enabled, option can theoretically be a string, though renderOption is usually called with option objects from the list.
