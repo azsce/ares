@@ -860,7 +860,9 @@ export default function CreateBookingClient() {
             >
               <Paper
                 elevation={0}
-                onClick={() => { setPaymentMethod("Cash"); }}
+                onClick={() => {
+                  setPaymentMethod("Cash");
+                }}
                 sx={{
                   p: 2.5,
                   borderRadius: 2,
@@ -880,7 +882,9 @@ export default function CreateBookingClient() {
                   <Radio
                     checked={paymentMethod === "Cash"}
                     value="Cash"
-                    onChange={() => { setPaymentMethod("Cash"); }}
+                    onChange={() => {
+                      setPaymentMethod("Cash");
+                    }}
                     sx={{
                       color: theme => theme.palette.divider,
                       "&.Mui-checked": {
@@ -899,7 +903,9 @@ export default function CreateBookingClient() {
 
               <Paper
                 elevation={0}
-                onClick={() => { setPaymentMethod("Online"); }}
+                onClick={() => {
+                  setPaymentMethod("Online");
+                }}
                 sx={{
                   p: 2.5,
                   borderRadius: 2,
@@ -920,7 +926,9 @@ export default function CreateBookingClient() {
                   <Radio
                     checked={paymentMethod === "Online"}
                     value="Online"
-                    onChange={() => { setPaymentMethod("Online"); }}
+                    onChange={() => {
+                      setPaymentMethod("Online");
+                    }}
                     sx={{
                       color: theme => theme.palette.divider,
                       "&.Mui-checked": {

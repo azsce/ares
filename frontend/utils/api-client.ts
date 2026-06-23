@@ -28,8 +28,13 @@ export class ApiError extends Error {
     try {
       if (body) {
         const parsed = JSON.parse(body) as ParsedApiError | null | undefined;
-        if (parsed && parsed.validationErrors && Array.isArray(parsed.validationErrors) && parsed.validationErrors.length > 0) {
-          errorMessage = parsed.validationErrors.map((e) => e.message).join(" ");
+        if (
+          parsed &&
+          parsed.validationErrors &&
+          Array.isArray(parsed.validationErrors) &&
+          parsed.validationErrors.length > 0
+        ) {
+          errorMessage = parsed.validationErrors.map(e => e.message).join(" ");
         } else if (parsed && parsed.message) {
           errorMessage = parsed.message;
         }

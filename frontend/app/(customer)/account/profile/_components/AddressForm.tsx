@@ -7,7 +7,7 @@ import CountrySelect from "@/components/input/CountrySelect";
 import { addressSchema, type AddressFormData } from "@/lib/validation/schemas";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
-import type { ZodIssue } from "zod";
+import { z } from "zod";
 
 interface AddressFormProps {
   readonly userId: string;
@@ -30,7 +30,7 @@ interface AddressFormProps {
 
 type FieldErrors = Partial<Record<keyof AddressFormData, string>>;
 
-function parseFieldErrors(issues: ZodIssue[]): FieldErrors {
+function parseFieldErrors(issues: z.ZodError["issues"]): FieldErrors {
   const errors: FieldErrors = {};
   for (const issue of issues) {
     const key = issue.path[0] as keyof AddressFormData;
