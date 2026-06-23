@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, Typography, Paper, Grid, Stack, CircularProgress, useTheme } from "@mui/material";
+// eslint-disable-next-line sonarjs/deprecation
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
   PlayCircleTwoTone as ActiveIcon,
@@ -12,8 +13,8 @@ import type { AdminBookingAnalytics } from "@/api-clients/bookings/bookings";
 import { StatCard } from "@/app/(dashboard)/_components/VehicleStats";
 
 interface BookingsAnalyticsProps {
-  analytics: AdminBookingAnalytics | null;
-  loading: boolean;
+  readonly analytics: AdminBookingAnalytics | null;
+  readonly loading: boolean;
 }
 
 export default function BookingsAnalytics({ analytics, loading }: BookingsAnalyticsProps) {
@@ -52,7 +53,7 @@ export default function BookingsAnalytics({ analytics, loading }: BookingsAnalyt
   };
 
   const chartData = statusOrder.map(status => {
-    const found = analytics?.statusDistribution?.find(s => s.status === status);
+    const found = analytics?.statusDistribution.find(s => s.status === status);
     return {
       name: status,
       value: found ? found.count : 0,
@@ -133,11 +134,12 @@ export default function BookingsAnalytics({ analytics, loading }: BookingsAnalyt
                       stroke="none"
                     >
                       {chartData.map((entry, index) => (
+                        /* eslint-disable-next-line @typescript-eslint/no-deprecated, sonarjs/deprecation */
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: any) => [value, "Bookings"]}
+                      formatter={(value: unknown) => [String(value), "Bookings"]}
                       contentStyle={{ borderRadius: 8, border: "none", boxShadow: theme.shadows[3] }}
                     />
                   </PieChart>
