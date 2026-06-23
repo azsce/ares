@@ -1,21 +1,7 @@
 "use client";
 
-import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  Stack,
-  CircularProgress,
-  useTheme,
-} from "@mui/material";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { Box, Typography, Paper, Grid, Stack, CircularProgress, useTheme } from "@mui/material";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
   PlayCircleTwoTone as ActiveIcon,
   LocalShippingTwoTone as PickupIcon,
@@ -65,8 +51,8 @@ export default function BookingsAnalytics({ analytics, loading }: BookingsAnalyt
     }
   };
 
-  const chartData = statusOrder.map((status) => {
-    const found = analytics?.statusDistribution?.find((s) => s.status === status);
+  const chartData = statusOrder.map(status => {
+    const found = analytics?.statusDistribution?.find(s => s.status === status);
     return {
       name: status,
       value: found ? found.count : 0,
@@ -179,7 +165,7 @@ export default function BookingsAnalytics({ analytics, loading }: BookingsAnalyt
                   </Typography>
                 </Box>
               </Box>
-              
+
               {/* Legend alongside the chart */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.8, ml: 2, flexGrow: 1 }}>
                 {chartData.map((entry, index) => (
@@ -200,13 +186,7 @@ export default function BookingsAnalytics({ analytics, loading }: BookingsAnalyt
           <Grid container spacing={1.5} sx={{ height: "100%", alignContent: "flex-start" }}>
             {kpis.map((kpi, index) => (
               <Grid size={{ xs: 12, sm: 6 }} key={index}>
-                <StatCard
-                  label={kpi.label}
-                  value={kpi.value}
-                  color={kpi.color}
-                  icon={kpi.icon}
-                  loading={loading}
-                />
+                <StatCard label={kpi.label} value={kpi.value} color={kpi.color} icon={kpi.icon} loading={loading} />
               </Grid>
             ))}
           </Grid>

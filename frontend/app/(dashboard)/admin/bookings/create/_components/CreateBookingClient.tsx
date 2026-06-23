@@ -866,7 +866,8 @@ export default function CreateBookingClient() {
                   borderRadius: 2,
                   border: "2px solid",
                   borderColor: theme => (paymentMethod === "Cash" ? theme.palette.primary.main : theme.palette.divider),
-                  bgcolor: theme => (paymentMethod === "Cash" ? alpha(theme.palette.primary.main, 0.04) : "background.paper"),
+                  bgcolor: theme =>
+                    paymentMethod === "Cash" ? alpha(theme.palette.primary.main, 0.04) : "background.paper",
                   cursor: "pointer",
                   transition: "all 0.2s ease-in-out",
                   "&:hover": {
@@ -903,8 +904,10 @@ export default function CreateBookingClient() {
                   p: 2.5,
                   borderRadius: 2,
                   border: "2px solid",
-                  borderColor: theme => (paymentMethod === "Online" ? theme.palette.primary.main : theme.palette.divider),
-                  bgcolor: theme => (paymentMethod === "Online" ? alpha(theme.palette.primary.main, 0.04) : "background.paper"),
+                  borderColor: theme =>
+                    paymentMethod === "Online" ? theme.palette.primary.main : theme.palette.divider,
+                  bgcolor: theme =>
+                    paymentMethod === "Online" ? alpha(theme.palette.primary.main, 0.04) : "background.paper",
                   cursor: "pointer",
                   transition: "all 0.2s ease-in-out",
                   "&:hover": {

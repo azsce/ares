@@ -74,6 +74,16 @@ const getStatusConfig = (status?: string) => {
   return { label: status ?? "PaymentPending", colorKey: "warning" as const };
 };
 
+const getPaymentStatusConfig = (status?: string) => {
+  const s = status?.toLowerCase() ?? "";
+  if (s === "captured" || s === "paid" || s === "succeeded")
+    return { label: status ?? "Captured", colorKey: "success" as const };
+  if (s === "refunded") return { label: status ?? "Refunded", colorKey: "error" as const };
+  if (s === "failed") return { label: status ?? "Failed", colorKey: "error" as const };
+  if (s === "pending" || s === "paymentpending") return { label: status ?? "Pending", colorKey: "warning" as const };
+  return { label: "Unpaid", colorKey: null };
+};
+
 const formatCompactDate = (dateString: string) => {
   if (!dateString) return "—";
   const d = new Date(dateString);
@@ -151,7 +161,11 @@ export default function BookingsClient() {
     toDate ? new Date(toDate).toISOString() : null
   );
 
-  const { analytics, loading: analyticsLoading, refetch: refetchAnalytics } = useAdminBookingAnalytics(session?.accessToken, user);
+  const {
+    analytics,
+    loading: analyticsLoading,
+    refetch: refetchAnalytics,
+  } = useAdminBookingAnalytics(session?.accessToken, user);
 
   // ── Handlers ─────────────────────────────────────────────────────────
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,7 +250,7 @@ export default function BookingsClient() {
     if (loading) {
       return [
         <TableRow key="loading">
-          <TableCell colSpan={8} align="center" sx={{ py: 10 }}>
+          <TableCell colSpan={9} align="center" sx={{ py: 10 }}>
             <CircularProgress />
           </TableCell>
         </TableRow>,
@@ -246,7 +260,7 @@ export default function BookingsClient() {
     if (bookings.length === 0) {
       return [
         <TableRow key="empty">
-          <TableCell colSpan={8} align="center" sx={{ py: 10 }}>
+          <TableCell colSpan={9} align="center" sx={{ py: 10 }}>
             <Box sx={{ textAlign: "center", opacity: 0.6 }}>
               <Avatar
                 sx={{
@@ -372,19 +386,54 @@ export default function BookingsClient() {
             />
           </TableCell>
 
-          {/* Payment — status only */}
+          {/* Payment Method */}
           <TableCell>
             <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-              <PaymentIcon
-                sx={{
-                  fontSize: 14,
-                  color: booking.paymentStatus === "Paid" ? "success.main" : "text.secondary",
-                }}
-              />
-              <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 500 }}>
-                {booking.paymentStatus ?? "Unpaid"}
+              <PaymentIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+              <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 500, textTransform: "capitalize" }}>
+                {booking.paymentMethod ?? "None"}
               </Typography>
             </Stack>
+          </TableCell>
+
+          {/* Payment Status */}
+          <TableCell>
+            {(() => {
+              const statusConfig = getPaymentStatusConfig(booking.paymentStatus);
+              if (statusConfig.colorKey === null) {
+                return (
+                  <Chip
+                    label={statusConfig.label}
+                    size="small"
+                    sx={{
+                      textTransform: "capitalize",
+                      borderRadius: 1.5,
+                      bgcolor: "transparent",
+                      color: "text.secondary",
+                      fontWeight: 700,
+                      fontSize: 11,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  />
+                );
+              }
+              const colorVal = theme.palette[statusConfig.colorKey].main;
+              return (
+                <Chip
+                  label={statusConfig.label}
+                  size="small"
+                  sx={{
+                    textTransform: "capitalize",
+                    borderRadius: 1.5,
+                    bgcolor: alpha(colorVal, 0.15),
+                    color: colorVal,
+                    fontWeight: 700,
+                    fontSize: 11,
+                  }}
+                />
+              );
+            })()}
           </TableCell>
 
           {/* Total */}
@@ -570,7 +619,8 @@ export default function BookingsClient() {
                 <TableCell>Supplier</TableCell>
                 <TableCell>Period</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Payment</TableCell>
+                <TableCell>Payment Method</TableCell>
+                <TableCell>Payment Status</TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell align="right" sx={{ pr: 3 }}>
                   Actions
@@ -583,7 +633,7 @@ export default function BookingsClient() {
             {!loading && (
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={4}>
+                  <TableCell colSpan={5}>
                     <Typography variant="caption" color="text.secondary">
                       Showing page <strong>{page + 1}</strong> of {totalPages || 1} ({totalCount} total)
                     </Typography>
