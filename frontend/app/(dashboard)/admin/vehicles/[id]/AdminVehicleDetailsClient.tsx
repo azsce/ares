@@ -1,7 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import VehicleDetailsClient from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/VehicleDetailsClient";
+import VehicleDetailsClient, {
+  type FormValues,
+} from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/VehicleDetailsClient";
 import { updateVehicle, uploadVehicleImage } from "@/api-clients/supplier-vehicles/supplier-vehicles";
 import type {
   BookingLocationOption,
@@ -9,6 +11,7 @@ import type {
   VehicleReviewViewModel,
 } from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/types";
 import { logger } from "@/utils/logger";
+import type { UpdateSupplierVehiclePayload } from "@/api-clients/supplier-vehicles/supplier-vehicles";
 
 interface AdminVehicleDetailsClientProps {
   readonly vehicle: VehicleDetailsViewModel;
@@ -25,14 +28,14 @@ export default function AdminVehicleDetailsClient({
 }: AdminVehicleDetailsClientProps) {
   const { data: session } = useSession();
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: FormValues) => {
     if (!session?.accessToken) {
       throw new Error("You must be signed in to save changes.");
     }
 
     // 1. Upload new files if any
     const updatedImages = await Promise.all(
-      values.images.map(async (img: any) => {
+      values.images.map(async (img) => {
         if (img.file) {
           try {
             // isAdminFlow is true for admin edit
@@ -51,13 +54,13 @@ export default function AdminVehicleDetailsClient({
     );
 
     // 2. Clean up features (remove internal 'id' from useFieldArray)
-    const cleanFeatures = values.features.map((f: any) => ({
+    const cleanFeatures = values.features.map((f) => ({
       featureName: f.featureName,
       featureDescription: f.featureDescription,
       featureCategory: f.featureCategory,
     }));
 
-    const finalValues = {
+    const finalValues: UpdateSupplierVehiclePayload = {
       ...values,
       images: updatedImages,
       features: cleanFeatures,

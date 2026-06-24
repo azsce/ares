@@ -2,7 +2,9 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import VehicleDetailsClient from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/VehicleDetailsClient";
+import VehicleDetailsClient, {
+  type FormValues,
+} from "@/app/(public)/vehicles/[vehicleId]/_components/vehicle-details/VehicleDetailsClient";
 import { createCar, uploadCarImage, type CarPayload } from "@/api-clients/cars/cars";
 import { logger } from "@/utils/logger";
 import type {
@@ -19,7 +21,7 @@ export default function CreateVehicleClient({ emptyVehicle, locations }: CreateV
   const { data: session } = useSession();
   const router = useRouter();
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: FormValues) => {
     if (!session?.accessToken) {
       throw new Error("You must be signed in to create a vehicle.");
     }
@@ -52,7 +54,7 @@ export default function CreateVehicleClient({ emptyVehicle, locations }: CreateV
     }
 
     // Upload images if any
-    if (values.images && values.images.length > 0) {
+    if (values.images.length > 0) {
       for (const img of values.images) {
         if (img.file) {
           try {

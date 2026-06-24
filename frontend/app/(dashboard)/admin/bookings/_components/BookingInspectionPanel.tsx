@@ -51,6 +51,7 @@ function statusChipProps(status: string | null | undefined, theme: Theme): { bg:
  * inspection status, lets the admin pick an inspector and assign, and shows
  * the resulting assignment once made.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export default function BookingInspectionPanel({
   bookingId,
   bookingStatus,

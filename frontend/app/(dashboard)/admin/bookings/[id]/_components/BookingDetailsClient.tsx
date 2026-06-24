@@ -726,6 +726,7 @@ function DetailsSkeleton() {
  *  Main Client Component
  * ──────────────────────────────────────────────────────────────────────── */
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export default function BookingDetailsClient({ bookingId }: { readonly bookingId: string }) {
   const router = useRouter();
   const theme = useTheme();
