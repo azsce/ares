@@ -13,6 +13,7 @@ interface VerificationStatusProps {
   readonly kycStatus?: string;
   readonly onVerifyIdentity?: () => void;
   readonly onUploadLicense?: () => void;
+  readonly isInspector?: boolean;
 }
 
 interface VerificationItemProps {
@@ -112,6 +113,7 @@ export default function VerificationStatus({
   kycStatus,
   onVerifyIdentity,
   onUploadLicense,
+  isInspector = false,
 }: VerificationStatusProps) {
   const isKycVerified =
     kycStatus?.toLowerCase() === "approved" ||
@@ -144,14 +146,18 @@ export default function VerificationStatus({
       icon: <BadgeRoundedIcon sx={{ fontSize: 15 }} />,
       onClick: onVerifyIdentity,
     },
-    {
-      label: "Driver's License",
-      isVerified: licenseVerified,
-      isPending: licensePending,
-      actionText: "Upload",
-      icon: <BadgeRoundedIcon sx={{ fontSize: 15 }} />,
-      onClick: onUploadLicense,
-    },
+    ...(!isInspector
+      ? [
+          {
+            label: "Driver's License",
+            isVerified: licenseVerified,
+            isPending: licensePending,
+            actionText: "Upload",
+            icon: <BadgeRoundedIcon sx={{ fontSize: 15 }} />,
+            onClick: onUploadLicense,
+          },
+        ]
+      : []),
   ];
 
   return (

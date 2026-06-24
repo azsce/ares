@@ -42,6 +42,63 @@ function deriveLicenseState(
   return license.isVerified ? "Verified" : "Pending";
 }
 
+interface CompletenessInput {
+  readonly isInspector: boolean;
+  readonly kycStatus: string;
+  readonly emailVerified: boolean;
+  readonly phoneVerified: boolean;
+  readonly licenseVerified: boolean;
+  readonly profileCompleteness: number;
+}
+
+function computeInspectorCompleteness(
+  isKycVerified: boolean,
+  emailVerified: boolean,
+  phoneVerified: boolean,
+  profileCompleteness: number
+): number {
+  const allMandatory = isKycVerified && emailVerified && phoneVerified;
+  if (allMandatory) return profileCompleteness;
+
+  const emailScore = emailVerified ? 20 : 0;
+  const phoneScore = phoneVerified ? 20 : 0;
+  const kycScore = isKycVerified ? 60 : 0;
+
+  const dynamicScore = emailScore + phoneScore + kycScore;
+  const baseScore = profileCompleteness >= 100 ? 80 : profileCompleteness;
+  return Math.min(baseScore, dynamicScore, 95);
+}
+
+function computeRegularCompleteness(
+  isKycVerified: boolean,
+  emailVerified: boolean,
+  phoneVerified: boolean,
+  licenseVerified: boolean,
+  profileCompleteness: number
+): number {
+  const allMandatory = isKycVerified && emailVerified && phoneVerified && licenseVerified;
+  if (allMandatory) return profileCompleteness;
+
+  const emailScore = emailVerified ? 20 : 0;
+  const phoneScore = phoneVerified ? 20 : 0;
+  const kycScore = isKycVerified ? 30 : 0;
+  const licenseScore = licenseVerified ? 30 : 0;
+
+  const dynamicScore = emailScore + phoneScore + kycScore + licenseScore;
+  const baseScore = profileCompleteness >= 100 ? 80 : profileCompleteness;
+  return Math.min(baseScore, dynamicScore, 95);
+}
+
+function computeProfileCompleteness(input: CompletenessInput): number {
+  const { isInspector, kycStatus, emailVerified, phoneVerified, licenseVerified, profileCompleteness } = input;
+  const isKycVerified = ["approved", "basic", "standard", "enhanced"].includes(kycStatus.toLowerCase());
+
+  if (isInspector) {
+    return computeInspectorCompleteness(isKycVerified, emailVerified, phoneVerified, profileCompleteness);
+  }
+  return computeRegularCompleteness(isKycVerified, emailVerified, phoneVerified, licenseVerified, profileCompleteness);
+}
+
 export default function SharedProfileContainer({
   session,
   profileData,
@@ -139,6 +196,28 @@ export default function SharedProfileContainer({
   const licenseVerified = licenseStateEnum === "Verified";
   const licensePending = licenseStateEnum === "Pending";
 
+  const isInspector = useMemo(() => {
+    return session.user.roles.includes("Inspector");
+  }, [session.user.roles]);
+
+  const calculatedCompleteness = useMemo(() => {
+    return computeProfileCompleteness({
+      isInspector,
+      kycStatus,
+      emailVerified: verificationStatus.email,
+      phoneVerified: verificationStatus.phone,
+      licenseVerified,
+      profileCompleteness,
+    });
+  }, [
+    profileCompleteness,
+    kycStatus,
+    licenseVerified,
+    verificationStatus.email,
+    verificationStatus.phone,
+    isInspector,
+  ]);
+
   const pills: { id: TabType; label: string }[] = [
     { id: "general", label: "General Information" },
     { id: "address", label: "Address & Contact" },
@@ -152,7 +231,7 @@ export default function SharedProfileContainer({
       {/* Top Row (Summary Section) */}
       <Grid container spacing={3} sx={{ alignItems: "stretch", mb: 3 }}>
         {/* Left item: Profile Avatar and Completion Card */}
-        <Grid size={{ xs: 12, md: showVerification ? 8 : 12 }}>
+        <Grid size={{ xs: 12, md: showVerification ? 6 : 12, sm: 6 }}>
           <ProfileCard sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <ProfileHeader
               userId={userId}
@@ -161,7 +240,7 @@ export default function SharedProfileContainer({
               firstName={firstName}
               lastName={lastName}
               email={email}
-              completeness={profileCompleteness}
+              completeness={calculatedCompleteness}
               isAdmin={session.user.roles.includes("Admin")}
             />
           </ProfileCard>
@@ -169,7 +248,7 @@ export default function SharedProfileContainer({
 
         {/* Right item: VerificationStatus card */}
         {showVerification && (
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <ProfileCard sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
               <VerificationStatus
                 emailVerified={verificationStatus.email}
@@ -177,6 +256,7 @@ export default function SharedProfileContainer({
                 licenseVerified={licenseVerified}
                 licensePending={licensePending}
                 kycStatus={kycStatus}
+                isInspector={isInspector}
                 onVerifyIdentity={() => {
                   setIdentityModalOpen(true);
                 }}

@@ -127,7 +127,10 @@ export default function HeaderClient({ session: initialSession }: HeaderClientPr
 
   const pathname = usePathname();
   const isDashboardRoute =
-    pathname.startsWith("/admin") || pathname.startsWith("/supplier") || pathname.startsWith("/inspector");
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/supplier") ||
+    pathname.startsWith("/inspector") ||
+    pathname.startsWith("/driver");
 
   if (isDashboardRoute) {
     return null;

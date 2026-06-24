@@ -548,10 +548,8 @@ export default function DashboardShell({
           minWidth: 0,
           overflowX: "hidden",
           width: { md: `calc(100% - ${drawerWidth.toString()}px)` },
-          // مسحنا الـ mt وحطينا pt خفيف عشان يدي مساحة تنفس من جوه بدل الفراغ البني
-          pt: 1,
-          pr: 10,
-          pl: 10,
+          pt: { xs: 11, md: 12 },
+          px: { xs: 2, md: 10 },
           transition: theme =>
             theme.transitions.create(["width", "margin"], {
               easing: theme.transitions.easing.sharp,
