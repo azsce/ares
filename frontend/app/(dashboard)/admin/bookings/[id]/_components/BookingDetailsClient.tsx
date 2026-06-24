@@ -1158,6 +1158,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
         {/* 5. Inspection Management */}
         <BookingInspectionPanel
           bookingId={booking.id}
+          bookingStatus={booking.status}
           initialInspectorId={booking.inspection?.assignedInspectorId}
           initialInspectionStatus={booking.inspectionStatus || booking.inspection?.preInspectionStatus}
           onAssignSuccess={() => void loadBooking(false)}
