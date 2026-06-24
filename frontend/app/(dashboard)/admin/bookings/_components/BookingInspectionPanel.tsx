@@ -278,7 +278,7 @@ export default function BookingInspectionPanel({
               onClick={handleAssign}
               disabled={!selectedInspectorUserId || assigning || loadingInspectors}
               startIcon={assigning ? <CircularProgress size={16} color="inherit" /> : <AssignmentIndIcon />}
-              sx={{ minWidth: 160, whiteSpace: "nowrap" }}
+              sx={{ minWidth: 180, whiteSpace: "nowrap", flexShrink: 0 }}
             >
               {assigning ? "Assigning..." : buttonText}
             </Button>

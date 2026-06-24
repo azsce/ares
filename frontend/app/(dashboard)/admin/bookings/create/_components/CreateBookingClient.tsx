@@ -360,8 +360,13 @@ export default function CreateBookingClient() {
           router.push(`/admin/bookings?created=1&bookingNumber=${bookingNumber}`);
         }
       } catch (e) {
-        logger.error("Failed to create booking", e);
-        setError(e instanceof Error ? e.message : "Failed to create booking.");
+        if (e instanceof Error && e.name === "ApiError") {
+          logger.warn(`Failed to create booking: ${e.message}`);
+          setError(e.message);
+        } else {
+          logger.error("Failed to create booking", e);
+          setError(e instanceof Error ? e.message : "Failed to create booking.");
+        }
       } finally {
         setSubmitting(false);
       }
