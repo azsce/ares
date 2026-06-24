@@ -77,15 +77,7 @@ export default function ChangeStatusModal({
         logger.error("Failed to change booking status", e);
         let displayError = "Failed to change status. Please try again.";
         if (e instanceof Error) {
-          const errMsg = e.message;
-          if (
-            errMsg.toLowerCase().includes("cannot change booking status") ||
-            errMsg.toLowerCase().includes("status")
-          ) {
-            displayError = "لا يمكن تغيير حالة هذا الحجز / This booking status cannot be changed.";
-          } else {
-            displayError = errMsg;
-          }
+          displayError = e.message;
         }
         setError(displayError);
       } finally {
