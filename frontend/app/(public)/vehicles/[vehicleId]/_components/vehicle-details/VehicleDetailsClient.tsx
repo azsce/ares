@@ -78,7 +78,7 @@ const schema = z.object({
   categoryId: z.string().min(1, "Category is required"),
 });
 
-type FormValues = z.infer<typeof schema>;
+export type FormValues = z.infer<typeof schema>;
 
 interface VehicleDetailsClientProps {
   readonly vehicle: VehicleDetailsViewModel;
