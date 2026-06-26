@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Box,
   Button,
@@ -48,6 +49,7 @@ export default function CustomerDriverSelectionSection({
   assignedDriverProfile,
   canChangeDriver,
 }: Readonly<CustomerDriverSelectionSectionProps>) {
+  const t = useTranslations("customer.bookingDetail");
   const router = useRouter();
   const [drivers, setDrivers] = useState<PublicDriver[]>([]);
   const [isLoading, setIsLoading] = useState(!assignedDriverProfile);
@@ -68,12 +70,12 @@ export default function CustomerDriverSelectionSection({
       const res = await fetch(toApiUrl(`/api/bookings/${bookingId}/drivers`), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      if (!res.ok) throw new Error("Failed to load interested drivers.");
-      const data = await res.json();
-      setDrivers(data);
+      if (!res.ok) throw new Error(t("driverSelection.errorLoadDrivers"));
+      const data = (await res.json()) as { drivers?: PublicDriver[] };
+      setDrivers(data.drivers ?? []);
     } catch (err) {
       logger.error("Error fetching drivers", err);
-      setError("Could not load drivers at this time.");
+      setError(t("driverSelection.errorLoadDrivers"));
     } finally {
       setIsLoading(false);
     }
@@ -98,13 +100,13 @@ export default function CustomerDriverSelectionSection({
       });
 
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.message || "Failed to select driver");
+        const d: { message?: string } = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(d.message ?? t("driverSelection.errorSelectDriver"));
       }
 
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to complete driver selection");
+      setError(err instanceof Error ? err.message : t("driverSelection.errorSelectDriver"));
     } finally {
       setIsSelecting(false);
     }
@@ -121,13 +123,13 @@ export default function CustomerDriverSelectionSection({
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          reason: changeReason.trim() || "Customer requested a different driver",
+          reason: changeReason.trim() || t("driverSelection.changeReasonDefault"),
         }),
       });
 
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.message || "Failed to change driver");
+        const d: { message?: string } = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(d.message ?? t("driverSelection.errorChangeDriver"));
       }
 
       setChangeDialogOpen(false);
@@ -136,7 +138,7 @@ export default function CustomerDriverSelectionSection({
       // the parent re-renders this section into the selection list.
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to change driver");
+      setError(err instanceof Error ? err.message : t("driverSelection.errorChangeDriver"));
     } finally {
       setIsChanging(false);
     }
@@ -150,7 +152,7 @@ export default function CustomerDriverSelectionSection({
             <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 2 }}>
               <CarIcon color="primary" />
               <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                Assigned Driver
+                {t("driverSelection.assignedDriver")}
               </Typography>
             </Stack>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
@@ -162,7 +164,7 @@ export default function CustomerDriverSelectionSection({
                 }
                 sx={{ width: 64, height: 64 }}
               >
-                {!assignedDriverProfile.profilePictureUrl && assignedDriverProfile.firstName?.[0]}
+                {!assignedDriverProfile.profilePictureUrl && assignedDriverProfile.firstName[0]}
               </Avatar>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -171,7 +173,7 @@ export default function CustomerDriverSelectionSection({
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Rating value={assignedDriverProfile.averageRating} readOnly size="small" precision={0.5} />
                   <Typography variant="caption" color="text.secondary">
-                    ({assignedDriverProfile.totalTrips} trips)
+                    ({assignedDriverProfile.totalTrips} {t("driverSelection.trips")})
                   </Typography>
                 </Box>
               </Box>
@@ -189,7 +191,7 @@ export default function CustomerDriverSelectionSection({
                   setChangeDialogOpen(true);
                 }}
               >
-                Change Driver
+                {t("driverSelection.changeDriver")}
               </Button>
             )}
           </CardContent>
@@ -197,22 +199,21 @@ export default function CustomerDriverSelectionSection({
 
         <Dialog
           open={changeDialogOpen}
-          onClose={() => !isChanging && setChangeDialogOpen(false)}
+          onClose={() => {
+            if (!isChanging) setChangeDialogOpen(false);
+          }}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Change Driver</DialogTitle>
+          <DialogTitle>{t("driverSelection.changeDriverTitle")}</DialogTitle>
           <DialogContent>
-            <DialogContentText sx={{ mb: 2 }}>
-              This will release your current driver and re-open the search so you can choose another. You can only
-              change a driver up to 24 hours before pickup.
-            </DialogContentText>
+            <DialogContentText sx={{ mb: 2 }}>{t("driverSelection.changeDriverDescription")}</DialogContentText>
             <TextField
               autoFocus
               fullWidth
               multiline
               minRows={2}
-              label="Reason (optional)"
+              label={t("driverSelection.reasonOptional")}
               value={changeReason}
               onChange={e => {
                 setChangeReason(e.target.value);
@@ -227,10 +228,17 @@ export default function CustomerDriverSelectionSection({
               color="inherit"
               disabled={isChanging}
             >
-              Cancel
+              {t("driverSelection.cancel")}
             </Button>
-            <Button onClick={handleChangeDriver} variant="contained" color="primary" disabled={isChanging}>
-              {isChanging ? <CircularProgress size={20} color="inherit" /> : "Confirm Change"}
+            <Button
+              onClick={() => {
+                void handleChangeDriver();
+              }}
+              variant="contained"
+              color="primary"
+              disabled={isChanging}
+            >
+              {isChanging ? <CircularProgress size={20} color="inherit" /> : t("driverSelection.confirmChange")}
             </Button>
           </DialogActions>
         </Dialog>
@@ -244,7 +252,7 @@ export default function CustomerDriverSelectionSection({
         <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 2 }}>
           <PersonSearchIcon color="primary" />
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Select Your Driver
+            {t("driverSelection.selectDriverTitle")}
           </Typography>
         </Stack>
 
@@ -255,9 +263,7 @@ export default function CustomerDriverSelectionSection({
         ) : error ? (
           <Alert severity="error">{error}</Alert>
         ) : drivers.length === 0 ? (
-          <Alert severity="info">
-            We are currently searching for drivers for your booking. Please check back later.
-          </Alert>
+          <Alert severity="info">{t("driverSelection.searchingDrivers")}</Alert>
         ) : (
           <Grid container spacing={2}>
             {drivers.map(driver => (
@@ -268,7 +274,7 @@ export default function CustomerDriverSelectionSection({
                       src={driver.profilePictureUrl ? toImageUrl(driver.profilePictureUrl) : undefined}
                       sx={{ width: 48, height: 48 }}
                     >
-                      {!driver.profilePictureUrl && driver.firstName?.[0]}
+                      {!driver.profilePictureUrl && driver.firstName[0]}
                     </Avatar>
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -285,9 +291,11 @@ export default function CustomerDriverSelectionSection({
                     fullWidth
                     size="small"
                     disabled={isSelecting}
-                    onClick={() => handleSelectDriver(driver.driverProfileId)}
+                    onClick={() => {
+                      void handleSelectDriver(driver.driverProfileId);
+                    }}
                   >
-                    Select {driver.firstName}
+                    {t("driverSelection.selectDriver")} {driver.firstName}
                   </Button>
                 </Box>
               </Grid>
