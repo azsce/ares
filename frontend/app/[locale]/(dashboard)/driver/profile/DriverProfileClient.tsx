@@ -56,7 +56,7 @@ export default function DriverProfileClient() {
 
         if (!res.ok) throw new Error("Failed to load profile");
 
-        const data = await res.json();
+        const data = (await res.json()) as unknown as DriverProfileDetails;
         setProfile(data);
       } catch (err) {
         logger.error("Error fetching driver profile", err);

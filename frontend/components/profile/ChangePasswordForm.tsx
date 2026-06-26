@@ -16,6 +16,7 @@ import {
 import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
+import { useTranslations } from "next-intl";
 import { changePasswordSchema, type ChangePasswordFormData } from "@/lib/validation/schemas";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
@@ -27,24 +28,25 @@ interface ChangePasswordFormProps {
 
 type FieldErrors = Partial<Record<keyof ChangePasswordFormData, string>>;
 
-// Reuse the same strength logic as sign-up
+const PASSWORD_STRENGTH_KEYS = ["tooShort", "weak", "fair", "good", "strong"] as const;
+
 function getPasswordStrength(password: string) {
-  if (!password) return { score: 0, label: "", color: "error" as const };
+  if (!password) return { score: 0, key: "", color: "error" as const };
   let score = 0;
   if (password.length >= 8) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
   if (/[\W_]/.test(password)) score++;
-  const levels = [
-    { score: 1, label: "Weak", color: "error" as const },
-    { score: 2, label: "Fair", color: "warning" as const },
-    { score: 3, label: "Good", color: "info" as const },
-    { score: 4, label: "Strong", color: "success" as const },
-  ];
-  return levels[score - 1] ?? { score: 0, label: "Too short", color: "error" as const };
+  score = Math.max(score, 1);
+  return {
+    score,
+    key: PASSWORD_STRENGTH_KEYS[score - 1] ?? "tooShort",
+    color: (["error", "error", "warning", "info", "success"] as const)[score] ?? "error",
+  };
 }
 
 export default function ChangePasswordForm({ userId, accessToken }: ChangePasswordFormProps) {
+  const t = useTranslations("customer.accountProfile");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [serverError, setServerError] = useState("");
@@ -116,11 +118,11 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
           return;
         }
 
-        setServerError(data.message ?? "Failed to change password.");
+        setServerError(data.message ?? t("security.changeFailed"));
         return;
       }
 
-      setSuccessMsg("Password changed successfully.");
+      setSuccessMsg(t("security.changeSuccess"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -128,7 +130,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
       setFieldErrors({});
     } catch (error) {
       logger.error("Change password error", error);
-      setServerError(error instanceof Error ? error.message : "Failed to change password.");
+      setServerError(error instanceof Error ? error.message : t("security.changeFailed"));
     } finally {
       setLoading(false);
     }
@@ -137,7 +139,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
   return (
     <Box>
       <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontWeight: 700 }}>
-        Change Password
+        {t("security.changePassword")}
       </Typography>
       <Divider sx={{ mb: 3, borderColor: "border.light" }} />
 
@@ -151,7 +153,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
       >
         <TextField
           id="currentPassword"
-          label="Current Password"
+          label={t("security.currentPassword")}
           type={showCurrent ? "text" : "password"}
           autoComplete="current-password"
           required
@@ -170,7 +172,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    aria-label="toggle current password visibility"
+                    aria-label={t("security.toggleCurrentPasswordAria")}
                     onClick={() => {
                       setShowCurrent(v => !v);
                     }}
@@ -192,7 +194,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
         <Box>
           <TextField
             id="newPassword"
-            label="New Password"
+            label={t("security.newPassword")}
             type={showNew ? "text" : "password"}
             autoComplete="new-password"
             required
@@ -211,7 +213,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="toggle new password visibility"
+                      aria-label={t("security.toggleNewPasswordAria")}
                       onClick={() => {
                         setShowNew(v => !v);
                       }}
@@ -238,7 +240,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
                 sx={{ height: 4, borderRadius: 999, mb: 0.5 }}
               />
               <Typography variant="caption" color={`${passwordStrength.color}.main`} sx={{ fontWeight: 600 }}>
-                {passwordStrength.label}
+                {passwordStrength.key ? t(`security.passwordStrength.${passwordStrength.key}`) : ""}
               </Typography>
             </Box>
           )}
@@ -246,7 +248,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
 
         <TextField
           id="confirmPassword"
-          label="Confirm New Password"
+          label={t("security.confirmNewPassword")}
           type={showConfirm ? "text" : "password"}
           autoComplete="new-password"
           required
@@ -265,7 +267,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    aria-label="toggle confirm password visibility"
+                    aria-label={t("security.toggleConfirmPasswordAria")}
                     onClick={() => {
                       setShowConfirm(v => !v);
                     }}
@@ -290,7 +292,7 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
             alignItems: "center",
             justifyContent: "space-between",
             pt: 1,
-            borderTop: t => `1px solid ${t.palette.border.light}`,
+            borderTop: theme => `1px solid ${theme.palette.border.light}`,
             flexWrap: "wrap",
             gap: 2,
           }}
@@ -317,11 +319,11 @@ export default function ChangePasswordForm({ userId, accessToken }: ChangePasswo
               px: 3,
               py: 1.25,
               fontWeight: 700,
-              boxShadow: t => t.palette.shadow.button,
-              "&:hover": { boxShadow: t => t.palette.shadow.buttonHover },
+              boxShadow: theme => theme.palette.shadow.button,
+              "&:hover": { boxShadow: theme => theme.palette.shadow.buttonHover },
             }}
           >
-            {loading ? "Changing..." : "Change Password"}
+            {loading ? t("security.changing") : t("security.changePasswordButton")}
           </Button>
         </Box>
       </Box>
