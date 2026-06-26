@@ -9,6 +9,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { toApiUrl } from "@/utils/api-client";
 import { formatCurrency } from "@/utils/currency-helpers";
 import { logger } from "@/utils/logger";
+import BookingCleanup from "@/app/(public)/bookings/confirmation/[bookingId]/_components/BookingCleanup";
 
 interface PageProps {
   readonly params: Promise<{ bookingId: string }>;
@@ -89,6 +90,7 @@ export default async function ConfirmationPage({ params }: PageProps) {
 
   return (
     <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 4, md: 10 } }}>
+      <BookingCleanup />
       <Container maxWidth="md">
         <Paper
           elevation={0}
