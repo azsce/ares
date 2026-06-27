@@ -11,6 +11,7 @@ import type { AccountProfileLabels } from "./customer/account-profile";
 import type { BookingDetailLabels } from "./customer/booking-detail";
 import type { BookingPaymentLabels } from "./customer/booking-payment";
 import type { CustomerBookingsLabels } from "./customer/bookings";
+import type { ChangePasswordLabels } from "./customer/change-password";
 import type { DriverSelectionLabels } from "./customer/driver-selection";
 import type { CommonLabels } from "./common";
 import type { ErrorsLabels } from "./errors";
@@ -30,6 +31,7 @@ export type {
   ActivateLabels,
   BookingDetailLabels,
   BookingPaymentLabels,
+  ChangePasswordLabels,
   CommonLabels,
   CustomerBookingsLabels,
   DriverSelectionLabels,
@@ -67,6 +69,7 @@ export type CustomerSchema = {
   readonly driverSelection: DriverSelectionLabels;
   readonly bookingPayment: BookingPaymentLabels;
   readonly bookings: CustomerBookingsLabels;
+  readonly changePassword: ChangePasswordLabels;
 };
 
 export type DashboardSchema = {

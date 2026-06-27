@@ -15,6 +15,7 @@ import bookingDetail from "./ar/customer/booking-detail";
 import driverSelection from "./ar/customer/driver-selection";
 import bookingPayment from "./ar/customer/booking-payment";
 import bookings from "./ar/customer/bookings";
+import changePassword from "./ar/customer/change-password";
 import header from "./ar/header";
 import shell from "./ar/dashboard/shell";
 import adminSidebar from "./ar/dashboard/admin-sidebar";
@@ -44,6 +45,7 @@ const ar: MessageSchema = {
     driverSelection,
     bookingPayment,
     bookings,
+    changePassword,
   },
   header,
   dashboard: {
