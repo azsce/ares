@@ -23,6 +23,10 @@ import supplierSidebar from "./en/dashboard/supplier-sidebar";
 import inspectorSidebar from "./en/dashboard/inspector-sidebar";
 import logoutDialog from "./en/dashboard/logout-dialog";
 import deleteNotificationDialog from "./en/delete-notification-dialog";
+import compliance from "./en/dashboard/admin/admin/compliance";
+import security from "./en/dashboard/admin/admin/security";
+import vehicles from "./en/dashboard/admin/admin/vehicles";
+import bankDetails from "./en/dashboard/admin/bank-details";
 
 const en: MessageSchema = {
   common,
@@ -53,6 +57,14 @@ const en: MessageSchema = {
     supplierSidebar,
     inspectorSidebar,
     logoutDialog,
+  },
+  dashboardAdmin: {
+    admin: {
+      compliance,
+      security,
+      vehicles,
+    },
+    bankDetails,
   },
   deleteNotificationDialog,
 };
