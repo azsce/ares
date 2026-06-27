@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/shared/i18n/routing";
 import { useSession } from "next-auth/react";
 import {
   Alert,
@@ -72,7 +72,7 @@ export default function CompleteProfileClient() {
       try {
         const res = await fetch(toApiUrl("/api/service-areas"));
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as ServiceArea[];
           setServiceAreas(data.filter((a: ServiceArea) => a.isActive));
         }
       } catch (err) {
@@ -93,12 +93,13 @@ export default function CompleteProfileClient() {
 
   const handleFileChange =
     (setter: React.Dispatch<React.SetStateAction<File | null>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files[0]) {
-        setter(e.target.files[0]);
+      const file = e.target.files?.[0];
+      if (file) {
+        setter(file);
       }
     };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -141,8 +142,8 @@ export default function CompleteProfileClient() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to complete profile.");
+        const data = (await res.json().catch(() => ({ message: undefined }))) as { message?: string };
+        throw new Error(data.message ?? "Failed to complete profile.");
       }
 
       await update(); // refresh session
@@ -236,7 +237,11 @@ export default function CompleteProfileClient() {
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={e => {
+            void handleSubmit(e);
+          }}
+        >
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>

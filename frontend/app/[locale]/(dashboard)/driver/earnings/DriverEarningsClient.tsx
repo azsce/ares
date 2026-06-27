@@ -58,7 +58,7 @@ export default function DriverEarningsClient() {
 
         if (!res.ok) throw new Error("Failed to load earnings data");
 
-        const data = await res.json();
+        const data = (await res.json()) as DriverAssignment[];
         setAssignments(data);
       } catch (err) {
         logger.error("Error fetching driver assignments for earnings", err);
@@ -161,7 +161,7 @@ export default function DriverEarningsClient() {
           elevation={0}
           sx={{ p: 4, textAlign: "center", border: `1px dashed ${theme.palette.divider}`, borderRadius: 2 }}
         >
-          <Typography color="text.secondary">You haven't completed any trips yet.</Typography>
+          <Typography color="text.secondary">You haven&#39;t completed any trips yet.</Typography>
         </Paper>
       ) : (
         <TableContainer

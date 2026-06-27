@@ -1,91 +1,60 @@
 import type { MessageSchema } from "./types/message";
+import common from "./ar/common";
+import auth from "./ar/auth";
+import errors from "./ar/errors";
+import signin from "./ar/auth/signin";
+import googleSignIn from "./ar/auth/google-signin";
+import signup from "./ar/auth/signup";
+import forgotPassword from "./ar/auth/forgot-password";
+import resetPassword from "./ar/auth/reset-password";
+import activate from "./ar/auth/activate";
+import verifyEmail from "./ar/auth/verify-email";
+import accountProfile from "./ar/customer/account-profile";
+import accountBookings from "./ar/customer/account-bookings";
+import bookingDetail from "./ar/customer/booking-detail";
+import driverSelection from "./ar/customer/driver-selection";
+import bookingPayment from "./ar/customer/booking-payment";
+import bookings from "./ar/customer/bookings";
+import header from "./ar/header";
+import shell from "./ar/dashboard/shell";
+import adminSidebar from "./ar/dashboard/admin-sidebar";
+import driverSidebar from "./ar/dashboard/driver-sidebar";
+import supplierSidebar from "./ar/dashboard/supplier-sidebar";
+import inspectorSidebar from "./ar/dashboard/inspector-sidebar";
+import logoutDialog from "./ar/dashboard/logout-dialog";
+import deleteNotificationDialog from "./ar/delete-notification-dialog";
 
 const ar: MessageSchema = {
-  common: {
-    title: "أريس لتأجير السيارات",
-    description: "منصة تأجير سيارات احترافية للاستخدام التجاري والشخصي",
-    welcome: "مرحباً بك في أريس",
-    toggleTheme: "تبديل المظهر",
-    languageSwitcher: "تغيير اللغة",
-    langAr: "العربية",
-    langEn: "English",
-    langArShort: "AR",
-    langEnShort: "EN",
-    themeDark: "داكن",
-    themeLight: "فاتح",
-    notifications: "الإشعارات",
-    retry: "إعادة المحاولة",
-    loading: "جاري التحميل...",
-    save: "حفظ",
-    cancel: "إلغاء",
-    delete: "حذف",
-    edit: "تعديل",
-    search: "بحث",
-    filter: "تصفية",
-    export: "تصدير",
-    import: "استيراد",
-    submit: "إرسال",
-    confirm: "تأكيد",
-    back: "رجوع",
-    next: "التالي",
-    previous: "السابق",
-    close: "إغلاق",
-    yes: "نعم",
-    no: "لا",
-    actions: "إجراءات",
-    status: "الحالة",
-    active: "نشط",
-    inactive: "غير نشط",
-    all: "الكل",
-    none: "لا شيء",
-    selectAll: "تحديد الكل",
-    deselectAll: "إلغاء تحديد الكل",
+  common,
+  auth,
+  errors,
+  authPages: {
+    signin,
+    googleSignIn,
+    signup,
+    forgotPassword,
+    resetPassword,
+    activate,
+    verifyEmail,
   },
-  auth: {
-    login: {
-      title: "تسجيل الدخول",
-      subtitle: "الوصول إلى حسابك",
-      email: "البريد الإلكتروني",
-      password: "كلمة المرور",
-      rememberMe: "تذكرني",
-      forgotPassword: "نسيت كلمة المرور؟",
-      signIn: "تسجيل الدخول",
-      noAccount: "ليس لديك حساب؟",
-      register: "إنشاء حساب",
-      emailRequired: "البريد الإلكتروني مطلوب",
-      emailInvalid: "يرجى إدخال بريد إلكتروني صالح",
-      passwordRequired: "كلمة المرور مطلوبة",
-      passwordMinLength: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
-      loginSuccess: "تم تسجيل الدخول بنجاح!",
-      loginError: "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
-      invalidCredentials: "بريد إلكتروني أو كلمة مرور غير صحيحة",
-      tryAgain: "حاول مرة أخرى",
-    },
-    signup: {
-      title: "إنشاء حساب",
-      firstName: "الاسم الأول",
-      lastName: "اسم العائلة",
-      email: "البريد الإلكتروني",
-      password: "كلمة المرور",
-      confirmPassword: "تأكيد كلمة المرور",
-      createAccount: "إنشاء الحساب",
-      hasAccount: "لديك حساب بالفعل؟",
-      signIn: "تسجيل الدخول",
-    },
-    logout: "تسجيل الخروج",
+  customer: {
+    accountProfile,
+    accountBookings,
+    bookingDetail,
+    driverSelection,
+    bookingPayment,
+    bookings,
   },
-  errors: {
-    unauthorized: "وصول غير مصرح به",
-    notFound: "المورد غير موجود",
-    serverError: "حدث خطأ في الخادم",
-    networkError: "خطأ في الاتصال بالشبكة",
-    validationError: "خطأ في التحقق",
-    requiredField: "هذا الحقل مطلوب",
-    invalidEmail: "عنوان بريد إلكتروني غير صالح",
-    passwordMismatch: "كلمات المرور غير متطابقة",
-    sessionExpired: "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.",
-    accessDenied: "تم رفض الوصول",
+  header,
+  dashboard: {
+    shell,
+    adminSidebar,
+    driverSidebar,
+    supplierSidebar,
+    inspectorSidebar,
+    logoutDialog,
   },
+  deleteNotificationDialog,
 };
 
 export default ar;

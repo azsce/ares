@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/shared/i18n/routing";
 import { useSession } from "next-auth/react";
 import { Box, CircularProgress, Alert, Button, Snackbar } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -72,7 +73,7 @@ export default function DriverDetailsPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to load driver details");
-      const data = await res.json();
+      const data = (await res.json()) as DriverDetails;
       setDetails(data);
     } catch (err) {
       logger.error("Error loading driver details", err);
@@ -102,8 +103,8 @@ export default function DriverDetailsPage() {
       });
 
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.message || `Failed to ${action} driver`);
+        const d: { message?: string } = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(d.message ?? `Failed to ${action} driver`);
       }
 
       setToast({
@@ -184,9 +185,12 @@ export default function DriverDetailsPage() {
     emergencyContactName: details.emergencyContactName,
     emergencyContactPhone: details.emergencyContactPhone,
     rejectionReason: details.rejectionReason,
-    workAreas: details.workAreas
-      ? details.workAreas.map(w => ({ id: w.id, name: w.name, governorate: w.governorate, isActive: w.isActive }))
-      : undefined,
+    workAreas: details.workAreas.map(w => ({
+      id: w.id,
+      name: w.name,
+      governorate: w.governorate,
+      isActive: w.isActive,
+    })),
     totalTrips: details.totalTrips,
     averageRating: details.averageRating,
     availability: details.availability,

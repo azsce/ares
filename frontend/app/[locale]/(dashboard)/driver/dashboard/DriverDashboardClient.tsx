@@ -49,9 +49,15 @@ export default function DriverDashboardClient() {
     if (!token) return;
 
     async function loadDashboardData(t: string) {
-      const activeTask = getDriverActiveAssignment(t).then(data => setAssignment(data));
-      const upcomingTask = getDriverUpcomingSchedule(t).then(data => setUpcomingTrips(data));
-      const payoutsTask = getDriverPayoutLogs(t).then(data => setPayoutHistory(data));
+      const activeTask = getDriverActiveAssignment(t).then(data => {
+        setAssignment(data);
+      });
+      const upcomingTask = getDriverUpcomingSchedule(t).then(data => {
+        setUpcomingTrips(data);
+      });
+      const payoutsTask = getDriverPayoutLogs(t).then(data => {
+        setPayoutHistory(data);
+      });
 
       const summaryTask = getDriverDashboardSummary(t).then(summary => {
         setAvailability(summary.availability);
@@ -78,7 +84,7 @@ export default function DriverDashboardClient() {
       <Container maxWidth="xl">
         {/* Header Panel */}
         <DashboardHeader
-          userName={session?.user?.firstName || "Chauffeur"}
+          userName={session?.user.firstName || "Chauffeur"}
           initialAvailability={availability}
           onAvailabilityChange={handleAvailabilityChange}
         />

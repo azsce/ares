@@ -1,93 +1,90 @@
-export type CommonLabels = {
-  readonly title: string;
-  readonly description: string;
-  readonly welcome: string;
-  readonly toggleTheme: string;
-  readonly languageSwitcher: string;
-  readonly langAr: string;
-  readonly langEn: string;
-  readonly langArShort: string;
-  readonly langEnShort: string;
-  readonly themeDark: string;
-  readonly themeLight: string;
-  readonly notifications: string;
-  readonly retry: string;
-  readonly loading: string;
-  readonly save: string;
-  readonly cancel: string;
-  readonly delete: string;
-  readonly edit: string;
-  readonly search: string;
-  readonly filter: string;
-  readonly export: string;
-  readonly import: string;
-  readonly submit: string;
-  readonly confirm: string;
-  readonly back: string;
-  readonly next: string;
-  readonly previous: string;
-  readonly close: string;
-  readonly yes: string;
-  readonly no: string;
-  readonly actions: string;
-  readonly status: string;
-  readonly active: string;
-  readonly inactive: string;
-  readonly all: string;
-  readonly none: string;
-  readonly selectAll: string;
-  readonly deselectAll: string;
+import type { AuthLabels } from "./auth";
+import type { ActivateLabels } from "./auth/activate";
+import type { ForgotPasswordLabels } from "./auth/forgot-password";
+import type { GoogleSignInLabels } from "./auth/google-signin";
+import type { ResetPasswordLabels } from "./auth/reset-password";
+import type { SignInLabels } from "./auth/signin";
+import type { SignUpPageLabels } from "./auth/signup";
+import type { VerifyEmailLabels } from "./auth/verify-email";
+import type { AccountBookingsLabels } from "./customer/account-bookings";
+import type { AccountProfileLabels } from "./customer/account-profile";
+import type { BookingDetailLabels } from "./customer/booking-detail";
+import type { BookingPaymentLabels } from "./customer/booking-payment";
+import type { CustomerBookingsLabels } from "./customer/bookings";
+import type { DriverSelectionLabels } from "./customer/driver-selection";
+import type { CommonLabels } from "./common";
+import type { ErrorsLabels } from "./errors";
+import type { HeaderLabels } from "./header";
+import type { AdminSidebarLabels } from "./dashboard/admin-sidebar";
+import type { DriverSidebarLabels } from "./dashboard/driver-sidebar";
+import type { SupplierSidebarLabels } from "./dashboard/supplier-sidebar";
+import type { InspectorSidebarLabels } from "./dashboard/inspector-sidebar";
+import type { DashboardLabels } from "./dashboard/shell";
+import type { LogoutDialogLabels } from "./dashboard/logout-dialog";
+import type { DeleteNotificationDialogLabels } from "./delete-notification-dialog";
+
+export type {
+  AuthLabels,
+  AccountBookingsLabels,
+  AccountProfileLabels,
+  ActivateLabels,
+  BookingDetailLabels,
+  BookingPaymentLabels,
+  CommonLabels,
+  CustomerBookingsLabels,
+  DriverSelectionLabels,
+  ErrorsLabels,
+  ForgotPasswordLabels,
+  GoogleSignInLabels,
+  HeaderLabels,
+  ResetPasswordLabels,
+  SignInLabels,
+  SignUpPageLabels,
+  VerifyEmailLabels,
+  AdminSidebarLabels,
+  DriverSidebarLabels,
+  SupplierSidebarLabels,
+  InspectorSidebarLabels,
+  DashboardLabels,
+  LogoutDialogLabels,
+  DeleteNotificationDialogLabels,
 };
 
-export type AuthLabels = {
-  readonly login: {
-    readonly title: string;
-    readonly subtitle: string;
-    readonly email: string;
-    readonly password: string;
-    readonly rememberMe: string;
-    readonly forgotPassword: string;
-    readonly signIn: string;
-    readonly noAccount: string;
-    readonly register: string;
-    readonly emailRequired: string;
-    readonly emailInvalid: string;
-    readonly passwordRequired: string;
-    readonly passwordMinLength: string;
-    readonly loginSuccess: string;
-    readonly loginError: string;
-    readonly invalidCredentials: string;
-    readonly tryAgain: string;
-  };
-  readonly signup: {
-    readonly title: string;
-    readonly firstName: string;
-    readonly lastName: string;
-    readonly email: string;
-    readonly password: string;
-    readonly confirmPassword: string;
-    readonly createAccount: string;
-    readonly hasAccount: string;
-    readonly signIn: string;
-  };
-  readonly logout: string;
+export type AuthPagesSchema = {
+  readonly signin: SignInLabels;
+  readonly googleSignIn: GoogleSignInLabels;
+  readonly signup: SignUpPageLabels;
+  readonly forgotPassword: ForgotPasswordLabels;
+  readonly resetPassword: ResetPasswordLabels;
+  readonly activate: ActivateLabels;
+  readonly verifyEmail: VerifyEmailLabels;
 };
 
-export type ErrorsLabels = {
-  readonly unauthorized: string;
-  readonly notFound: string;
-  readonly serverError: string;
-  readonly networkError: string;
-  readonly validationError: string;
-  readonly requiredField: string;
-  readonly invalidEmail: string;
-  readonly passwordMismatch: string;
-  readonly sessionExpired: string;
-  readonly accessDenied: string;
+export type CustomerSchema = {
+  readonly accountProfile: AccountProfileLabels;
+  readonly accountBookings: AccountBookingsLabels;
+  readonly bookingDetail: BookingDetailLabels;
+  readonly driverSelection: DriverSelectionLabels;
+  readonly bookingPayment: BookingPaymentLabels;
+  readonly bookings: CustomerBookingsLabels;
+};
+
+export type DashboardSchema = {
+  readonly shell: DashboardLabels;
+  readonly adminSidebar: AdminSidebarLabels;
+  readonly driverSidebar: DriverSidebarLabels;
+  readonly supplierSidebar: SupplierSidebarLabels;
+  readonly inspectorSidebar: InspectorSidebarLabels;
+  readonly logoutDialog: LogoutDialogLabels;
 };
 
 export type MessageSchema = {
   readonly common: CommonLabels;
   readonly auth: AuthLabels;
   readonly errors: ErrorsLabels;
+  readonly authPages: AuthPagesSchema;
+  readonly customer: CustomerSchema;
+  readonly header: HeaderLabels;
+  readonly dashboard: DashboardSchema;
+  readonly deleteNotificationDialog: DeleteNotificationDialogLabels;
 };

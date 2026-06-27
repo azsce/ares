@@ -1,91 +1,60 @@
 import type { MessageSchema } from "./types/message";
+import common from "./en/common";
+import auth from "./en/auth";
+import errors from "./en/errors";
+import signin from "./en/auth/signin";
+import googleSignIn from "./en/auth/google-signin";
+import signup from "./en/auth/signup";
+import forgotPassword from "./en/auth/forgot-password";
+import resetPassword from "./en/auth/reset-password";
+import activate from "./en/auth/activate";
+import verifyEmail from "./en/auth/verify-email";
+import accountProfile from "./en/customer/account-profile";
+import accountBookings from "./en/customer/account-bookings";
+import bookingDetail from "./en/customer/booking-detail";
+import driverSelection from "./en/customer/driver-selection";
+import bookingPayment from "./en/customer/booking-payment";
+import bookings from "./en/customer/bookings";
+import header from "./en/header";
+import shell from "./en/dashboard/shell";
+import adminSidebar from "./en/dashboard/admin-sidebar";
+import driverSidebar from "./en/dashboard/driver-sidebar";
+import supplierSidebar from "./en/dashboard/supplier-sidebar";
+import inspectorSidebar from "./en/dashboard/inspector-sidebar";
+import logoutDialog from "./en/dashboard/logout-dialog";
+import deleteNotificationDialog from "./en/delete-notification-dialog";
 
 const en: MessageSchema = {
-  common: {
-    title: "Ares Car Rental",
-    description: "Professional car rental platform for business and personal use",
-    welcome: "Welcome to Ares",
-    toggleTheme: "Toggle Theme",
-    languageSwitcher: "Switch Language",
-    langAr: "العربية",
-    langEn: "English",
-    langArShort: "AR",
-    langEnShort: "EN",
-    themeDark: "Dark",
-    themeLight: "Light",
-    notifications: "Notifications",
-    retry: "Retry",
-    loading: "Loading...",
-    save: "Save",
-    cancel: "Cancel",
-    delete: "Delete",
-    edit: "Edit",
-    search: "Search",
-    filter: "Filter",
-    export: "Export",
-    import: "Import",
-    submit: "Submit",
-    confirm: "Confirm",
-    back: "Back",
-    next: "Next",
-    previous: "Previous",
-    close: "Close",
-    yes: "Yes",
-    no: "No",
-    actions: "Actions",
-    status: "Status",
-    active: "Active",
-    inactive: "Inactive",
-    all: "All",
-    none: "None",
-    selectAll: "Select All",
-    deselectAll: "Deselect All",
+  common,
+  auth,
+  errors,
+  authPages: {
+    signin,
+    googleSignIn,
+    signup,
+    forgotPassword,
+    resetPassword,
+    activate,
+    verifyEmail,
   },
-  auth: {
-    login: {
-      title: "Sign In",
-      subtitle: "Access your account",
-      email: "Email",
-      password: "Password",
-      rememberMe: "Remember me",
-      forgotPassword: "Forgot password?",
-      signIn: "Sign In",
-      noAccount: "Don't have an account?",
-      register: "Create account",
-      emailRequired: "Email is required",
-      emailInvalid: "Please enter a valid email address",
-      passwordRequired: "Password is required",
-      passwordMinLength: "Password must be at least 6 characters",
-      loginSuccess: "Login successful!",
-      loginError: "Login failed. Please try again.",
-      invalidCredentials: "Invalid email or password",
-      tryAgain: "Try Again",
-    },
-    signup: {
-      title: "Create Account",
-      firstName: "First Name",
-      lastName: "Last Name",
-      email: "Email",
-      password: "Password",
-      confirmPassword: "Confirm Password",
-      createAccount: "Create Account",
-      hasAccount: "Already have an account?",
-      signIn: "Sign in",
-    },
-    logout: "Logout",
+  customer: {
+    accountProfile,
+    accountBookings,
+    bookingDetail,
+    driverSelection,
+    bookingPayment,
+    bookings,
   },
-  errors: {
-    unauthorized: "Unauthorized access",
-    notFound: "Resource not found",
-    serverError: "Server error occurred",
-    networkError: "Network connection error",
-    validationError: "Validation error",
-    requiredField: "This field is required",
-    invalidEmail: "Invalid email address",
-    passwordMismatch: "Passwords do not match",
-    sessionExpired: "Session expired. Please log in again.",
-    accessDenied: "Access denied",
+  header,
+  dashboard: {
+    shell,
+    adminSidebar,
+    driverSidebar,
+    supplierSidebar,
+    inspectorSidebar,
+    logoutDialog,
   },
+  deleteNotificationDialog,
 };
 
 export default en;

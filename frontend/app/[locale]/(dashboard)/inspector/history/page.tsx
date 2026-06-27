@@ -25,7 +25,7 @@ import {
   Pagination,
   type SelectChangeEvent,
 } from "@mui/material";
-import Link from "next/link";
+import { Link } from "@/shared/i18n/routing";
 import HistoryIcon from "@mui/icons-material/History";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/LaunchOutlined";
