@@ -6,14 +6,11 @@ import StatCardGrid, { SummaryItem } from "./StatCardGrid";
 import RevenueChart from "./RevenueChart";
 import QuickActions from "./QuickActions";
 import TopVehicles from "./TopVehicles";
-import { BookingListItem } from "./RecentBookingsTable";
-import RecentBookings from "./RecentBookings";
+import RecentBookings, { BookingListItem } from "./RecentBookings";
 import AlertsCenter from "./AlertsCenter";
 import LiveActivity from "./LiveActivity";
-import VehiclesPerCategoryCard from "./VehiclesPerCategoryCard";
 import { QuickAction, TopVehicle, DashboardAlert } from "./mockData";
 import { logger } from "@/utils/logger";
-import { DashboardSummary } from "../types";
 
 export interface AdminDashboardViewProps {
   readonly summary: readonly SummaryItem[];
@@ -27,6 +24,7 @@ export interface AdminDashboardViewProps {
 
 export default function AdminDashboardView({
   summary,
+  recentBookings,
   alerts,
   activities,
   quickActions,
@@ -48,8 +46,8 @@ export default function AdminDashboardView({
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, lg: 12 }}>
-          <RecentBookings />
+        <Grid size={{ xs: 12 }}>
+          <RecentBookings bookings={recentBookings} />
         </Grid>
       </Grid>
 
@@ -64,19 +62,10 @@ export default function AdminDashboardView({
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <VehiclesPerCategoryCard
-            data={rawSummaryData ? (rawSummaryData as DashboardSummary).vehiclesPerCategory : undefined}
-          />
+          <AlertsCenter alerts={alerts} />
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <AlertsCenter alerts={alerts} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <LiveActivity activities={activities} />
-            </Grid>
-          </Grid>
+          <LiveActivity activities={activities} />
         </Grid>
       </Grid>
     </Box>
