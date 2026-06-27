@@ -426,7 +426,9 @@ export default function InspectionHistoryPage() {
           <Pagination
             count={totalPages}
             page={page}
-            onChange={(_, value) => setPage(value)}
+            onChange={(_, value) => {
+              setPage(value);
+            }}
             color="primary"
             variant="outlined"
             shape="rounded"
