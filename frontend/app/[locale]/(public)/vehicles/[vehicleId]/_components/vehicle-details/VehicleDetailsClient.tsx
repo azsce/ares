@@ -148,7 +148,7 @@ export default function VehicleDetailsClient({
     })),
     status: vehicle.status,
     availabilityStatus: vehicle.availabilityStatus,
-    categoryId: "",
+    categoryId: vehicle.categoryId ?? "",
   };
 
   const methods = useForm<FormValues>({
@@ -158,21 +158,25 @@ export default function VehicleDetailsClient({
 
   useEffect(() => {
     if (categories.length > 0) {
-      const matched = categories.find(
-        c => c.name.toLowerCase() === vehicle.status.toLowerCase() || c.id === vehicle.status
-      );
-      if (matched) {
-        methods.setValue("categoryId", matched.id);
-      } else if (isCreateMode && !methods.getValues("categoryId")) {
-        const sedan = categories.find(c => c.name.toLowerCase() === "sedan");
-        if (sedan) {
-          methods.setValue("categoryId", sedan.id);
-        } else if (categories[0]) {
-          methods.setValue("categoryId", categories[0].id);
+      if (vehicle.categoryId) {
+        methods.setValue("categoryId", vehicle.categoryId);
+      } else {
+        const matched = categories.find(
+          c => c.name.toLowerCase() === vehicle.status.toLowerCase() || c.id === vehicle.status
+        );
+        if (matched) {
+          methods.setValue("categoryId", matched.id);
+        } else if (isCreateMode && !methods.getValues("categoryId")) {
+          const sedan = categories.find(c => c.name.toLowerCase() === "sedan");
+          if (sedan) {
+            methods.setValue("categoryId", sedan.id);
+          } else if (categories[0]) {
+            methods.setValue("categoryId", categories[0].id);
+          }
         }
       }
     }
-  }, [categories, vehicle.status, isCreateMode, methods]);
+  }, [categories, vehicle.categoryId, vehicle.status, isCreateMode, methods]);
 
   const { undo, redo, canUndo, canRedo } = useFormUndoRedo(methods, initialValues);
 
