@@ -58,7 +58,7 @@ export default function DriverTripsClient() {
 
       if (!res.ok) throw new Error("Failed to load assignments");
 
-      const data = await res.json();
+      const data = (await res.json()) as DriverAssignment[];
       setAssignments(data);
     } catch (err) {
       logger.error("Error fetching driver assignments", err);
@@ -68,8 +68,33 @@ export default function DriverTripsClient() {
     }
   }, [session?.accessToken]);
 
+  const handleCancelTrip = useCallback(
+    async (bookingId: string) => {
+      if (
+        !confirm(
+          "Are you sure you want to cancel this trip? This action cannot be undone and is only allowed at least 24h before pickup."
+        )
+      )
+        return;
+      try {
+        const res = await fetch(toApiUrl(`/api/driver/assignments/${bookingId}/cancel`), {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session?.accessToken}` },
+        });
+        if (!res.ok) {
+          const err = (await res.json().catch(() => ({}))) as { message?: string };
+          throw new Error(err.message ?? "Failed to cancel");
+        }
+        void fetchAssignments();
+      } catch (e: unknown) {
+        alert(e instanceof Error ? e.message : "Failed to cancel trip");
+      }
+    },
+    [session?.accessToken, fetchAssignments]
+  );
+
   useEffect(() => {
-    fetchAssignments().catch(logger.error);
+    void fetchAssignments();
   }, [fetchAssignments]);
 
   const assignedTrips = useMemo(
@@ -110,7 +135,7 @@ export default function DriverTripsClient() {
       <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 4 }}>
         <Tabs
           value={tabIndex}
-          onChange={(_, nv) => {
+          onChange={(_, nv: number) => {
             setTabIndex(nv);
           }}
           aria-label="driver trips tabs"
@@ -212,26 +237,8 @@ export default function DriverTripsClient() {
                         fullWidth
                         variant="outlined"
                         color="error"
-                        onClick={async () => {
-                          if (
-                            !confirm(
-                              "Are you sure you want to cancel this trip? This action cannot be undone and is only allowed at least 24h before pickup."
-                            )
-                          )
-                            return;
-                          try {
-                            const res = await fetch(toApiUrl(`/api/driver/assignments/${trip.bookingId}/cancel`), {
-                              method: "POST",
-                              headers: { Authorization: `Bearer ${session?.accessToken}` },
-                            });
-                            if (!res.ok) {
-                              const err = await res.json().catch(() => ({}));
-                              throw new Error(err.message || "Failed to cancel");
-                            }
-                            fetchAssignments();
-                          } catch (e: any) {
-                            alert(e.message);
-                          }
+                        onClick={() => {
+                          void handleCancelTrip(trip.bookingId);
                         }}
                       >
                         Cancel Trip

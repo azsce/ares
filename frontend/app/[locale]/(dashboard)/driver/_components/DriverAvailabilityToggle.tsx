@@ -65,7 +65,7 @@ export default function DriverAvailabilityToggle({
 
       if (!res.ok) throw new Error("Failed to update availability");
 
-      const data = await res.json();
+      const data = (await res.json()) as { availability: DriverAvailabilityStatus };
       setAvailability(data.availability);
       onAvailabilityChange?.(data.availability);
     } catch (err) {
@@ -124,7 +124,14 @@ export default function DriverAvailabilityToggle({
           >
             Cancel
           </Button>
-          <Button onClick={confirmToggle} variant="contained" color="primary" autoFocus>
+          <Button
+            onClick={() => {
+              void confirmToggle();
+            }}
+            variant="contained"
+            color="primary"
+            autoFocus
+          >
             Confirm
           </Button>
         </DialogActions>

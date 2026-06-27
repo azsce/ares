@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Box,
   Drawer,
@@ -30,12 +31,14 @@ import {
   Search as SearchIcon,
   ExitToApp as ExitIcon,
 } from "@mui/icons-material";
-import Link from "next/link";
+
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, Link } from "@/shared/i18n/routing";
 import { useSession, signOut } from "next-auth/react";
 import { performLogoutCleanup } from "@/utils/auth-cleanup";
 import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import NotificationsBell from "./NotificationsBell";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
 
@@ -77,6 +80,8 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const t = useTranslations("dashboard.shell");
+  const tc = useTranslations("common");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -112,7 +117,7 @@ export default function DashboardShell({
   };
 
   const activeMenuItem = useMemo(() => resolveActiveMenuItem(menuItems, pathname), [menuItems, pathname]);
-  const pageTitle = activeMenuItem?.text ?? "Dashboard";
+  const pageTitle = activeMenuItem?.text ?? t("pageTitleFallback");
 
   const callbackUrl = useMemo(() => {
     const query = searchParams.toString();
@@ -147,7 +152,7 @@ export default function DashboardShell({
   if (!session.user.id) {
     return (
       <Box sx={{ p: 4 }}>
-        <Typography color="error">User ID missing from session. Please sign in again.</Typography>
+        <Typography color="error">{t("userIdMissing")}</Typography>
       </Box>
     );
   }
@@ -300,7 +305,7 @@ export default function DashboardShell({
         <Toolbar sx={{ height: APP_BAR_HEIGHT, gap: 2 }}>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
+            aria-label={t("openDrawer")}
             edge="start"
             onClick={handleDrawerToggle}
             sx={{ mr: 1, display: { md: "none" } }}
@@ -310,7 +315,7 @@ export default function DashboardShell({
 
           <IconButton
             color="inherit"
-            aria-label="toggle menu"
+            aria-label={t("toggleMenu")}
             onClick={handleDrawerToggle}
             sx={{ display: { xs: "none", md: "inline-flex" }, color: "text.secondary" }}
           >
@@ -329,7 +334,7 @@ export default function DashboardShell({
             <Box sx={{ height: 28, width: 72, position: "relative" }}>
               <Image
                 src="/img/favicon/logo_transparent.png"
-                alt="Ares Logo"
+                alt={t("logoAlt")}
                 fill
                 sizes="72px"
                 style={{
@@ -399,7 +404,7 @@ export default function DashboardShell({
           >
             <SearchIcon sx={{ color: "text.secondary", fontSize: 20 }} />
             <InputBase
-              placeholder="Search..."
+              placeholder={tc("searchPlaceholder")}
               sx={{
                 color: "text.primary",
                 fontSize: "0.9rem",
@@ -410,13 +415,14 @@ export default function DashboardShell({
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ThemeSwitcher />
+            <LanguageSwitcher color="inherit" size="medium" />
+            <ThemeSwitcher color="inherit" size="medium" />
             <NotificationsBell allNotificationsHref={notificationsHref} allNotificationsLabel={notificationsLabel} />
             <IconButton
               onClick={() => {
                 setLogoutDialogOpen(true);
               }}
-              aria-label="logout"
+              aria-label={tc("logout")}
               sx={{ color: "error.main", "&:hover": { bgcolor: theme => alpha(theme.palette.error.main, 0.08) } }}
             >
               <ExitIcon />
@@ -428,9 +434,9 @@ export default function DashboardShell({
       <Menu
         id="menu-appbar"
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: theme.direction === "rtl" ? "left" : "right" }}
         keepMounted
-        transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "bottom", horizontal: theme.direction === "rtl" ? "right" : "left" }}
         open={Boolean(anchorEl)}
         onClose={handleClose}
         slotProps={{
@@ -461,7 +467,7 @@ export default function DashboardShell({
           <ListItemIcon sx={{ minWidth: "auto" }}>
             <PersonIcon fontSize="small" />
           </ListItemIcon>
-          Profile
+          {t("profile")}
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem
@@ -481,7 +487,7 @@ export default function DashboardShell({
           <ListItemIcon sx={{ color: "inherit", minWidth: "auto" }}>
             <ExitIcon fontSize="small" />
           </ListItemIcon>
-          Logout
+          {t("logout")}
         </MenuItem>
       </Menu>
 
