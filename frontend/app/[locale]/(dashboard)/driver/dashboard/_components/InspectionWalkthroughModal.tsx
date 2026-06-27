@@ -103,7 +103,7 @@ export default function InspectionWalkthroughModal({
                 <Slider
                   value={fuel}
                   onChange={(_, val) => {
-                    setFuel(val as number);
+                    setFuel(val);
                   }}
                   step={25}
                   marks

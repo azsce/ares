@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { Box, Container, Grid, Typography } from "@mui/material";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 // Nested components
@@ -30,6 +31,7 @@ import {
 
 export default function DriverDashboardClient() {
   const { data: session } = useSession();
+  const t = useTranslations("dashboard.driverDashboard");
 
   // State hooks initialized with the Mock fallback data for immediate seamless rendering
   const [assignment, setAssignment] = useState<TripAssignment>(mockAssignment);
@@ -49,9 +51,15 @@ export default function DriverDashboardClient() {
     if (!token) return;
 
     async function loadDashboardData(t: string) {
-      const activeTask = getDriverActiveAssignment(t).then(data => setAssignment(data));
-      const upcomingTask = getDriverUpcomingSchedule(t).then(data => setUpcomingTrips(data));
-      const payoutsTask = getDriverPayoutLogs(t).then(data => setPayoutHistory(data));
+      const activeTask = getDriverActiveAssignment(t).then(data => {
+        setAssignment(data);
+      });
+      const upcomingTask = getDriverUpcomingSchedule(t).then(data => {
+        setUpcomingTrips(data);
+      });
+      const payoutsTask = getDriverPayoutLogs(t).then(data => {
+        setPayoutHistory(data);
+      });
 
       const summaryTask = getDriverDashboardSummary(t).then(summary => {
         setAvailability(summary.availability);
@@ -78,7 +86,7 @@ export default function DriverDashboardClient() {
       <Container maxWidth="xl">
         {/* Header Panel */}
         <DashboardHeader
-          userName={session?.user?.firstName || "Chauffeur"}
+          userName={session?.user.firstName || "Chauffeur"}
           initialAvailability={availability}
           onAvailabilityChange={handleAvailabilityChange}
         />
@@ -110,7 +118,7 @@ export default function DriverDashboardClient() {
         <Box sx={{ mt: 4, mb: 2, borderBottom: "1px solid", borderColor: "border.light" }}>
           <Box sx={{ pb: 1.5, display: "inline-block", borderBottom: "2px solid", borderColor: "primary.main" }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "primary.main" }}>
-              Historical Payout Logs
+              {t("historicalPayoutLogs")}
             </Typography>
           </Box>
         </Box>
