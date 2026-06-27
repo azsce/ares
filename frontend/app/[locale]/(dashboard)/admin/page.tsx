@@ -6,7 +6,7 @@ import AdminDashboardView from "./_components/AdminDashboardView";
 import { apiFetchJson } from "@/utils/api-client";
 import { DashboardSummary, RecentSummaryItem } from "./types";
 import { SummaryItem } from "./_components/StatCardGrid";
-import { BookingListItem } from "./_components/RecentBookingsTable";
+import { BookingListItem } from "./_components/RecentBookings";
 import {
   DashboardAlert,
   mockAlerts,
@@ -29,22 +29,22 @@ const safeNum = (v: unknown): number => (typeof v === "number" && Number.isFinit
 
 const MOCK_RECENT_BOOKINGS: readonly BookingListItem[] = [
   {
-    id: "BK-8A2F",
-    customer: "John Doe",
-    customerAvatar: "https://ui-avatars.com/api/?name=John+Doe&background=random",
-    car: "BMW X7",
-    date: new Date().toLocaleDateString(),
-    status: "Completed",
-    amount: "$350",
+    bookingId: "BKG-001",
+    bookingNumber: "BKG-001",
+    customerName: "Ahmed Ali",
+    vehicleName: "Mercedes S-Class",
+    vehicleImage: null,
+    bookingDate: new Date().toISOString(),
+    status: "Active",
   },
   {
-    id: "BK-9B3C",
-    customer: "Sarah Smith",
-    customerAvatar: "https://ui-avatars.com/api/?name=Sarah+Smith&background=random",
-    car: "Mercedes S-Class",
-    date: new Date().toLocaleDateString(),
-    status: "Active",
-    amount: "$420",
+    bookingId: "BKG-002",
+    bookingNumber: "BKG-002",
+    customerName: "Sara Mahmoud",
+    vehicleName: "BMW X5",
+    vehicleImage: null,
+    bookingDate: new Date().toISOString(),
+    status: "Completed",
   },
 ];
 
@@ -114,56 +114,37 @@ async function getSummary(
   }
 }
 
-interface BookingFromApi {
-  id?: string | number;
-  _id?: string | number;
-  driver?: { fullName?: string };
-  car?: { name?: string };
-  from?: string;
-  status?: string;
-  price?: number;
-}
-
-interface BookingApiResponse {
-  resultData?: BookingFromApi[];
-  data?: BookingFromApi[];
-  items?: BookingFromApi[];
+interface RecentBookingFromApi {
+  bookingId: string;
+  bookingNumber: string;
+  customerName: string;
+  vehicleName: string;
+  vehicleImage?: string | null;
+  bookingDate: string;
+  status: string;
 }
 
 async function getRecentBookings(
-  accessToken: string,
-  userId: string,
-  roles: readonly string[]
+  accessToken: string
 ): Promise<readonly BookingListItem[]> {
   try {
-    const bookingsData = await apiFetchJson<BookingApiResponse>("api/admin/bookings/search/1/5", {
-      method: "POST",
+    const bookingsData = await apiFetchJson<RecentBookingFromApi[]>("api/dashboard/recent-bookings", {
+      method: "GET",
       accessToken,
-      body: JSON.stringify({
-        userId: null,
-        suppliers: roles.includes("Supplier") ? [userId] : null,
-        statuses: null,
-        carId: null,
-        filter: { from: null, to: null, keyword: null, pickupLocation: null, dropOffLocation: null },
-        page: 1,
-        size: 5,
-        language: "en",
-      }),
     });
 
-    const bookingsList = bookingsData.resultData ?? bookingsData.data ?? bookingsData.items;
-    if (!bookingsList || bookingsList.length === 0) {
+    if (!bookingsData || bookingsData.length === 0) {
       return MOCK_RECENT_BOOKINGS;
     }
 
-    return bookingsList.map(b => ({
-      id: String(b.id ?? b._id ?? ""),
-      customer: b.driver?.fullName ?? "Guest",
-      customerAvatar: undefined, // Let client-side Avatar handle themed fallback
-      car: b.car?.name ?? "Vehicle",
-      date: b.from ? new Date(b.from).toLocaleDateString() : "",
-      status: b.status ?? "Pending",
-      amount: `$${String(b.price ?? 0)}`,
+    return bookingsData.map(b => ({
+      bookingId: b.bookingId,
+      bookingNumber: b.bookingNumber,
+      customerName: b.customerName,
+      vehicleName: b.vehicleName,
+      vehicleImage: b.vehicleImage,
+      bookingDate: b.bookingDate,
+      status: b.status,
     }));
   } catch (error) {
     logger.warn(`Failed to fetch recent bookings: ${error instanceof Error ? error.message : String(error)}`);
@@ -221,7 +202,7 @@ export default async function AdminDashboardPage() {
   const accessToken = session.accessToken;
   const { summary, rawData: rawSummaryData } = await getSummary(accessToken);
   const [recentBookings, alerts, activities, quickActions, topVehicles] = await Promise.all([
-    getRecentBookings(accessToken, session.user.id, session.user.roles),
+    getRecentBookings(accessToken),
     getAlerts(accessToken),
     getActivities(accessToken),
     getQuickActions(accessToken),

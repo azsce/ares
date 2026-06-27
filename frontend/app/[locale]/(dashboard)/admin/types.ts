@@ -5,7 +5,6 @@ export interface DashboardSummary {
   pendingVerifications: number;
   availableVehicles: number;
   pendingInspections: number;
-  vehiclesPerCategory?: Record<string, number>;
 }
 
 export interface RecentBooking {
