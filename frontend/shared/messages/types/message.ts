@@ -29,6 +29,10 @@ import type { DriverNotificationsLabels } from "./dashboard/driver-notifications
 import type { DriverProfileLabels } from "./dashboard/driver-profile";
 import type { LogoutDialogLabels } from "./dashboard/logout-dialog";
 import type { DeleteNotificationDialogLabels } from "./delete-notification-dialog";
+import type { AdminComplianceLabels } from "./dashboard/admin/admin/compliance";
+import type { AdminSecurityLabels } from "./dashboard/admin/admin/security";
+import type { AdminVehiclesMgmtLabels } from "./dashboard/admin/admin/vehicles";
+import type { BankDetailsLabels } from "./dashboard/admin/bank-details";
 
 export type {
   AuthLabels,
@@ -57,6 +61,10 @@ export type {
   DashboardLabels,
   LogoutDialogLabels,
   DeleteNotificationDialogLabels,
+  AdminComplianceLabels,
+  AdminSecurityLabels,
+  AdminVehiclesMgmtLabels,
+  BankDetailsLabels,
 };
 
 export type AuthPagesSchema = {
@@ -94,6 +102,17 @@ export type DashboardSchema = {
   readonly logoutDialog: LogoutDialogLabels;
 };
 
+export type DashboardAdminAdminSchema = {
+  readonly compliance: AdminComplianceLabels;
+  readonly security: AdminSecurityLabels;
+  readonly vehicles: AdminVehiclesMgmtLabels;
+};
+
+export type DashboardAdminSchema = {
+  readonly admin: DashboardAdminAdminSchema;
+  readonly bankDetails: BankDetailsLabels;
+};
+
 export type MessageSchema = {
   readonly common: CommonLabels;
   readonly auth: AuthLabels;
@@ -102,5 +121,6 @@ export type MessageSchema = {
   readonly customer: CustomerSchema;
   readonly header: HeaderLabels;
   readonly dashboard: DashboardSchema;
+  readonly dashboardAdmin: DashboardAdminSchema;
   readonly deleteNotificationDialog: DeleteNotificationDialogLabels;
 };

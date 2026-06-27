@@ -30,6 +30,10 @@ import { driverNotifications } from "./ar/dashboard/driver-notifications";
 import { driverProfile } from "./ar/dashboard/driver-profile";
 import logoutDialog from "./ar/dashboard/logout-dialog";
 import deleteNotificationDialog from "./ar/delete-notification-dialog";
+import compliance from "./ar/dashboard/admin/admin/compliance";
+import security from "./ar/dashboard/admin/admin/security";
+import vehicles from "./ar/dashboard/admin/admin/vehicles";
+import bankDetails from "./ar/dashboard/admin/bank-details";
 
 const ar: MessageSchema = {
   common,
@@ -67,6 +71,14 @@ const ar: MessageSchema = {
     driverNotifications,
     driverProfile,
     logoutDialog,
+  },
+  dashboardAdmin: {
+    admin: {
+      compliance,
+      security,
+      vehicles,
+    },
+    bankDetails,
   },
   deleteNotificationDialog,
 };
