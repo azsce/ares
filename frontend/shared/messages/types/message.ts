@@ -34,6 +34,9 @@ import type { AdminComplianceLabels } from "./dashboard/admin/admin/compliance";
 import type { AdminSecurityLabels } from "./dashboard/admin/admin/security";
 import type { AdminVehiclesMgmtLabels } from "./dashboard/admin/admin/vehicles";
 import type { BankDetailsLabels } from "./dashboard/admin/bank-details";
+import type { AboutLabels } from "./public/about";
+import type { PrivacyLabels } from "./public/privacy";
+import type { TermsLabels } from "./public/terms";
 import type { AdminBookingsLabels } from "./dashboard/admin/bookings";
 import type { CreateBookingLabels } from "./dashboard/admin/bookings/create";
 
@@ -74,6 +77,11 @@ export type {
   DriverEarningsLabels,
   DriverNotificationsLabels,
   DriverProfileLabels,
+  AboutLabels,
+  PrivacyLabels,
+  TermsLabels,
+  AdminBookingsLabels,
+  CreateBookingLabels,
 };
 
 export type AuthPagesSchema = {
@@ -125,6 +133,12 @@ export type DashboardAdminSchema = {
   readonly createBooking: CreateBookingLabels;
 };
 
+export type PublicPagesSchema = {
+  readonly about: AboutLabels;
+  readonly privacy: PrivacyLabels;
+  readonly terms: TermsLabels;
+};
+
 export type MessageSchema = {
   readonly common: CommonLabels;
   readonly auth: AuthLabels;
@@ -135,4 +149,5 @@ export type MessageSchema = {
   readonly dashboard: DashboardSchema;
   readonly dashboardAdmin: DashboardAdminSchema;
   readonly deleteNotificationDialog: DeleteNotificationDialogLabels;
+  readonly publicPages: PublicPagesSchema;
 };
