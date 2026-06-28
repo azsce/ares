@@ -289,10 +289,8 @@ async function runValidation(): Promise<void> {
   const useCompiler = !noCompiler;
   const logFlag = args.indexOf("--log");
   const logToFile = logFlag !== -1;
-  const logPath =
-    logFlag !== -1 && args[logFlag + 1] && args[logFlag + 1] !== undefined && !args[logFlag + 1]?.startsWith("--")
-      ? resolve(args[logFlag + 1])
-      : MERMAID_ERROR_LOG;
+  const targetArg = logFlag !== -1 ? args[logFlag + 1] : undefined;
+  const logPath = targetArg && !targetArg.startsWith("--") ? resolve(targetArg) : MERMAID_ERROR_LOG;
   const clearLog = args.includes("--clear-log");
 
   if (clearLog) {

@@ -156,9 +156,31 @@ local mermaid = {
         local infile = 'diagram.mmd'
         local outfile = 'diagram.' .. file_extension
         write_file(infile, code)
+        local args = {"--pdfFit", "--input", infile, "--output", outfile}
+        local puppeteer_cfg = self.opt and self.opt['puppeteer-config']
+          or os.getenv('MERMAID_PUPPETEER_CONFIG')
+        if puppeteer_cfg and puppeteer_cfg ~= '' then
+          table.insert(args, '--puppeteerConfigFile')
+          table.insert(args, puppeteer_cfg)
+        end
+        local chrome_path = os.getenv('PUPPETEER_EXECUTABLE_PATH')
+          or os.getenv('CHROME_PATH')
+        if chrome_path and chrome_path ~= '' then
+          local puppeteer_json = '{"executablePath":"' .. chrome_path:gsub('\\','\\\\') .. '","args":["--no-sandbox","--disable-setuid-sandbox"]}'
+          local ppconfig = tmpdir .. '/puppeteer-config.json'
+          write_file(ppconfig, puppeteer_json)
+          table.insert(args, '--puppeteerConfigFile')
+          table.insert(args, ppconfig)
+        end
+        local exec = self.execpath or 'mmdc'
+        if exec == 'node' then
+          local mmdc_script = os.getenv('MMDC_CLI_PATH')
+            or 'C:\\Users\\PC\\AppData\\Roaming\\npm\\node_modules\\@mermaid-js\\mermaid-cli\\src\\cli.js'
+          exec = pandoc.List{'node', mmdc_script}
+        end
         pipe(
-          self.execpath or 'mmdc',
-          {"--pdfFit", "--input", infile, "--output", outfile},
+          exec,
+          args,
           ''
         )
         return read_file(outfile), mime_type

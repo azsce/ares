@@ -7,15 +7,7 @@ book:
   subtitle: "Ares Car Rental Platform - Graduation Project Documentation"
   chapters:
     - index.md
-    - generated/chapter_1_introduction.md
     - generated/chapter_2_background.md
-    - generated/chapter_3_system_design.md
-    - generated/chapter_4_results.md
-    - generated/chapter_5_conclusion.md
-    - generated/chapter_6_testing.md
-    - generated/chapter_7_deployment.md
-    - generated/appendix_a.md
-    - generated/appendix_b_references.md
 
 format:
   pdf:
@@ -101,9 +93,13 @@ watermark:
   size: 1.2
 
 diagram:
+  cache: true
+  cache-dir: .diagram-cache
   engine:
     tikz:
       execpath: lualatex
+    mermaid:
+      execpath: node
 
 execute:
   echo: false

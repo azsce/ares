@@ -17,20 +17,20 @@ This is a **documentation generation pipeline** for the Ares Car Rental graduati
 
 ## Key Commands
 
-| Command | Purpose |
-|---------|---------|
-| `bun run generate --all` | Generate all chapters via AI |
-| `bun run generate --chapter 3` | Generate a single chapter |
-| `bun run generate --dry-run` | Pack context and count tokens only |
-| `bun run pdf` | Render generated Markdown → PDF |
-| `bun run pdf:count` | Report accurate page count from existing PDF |
-| `bun run pdf:clean` | Clean rebuild of PDF |
-| `bun run typecheck` | TypeScript check (uses tsgo) |
-| `bun run lint` | ESLint |
-| `bun run format:check` | Prettier formatting check |
-| `bun run validate-mermaid` | Validate Mermaid diagrams (mmdc + style lint) |
-| `bun run mermaid-compile` | mmdc compilation only (no style warnings) |
-| `bun run mermaid-check` | Run both mmdc compilation and style lint in one pass |
+| Command                               | Purpose                                                     |
+| ------------------------------------- | ----------------------------------------------------------- |
+| `bun run generate --all`              | Generate all chapters via AI                                |
+| `bun run generate --chapter 3`        | Generate a single chapter                                   |
+| `bun run generate --dry-run`          | Pack context and count tokens only                          |
+| `bun run pdf`                         | Render generated Markdown → PDF                             |
+| `bun run pdf:count`                   | Report accurate page count from existing PDF                |
+| `bun run pdf:clean`                   | Clean rebuild of PDF                                        |
+| `bun run typecheck`                   | TypeScript check (uses tsgo)                                |
+| `bun run lint`                        | ESLint                                                      |
+| `bun run format:check`                | Prettier formatting check                                   |
+| `bun run validate-mermaid`            | Validate Mermaid diagrams (mmdc + style lint)               |
+| `bun run mermaid-compile`             | mmdc compilation only (no style warnings)                   |
+| `bun run mermaid-check`               | Run both mmdc compilation and style lint in one pass        |
 | `bun run mermaid-iterate --chapter 3` | Validate + auto-improve mermaid prompt + regenerate chapter |
 
 ## Code Quality Checks
@@ -66,7 +66,7 @@ This is a **documentation generation pipeline** for the Ares Car Rental graduati
 - If modifying `_quarto.yml`, test with `bun run pdf` to verify the PDF still renders
 - Missing LaTeX packages are auto-installed by TinyTeX during render. If `quarto render` fails with "missing packages", run `quarto install tinytex` to ensure TinyTeX is installed and up to date.
 - **PDF/A compliance**: The project uses `pdf-standard: a-2b` in `_quarto.yml`. TinyTeX + TeX Live 2026 includes the required `tagpdf` version.
-- **Use the PDF MCP server to verify output**: To inspect and confirm changes within the generated PDF (`_pdf/ares-docs.pdf`), use the `@modelcontextprotocol/server-pdf` MCP server tools. This allows the agent to extract text, read pages, and verify layout/metadata directly from the output document.
+- **Use the `opencode-parser` plugin to verify output**: To inspect and confirm changes within the generated PDF (`_pdf/ares-docs.pdf`), use the `opencode-parser` plugin tools to parse and analyze the document content. For full document verification, pass `maxChars: -1` (to prevent output truncation) or use the `save` option to output a complete `.md` file alongside the PDF.
 
 ### Environment Configuration
 
@@ -90,12 +90,12 @@ This is a **documentation generation pipeline** for the Ares Car Rental graduati
 - **`validate-mermaid.ts`** — Two-tier validation:
   1. **Primary: mmdc compilation** — real Mermaid parser; errors are `severity: "error"`
   2. **Secondary: project-style lint** — regex checks for conventions (hardcoded colors, `<br/>` tags, etc.); warnings are `severity: "warning"`
-  Falls back to regex-only if mmdc unavailable. Accepts `--no-compiler` flag. Run as CLI: `bun run validate-mermaid`.
+     Falls back to regex-only if mmdc unavailable. Accepts `--no-compiler` flag. Run as CLI: `bun run validate-mermaid`.
 - **`mermaid-iterate.ts`** — Automated validate→improve→regenerate→revalidate loop. Use when a chapter has mermaid errors: `bun run mermaid-iterate --chapter 3`. It will:
-   1. Validate the chapter's generated mermaid diagrams (using mmdc compilation + style lint)
-   2. Categorize errors and generate targeted prompt improvements
-   3. Regenerate the chapter with improved mermaid rules (improvements accumulate across iterations)
-   4. Re-validate and repeat until clean or max iterations (default: 3)
+  1.  Validate the chapter's generated mermaid diagrams (using mmdc compilation + style lint)
+  2.  Categorize errors and generate targeted prompt improvements
+  3.  Regenerate the chapter with improved mermaid rules (improvements accumulate across iterations)
+  4.  Re-validate and repeat until clean or max iterations (default: 3)
 
   CLI options:
   | Flag | Default | Description |
@@ -117,6 +117,7 @@ This is a **documentation generation pipeline** for the Ares Car Rental graduati
   | gantt missing dateFormat | Require `dateFormat` declaration |
   | Hardcoded hex colors | Use semantic class names only, no `fill:#xxx` |
   | mmdc parse/lexical error | Review Mermaid syntax for the diagram type |
+
 - **`ChapterConfig.includeDiagrams`** — Set `true` on chapters that contain mermaid diagrams. The generation flow (`index.ts`) auto-injects mermaid rules into the system prompt for these chapters.
 - **Post-generation validation**: After generation (`bun run generate --validate-mermaid`), every diagram chapter is auto-checked by `validate-mermaid.ts`. Errors are appended to `mermaid-errors.log` containing:
   ```
@@ -164,14 +165,15 @@ This is a **documentation generation pipeline** for the Ares Car Rental graduati
 
 Installed extensions (in `_extensions/` directory):
 
-| Extension | Purpose |
-|-----------|---------|
-| `pandoc-ext/diagram` | TikZ, D2, PlantUML code block support. TikZ uses `lualatex` (configured in `_quarto.yml`). |
-| `leovan/pseudocode` | Algorithm pseudocode blocks (````{.pseudocode}` code blocks) |
-| `quarto-ext/fontawesome` | Font Awesome icons via `{{< fa >}}` shortcode (HTML + PDF) |
-| `leovan/watermark` | DRAFT watermark on all pages (configured in `_quarto.yml`) |
+| Extension                | Purpose                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| `pandoc-ext/diagram`     | TikZ, D2, PlantUML code block support. TikZ uses `lualatex` (configured in `_quarto.yml`). |
+| `leovan/pseudocode`      | Algorithm pseudocode blocks (````{.pseudocode}` code blocks)                               |
+| `quarto-ext/fontawesome` | Font Awesome icons via `{{< fa >}}` shortcode (HTML + PDF)                                 |
+| `leovan/watermark`       | DRAFT watermark on all pages (configured in `_quarto.yml`)                                 |
 
 To add new diagram types in generated chapters, the AI can use:
+
 - ````{.tikz}` — TikZ diagrams (native vector PDF, no Chrome needed)
 - ````{.d2}` — D2 diagrams (requires `d2` CLI installed)
 - ````{.plantuml}` — PlantUML diagrams (requires `plantuml` installed)

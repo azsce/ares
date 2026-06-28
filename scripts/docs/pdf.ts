@@ -42,12 +42,43 @@ function countPdfPages(pdfPath: string): number {
   return 0;
 }
 
+function findChrome(): string | null {
+  const envChrome = process.env["CHROME_PATH"] || process.env["PUPPETEER_EXECUTABLE_PATH"];
+  if (envChrome && existsSync(envChrome)) return envChrome;
+
+  const searchPaths = [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  ];
+  for (const p of searchPaths) {
+    if (existsSync(p)) return p;
+  }
+
+  try {
+    const result = execSync("where.exe chrome", { encoding: "utf-8", timeout: 5_000 }).trim();
+    const firstLine = result.split("\n")[0]?.trim();
+    if (firstLine && existsSync(firstLine)) return firstLine;
+  } catch { /* chrome not on PATH */ }
+
+  return null;
+}
+
+function ensureMermaidEnv(): void {
+  const chromePath = findChrome();
+  if (chromePath) {
+    process.env["PUPPETEER_EXECUTABLE_PATH"] = chromePath;
+    process.env["CHROME_PATH"] = chromePath;
+  }
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const countOnly = args.includes("--count-only");
   const clean = args.includes("--clean");
 
   printBanner();
+
+  ensureMermaidEnv();
 
   const quarto = findQuarto();
   logInfo(`Quarto: ${quarto}`);
