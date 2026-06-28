@@ -68,7 +68,6 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Local draft state
   const [notes, setNotes] = useState("");
   const [generalCondition, setGeneralCondition] = useState("");
   const [odometerReading, setOdometerReading] = useState<number | "">("");
@@ -114,7 +113,6 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
     void fetchData();
   }, [fetchData]);
 
-  // Clean up object URLs on unmount
   useEffect(() => {
     return () => {
       pendingImages.forEach(p => {
@@ -179,7 +177,6 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
     setSubmitting(true);
 
     try {
-      // 1. Upload images first if any pending
       if (pendingImages.length > 0) {
         await uploadInspectionImages(
           inspectionId,
@@ -187,7 +184,6 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
         );
       }
 
-      // 2. Submit the report
       await submitInspection(inspectionId, {
         notes,
         generalCondition: generalCondition.trim() ? generalCondition : undefined,
@@ -257,7 +253,6 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
-      {/* Header */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         sx={{ alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", mb: 4, gap: 2 }}
@@ -284,12 +279,10 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
       </Stack>
 
       <Grid container spacing={3}>
-        {/* A. Booking & Vehicle Info */}
         <Grid size={{ xs: 12, md: 4 }}>
           <BookingInfoSection details={details} />
         </Grid>
 
-        {/* B. Inspection Form */}
         <Grid size={{ xs: 12, md: 8 }}>
           <InspectionReportForm
             isLocked={isLocked}
@@ -316,7 +309,6 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
         </Grid>
       </Grid>
 
-      {/* Confirmation Dialog */}
       <Dialog
         open={confirmOpen}
         onClose={() => {
@@ -398,6 +390,7 @@ function InfoRow({ label, value }: { readonly label: string; readonly value: str
 
 function BookingInfoSection({ details }: { readonly details: InspectionDetails }) {
   const t = useTranslations("dashboardInspector.inspectionDetail");
+
   return (
     <Paper
       elevation={0}
@@ -473,6 +466,7 @@ function InspectionReportForm({
   theme,
 }: InspectionReportFormProps) {
   const t = useTranslations("dashboardInspector.inspectionDetail");
+
   return (
     <Paper
       elevation={0}
@@ -490,7 +484,6 @@ function InspectionReportForm({
         </Alert>
       )}
 
-      {/* Vehicle Status (Odometer & Fuel) */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
           {t("labels.vehicleMetrics")}
@@ -519,7 +512,7 @@ function InspectionReportForm({
                       <SpeedIcon />
                     </InputAdornment>
                   ),
-                  endAdornment: <InputAdornment position="end">km</InputAdornment>,
+                  endAdornment: <InputAdornment position="end">{t("labels.odometerUnit")}</InputAdornment>,
                   sx: { borderRadius: 2 },
                 },
               }}
@@ -548,11 +541,11 @@ function InspectionReportForm({
                 max={100}
                 step={5}
                 marks={[
-                  { value: 0, label: "E" },
+                  { value: 0, label: t("labels.fuelMarksE") },
                   { value: 25 },
-                  { value: 50, label: "1/2" },
+                  { value: 50, label: t("labels.fuelMarksHalf") },
                   { value: 75 },
-                  { value: 100, label: "F" },
+                  { value: 100, label: t("labels.fuelMarksF") },
                 ]}
                 onChange={(_, newVal) => {
                   if (typeof newVal === "number") setFuelLevel(newVal);
@@ -567,7 +560,6 @@ function InspectionReportForm({
 
       <Divider sx={{ mb: 4 }} />
 
-      {/* Image upload */}
       <Box sx={{ mb: 4 }}>
         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
@@ -644,7 +636,7 @@ function InspectionReportForm({
                     <Box
                       component="img"
                       src={img.src}
-                      alt="Inspection"
+                      alt={t("labels.imageAltText")}
                       sx={{
                         width: "100%",
                         height: "100%",
@@ -663,7 +655,7 @@ function InspectionReportForm({
                         top: 8,
                         right: 8,
                         bgcolor: alpha(theme.palette.error.main, 0.9),
-                        color: "white",
+                        color: "common.white",
                         backdropFilter: "blur(4px)",
                         "&:hover": { bgcolor: theme.palette.error.main, transform: "scale(1.1)" },
                         transition: "all 0.2s",
@@ -686,7 +678,6 @@ function InspectionReportForm({
 
       <Divider sx={{ mb: 4 }} />
 
-      {/* Conditions & Notes */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
           {t("labels.conditionTitle")}
@@ -728,7 +719,6 @@ function InspectionReportForm({
         />
       </Box>
 
-      {/* Decision */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
           {t("labels.finalDecision")}
@@ -772,7 +762,6 @@ function InspectionReportForm({
         )}
       </Box>
 
-      {/* Submit button */}
       {!isLocked && (
         <Box sx={{ mt: 2, borderTop: 1, borderColor: "divider", pt: 4 }}>
           <Button

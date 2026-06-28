@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import GavelRoundedIcon from "@mui/icons-material/GavelRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
-import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 import GeneralSettingsTab from "./_components/GeneralSettingsTab";
 import TermsSettingsTab from "./_components/TermsSettingsTab";
 import AboutSettingsTab from "./_components/AboutSettingsTab";

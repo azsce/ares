@@ -10,17 +10,6 @@ import TodayTaskCard from "./TodayTaskCard";
 
 type FilterType = "All" | InspectionTaskType;
 
-interface FilterTab {
-  label: string;
-  value: FilterType;
-}
-
-const FILTER_TABS: FilterTab[] = [
-  { label: "All", value: "All" },
-  { label: "CheckOut", value: "CheckOut" },
-  { label: "CheckIn", value: "CheckIn" },
-];
-
 interface TodaysTasksListProps {
   readonly tasks: InspectorTask[];
   readonly loading: boolean;
@@ -32,16 +21,22 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [plateSearch, setPlateSearch] = useState("");
 
+  const FILTER_TABS: readonly { label: string; value: FilterType }[] = [
+    { label: t("filterAll"), value: "All" },
+    { label: t("filterCheckOuts"), value: "CheckOut" },
+    { label: t("filterCheckIns"), value: "CheckIn" },
+  ];
+
   const filteredTasks = useMemo(() => {
     let result = tasks;
 
     if (activeFilter !== "All") {
-      result = result.filter(t => t.inspectionType === activeFilter);
+      result = result.filter(task => task.inspectionType === activeFilter);
     }
 
     const trimmedPlate = plateSearch.trim().toUpperCase();
     if (trimmedPlate) {
-      result = result.filter(t => t.plateNumber.toUpperCase().includes(trimmedPlate));
+      result = result.filter(task => task.plateNumber.toUpperCase().includes(trimmedPlate));
     }
 
     return result;
@@ -53,12 +48,6 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
       <Stack direction="row" sx={{ gap: 1, mb: 2, flexWrap: "wrap" }}>
         {FILTER_TABS.map(tab => {
           const isActive = activeFilter === tab.value;
-          const tabLabel =
-            tab.value === "All"
-              ? t("filters.all")
-              : tab.value === "CheckOut"
-                ? t("filters.checkOuts")
-                : t("filters.checkIns");
           return (
             <Box
               key={tab.value}
@@ -86,7 +75,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
                 },
               }}
             >
-              {tabLabel}
+              {tab.label}
             </Box>
           );
         })}

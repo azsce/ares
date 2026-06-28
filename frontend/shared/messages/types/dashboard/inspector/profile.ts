@@ -1,4 +1,4 @@
 export type InspectorProfileLabels = {
-  readonly employeeCredentialsTitle: string;
-  readonly assignedRolesLabel: string;
+  readonly credentialsTitle: string;
+  readonly rolesLabel: string;
 };

@@ -359,9 +359,9 @@ export default function InspectionHistoryPage() {
                   {t("mobileCard.photosCount", { count: i.imageCount })}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {t("mobileCard.submittedAt", {
-                    date: i.submittedAt ? new Date(i.submittedAt).toLocaleString() : "—",
-                  })}
+                  {i.submittedAt
+                    ? t("mobileCard.submittedAt", { date: new Date(i.submittedAt).toLocaleString() })
+                    : t("mobileCard.submittedFallback")}
                 </Typography>
               </Stack>
               <Button
@@ -400,7 +400,7 @@ export default function InspectionHistoryPage() {
                   </TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>{i.vehicleDisplayName}</TableCell>
                   <TableCell color="text.secondary">
-                    {i.submittedAt ? new Date(i.submittedAt).toLocaleString() : "—"}
+                    {i.submittedAt ? new Date(i.submittedAt).toLocaleString() : t("mobileCard.submittedFallback")}
                   </TableCell>
                   <TableCell>{i.imageCount}</TableCell>
                   <TableCell>

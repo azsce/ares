@@ -38,11 +38,16 @@ export type InspectorInspectionDetailLabels = {
     readonly vehicleMetrics: string;
     readonly odometerReading: string;
     readonly odometerPlaceholder: string;
+    readonly odometerUnit: string;
     readonly fuelLevel: string;
+    readonly fuelMarksE: string;
+    readonly fuelMarksHalf: string;
+    readonly fuelMarksF: string;
     readonly visualEvidence: string;
     readonly noPhotos: string;
     readonly uploadTitle: string;
     readonly uploadSubtitle: string;
+    readonly imageAltText: string;
     readonly conditionTitle: string;
     readonly damageReport: string;
     readonly damagePlaceholder: string;

@@ -29,14 +29,34 @@ import { driverEarnings } from "./en/dashboard/driver-earnings";
 import { driverNotifications } from "./en/dashboard/driver-notifications";
 import { driverProfile } from "./en/dashboard/driver-profile";
 import { driverTrips } from "./en/dashboard/driver-trips";
+import { supplierDashboard } from "./en/dashboard/supplier/dashboard";
+import { supplierEarnings } from "./en/dashboard/supplier/earnings";
+import { supplierNotifications } from "./en/dashboard/supplier/notifications";
+import { supplierReviews } from "./en/dashboard/supplier/reviews";
+import { supplierBookings } from "./en/dashboard/supplier/bookings";
+import { supplierBookingDetail } from "./en/dashboard/supplier/bookings/_id";
+import { supplierVehicles } from "./en/dashboard/supplier/vehicles";
+import { createSupplierVehicle } from "./en/dashboard/supplier/vehicles/create";
+import { supplierVehicleDetail } from "./en/dashboard/supplier/vehicles/_id";
 import logoutDialog from "./en/dashboard/logout-dialog";
 import deleteNotificationDialog from "./en/delete-notification-dialog";
 import compliance from "./en/dashboard/admin/admin/compliance";
 import security from "./en/dashboard/admin/admin/security";
 import vehicles from "./en/dashboard/admin/admin/vehicles";
 import bankDetails from "./en/dashboard/admin/bank-details";
+import about from "./en/public/about";
+import privacy from "./en/public/privacy";
+import terms from "./en/public/terms";
+import adminBookings from "./en/dashboard/admin/bookings";
+import createBooking from "./en/dashboard/admin/bookings/create";
+import bookingDetails from "./en/dashboard/admin/bookings/_id/details";
+import editBooking from "./en/dashboard/admin/bookings/_id/edit";
+import categories from "./en/dashboard/admin/categories";
+import categoryDetails from "./en/dashboard/admin/categories/detail";
+import countries from "./en/dashboard/admin/countries";
+import createCountry from "./en/dashboard/admin/countries/create";
 import locationsEdit from "./en/dashboard/admin/locations/edit";
-import notifications from "./en/dashboard/admin/notifications";
+import adminNotifications from "./en/dashboard/admin/notifications";
 import scheduler from "./en/dashboard/admin/scheduler";
 import settings from "./en/dashboard/admin/settings";
 import users from "./en/dashboard/admin/users";
@@ -85,6 +105,15 @@ const en: MessageSchema = {
     driverNotifications,
     driverProfile,
     driverTrips,
+    supplierDashboard,
+    supplierEarnings,
+    supplierNotifications,
+    supplierReviews,
+    supplierBookings,
+    supplierBookingDetail,
+    supplierVehicles,
+    createSupplierVehicle,
+    supplierVehicleDetail,
     logoutDialog,
   },
   dashboardAdmin: {
@@ -94,8 +123,16 @@ const en: MessageSchema = {
       vehicles,
     },
     bankDetails,
+    bookings: adminBookings,
+    createBooking,
+    bookingDetails,
+    editBooking,
+    categories,
+    categoryDetails,
+    countries,
+    createCountry,
     locationsEdit,
-    notifications,
+    notifications: adminNotifications,
     scheduler,
     settings,
     users,

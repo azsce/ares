@@ -117,6 +117,7 @@ export type AdminVehiclesLabels = {
     readonly cannotDeleteRented: string;
     readonly sessionExpired: string;
     readonly generic: string;
+    readonly validationFailed: string;
   };
   readonly editor: {
     readonly vehicleIdentity: string;
@@ -150,5 +151,33 @@ export type AdminVehiclesLabels = {
     readonly diesel: string;
     readonly electric: string;
     readonly hybrid: string;
+    readonly automatic: string;
+    readonly manual: string;
+    readonly pluginHybrid: string;
+  };
+  readonly gallery: {
+    readonly alt: string;
+    readonly noImageSelected: string;
+    readonly featuredImage: string;
+    readonly setAsFeatured: string;
+    readonly noPreview: string;
+    readonly add: string;
+    readonly fileSizeError: string;
+  };
+  readonly validation: {
+    readonly makeRequired: string;
+    readonly modelRequired: string;
+    readonly yearWholeNumber: string;
+    readonly yearMin: string;
+    readonly yearMax: string;
+    readonly colorRequired: string;
+    readonly licensePlateRequired: string;
+    readonly transmissionRequired: string;
+    readonly fuelTypeRequired: string;
+    readonly seatsMin: string;
+    readonly seatsMax: string;
+    readonly priceMin: string;
+    readonly cityRequired: string;
+    readonly categoryRequired: string;
   };
 };

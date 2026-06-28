@@ -17,14 +17,13 @@ export default function InspectorProfilePage() {
 
   if (!user) return null;
 
-  // Map user session to standard ProfileData
   const profileData: ProfileData = {
     userId: user.id || "",
     firstName: user.firstName || "",
     lastName: user.lastName || "",
     email: user.email || "",
     emailVerified: true,
-    phone: "", // standard inspector has no phone details in default session object
+    phone: "",
     phoneVerified: true,
     profileCompleteness: 100,
     profilePhotoUrl: user.image ?? undefined,

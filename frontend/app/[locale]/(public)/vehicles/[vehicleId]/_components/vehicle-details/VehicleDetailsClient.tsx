@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Container,
@@ -25,13 +25,14 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/shared/i18n/routing";
 import { useFormUndoRedo } from "./useFormUndoRedo";
 import Gallery from "./Gallery";
-import GalleryEditor from "./GalleryEditor";
+import GalleryEditor, { type GalleryEditorLabels } from "./GalleryEditor";
 import VehicleInfo from "./VehicleInfo";
-import VehicleInfoEditor from "./VehicleInfoEditor";
+import VehicleInfoEditor, { type VehicleInfoEditorLabels } from "./VehicleInfoEditor";
 import ReviewSection from "./ReviewSection";
 import BookingCard from "./BookingCard";
 import VerificationRequiredCard from "./VerificationRequiredCard";
 import { useVerificationStatus } from "@/hooks/useVerificationStatus";
+import type { VehicleFormValidationLabels } from "@/app/[locale]/(dashboard)/supplier/vehicles/_components/VehicleForm.schema";
 import {
   updateVehicle,
   updateSupplierVehicle,
@@ -44,42 +45,65 @@ import { logger } from "@/utils/logger";
 import { ApiError } from "@/utils/api-client";
 import type { VehicleDetailsViewModel, VehicleReviewViewModel, BookingLocationOption } from "./types";
 
-const schema = z.object({
-  make: z.string().trim().min(2, "Make is required"),
-  model: z.string().trim().min(2, "Model is required"),
-  year: z
-    .number()
-    .int()
-    .min(1900)
-    .max(new Date().getFullYear() + 1),
-  color: z.string().trim().min(2, "Color is required"),
-  licensePlate: z.string().trim().min(2, "License plate is required"),
-  transmission: z.string().min(1, "Transmission is required"),
-  fuelType: z.string().min(1, "Fuel type is required"),
-  seats: z.number().int().min(1, "At least 1 seat required").max(50),
-  pricePerDay: z.number().min(0.01, "Price must be greater than 0"),
-  locationCity: z.string().trim().min(2, "City is required"),
-  description: z.string().optional(),
-  images: z.array(
-    z.object({
-      url: z.string().min(1, "Image URL is required"),
-      isPrimary: z.boolean(),
-      file: z.instanceof(File).optional(),
-    })
-  ),
-  features: z.array(
-    z.object({
-      featureName: z.string().min(1, "Feature name is required"),
-      featureDescription: z.string().optional(),
-      featureCategory: z.string().optional(),
-    })
-  ),
-  status: z.string().optional(),
-  availabilityStatus: z.string().optional(),
-  categoryId: z.string().min(1, "Category is required"),
-});
+function buildSchema(v?: VehicleFormValidationLabels) {
+  return z.object({
+    make: z
+      .string()
+      .trim()
+      .min(2, v?.makeRequired ?? "Make is required"),
+    model: z
+      .string()
+      .trim()
+      .min(2, v?.modelRequired ?? "Model is required"),
+    year: z
+      .number()
+      .int(v?.yearWholeNumber)
+      .min(1900, v?.yearMin)
+      .max(new Date().getFullYear() + 1, v?.yearMax),
+    color: z
+      .string()
+      .trim()
+      .min(2, v?.colorRequired ?? "Color is required"),
+    licensePlate: z
+      .string()
+      .trim()
+      .min(2, v?.licensePlateRequired ?? "License plate is required"),
+    transmission: z.string().min(1, v?.transmissionRequired ?? "Transmission is required"),
+    fuelType: z.string().min(1, v?.fuelTypeRequired ?? "Fuel type is required"),
+    seats: z
+      .number()
+      .int()
+      .min(1, v?.seatsMin ?? "At least 1 seat required")
+      .max(50, v?.seatsMax),
+    pricePerDay: z.number().min(0.01, v?.priceMin ?? "Price must be greater than 0"),
+    locationCity: z
+      .string()
+      .trim()
+      .min(2, v?.cityRequired ?? "City is required"),
+    description: z.string().optional(),
+    images: z.array(
+      z.object({
+        url: z.string().min(1, "Image URL is required"),
+        isPrimary: z.boolean(),
+        file: z.instanceof(File).optional(),
+      })
+    ),
+    features: z.array(
+      z.object({
+        featureName: z.string().min(1, "Feature name is required"),
+        featureDescription: z.string().optional(),
+        featureCategory: z.string().optional(),
+      })
+    ),
+    status: z.string().optional(),
+    availabilityStatus: z.string().optional(),
+    categoryId: z.string().min(1, v?.categoryRequired ?? "Category is required"),
+  });
+}
 
-export type FormValues = z.infer<typeof schema>;
+const _defaultSchema = buildSchema();
+
+export type FormValues = z.infer<typeof _defaultSchema>;
 
 interface VehicleDetailsClientProps {
   readonly vehicle: VehicleDetailsViewModel;
@@ -104,9 +128,32 @@ export default function VehicleDetailsClient({
   const router = useRouter();
   const { data: session } = useSession();
   const t = useTranslations("dashboardAdmin.vehicles");
+  const tv = useTranslations("dashboardAdmin.vehicles.validation");
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [successToastOpen, setSuccessToastOpen] = useState(false);
+
+  const validationLabels: VehicleFormValidationLabels = useMemo(
+    () => ({
+      makeRequired: tv("makeRequired"),
+      modelRequired: tv("modelRequired"),
+      yearWholeNumber: tv("yearWholeNumber"),
+      yearMin: tv("yearMin"),
+      yearMax: tv("yearMax"),
+      colorRequired: tv("colorRequired"),
+      licensePlateRequired: tv("licensePlateRequired"),
+      transmissionRequired: tv("transmissionRequired"),
+      fuelTypeRequired: tv("fuelTypeRequired"),
+      seatsMin: tv("seatsMin"),
+      seatsMax: tv("seatsMax"),
+      priceMin: tv("priceMin"),
+      cityRequired: tv("cityRequired"),
+      categoryRequired: tv("categoryRequired"),
+    }),
+    [tv]
+  );
+
+  const schema = useMemo(() => buildSchema(validationLabels), [validationLabels]);
 
   const isAdmin = session?.user.roles.includes("Admin") ?? false;
 
@@ -182,6 +229,67 @@ export default function VehicleDetailsClient({
     handleSubmit,
     formState: { isDirty },
   } = methods;
+
+  const galleryEditorLabels: GalleryEditorLabels = useMemo(
+    () => ({
+      alt: t("gallery.alt"),
+      noImageSelected: t("gallery.noImageSelected"),
+      featuredImage: t("gallery.featuredImage"),
+      setAsFeatured: t("gallery.setAsFeatured"),
+      noPreview: t("gallery.noPreview"),
+      add: t("gallery.add"),
+      fileSizeError: t("gallery.fileSizeError"),
+    }),
+    [t]
+  );
+
+  const vehicleInfoEditorLabels: VehicleInfoEditorLabels = useMemo(
+    () => ({
+      sections: {
+        vehicleIdentity: t("editor.vehicleIdentity"),
+        aboutVehicle: t("editor.aboutVehicle"),
+        specifications: t("editor.specifications"),
+        includedFeatures: t("editor.includedFeatures"),
+        carSettings: t("editor.carSettings"),
+      },
+      fields: {
+        make: t("editor.make"),
+        model: t("editor.model"),
+        year: t("editor.year"),
+        color: t("editor.color"),
+        licensePlate: t("editor.licensePlate"),
+        description: t("editor.description"),
+        transmission: t("editor.transmission"),
+        fuelType: t("editor.fuelType"),
+        seats: t("editor.seats"),
+        pricePerDay: t("editor.pricePerDay"),
+        locationCity: t("editor.locationCity"),
+        category: t("editor.category"),
+        availabilityStatus: t("editor.availabilityStatus"),
+        approvalStatus: t("editor.approvalStatus"),
+        featureName: t("editor.featureName"),
+        featureDescription: t("editor.featureDescription"),
+      },
+      dropdowns: {
+        automatic: t("editor.automatic"),
+        manual: t("editor.manual"),
+        gasoline: t("editor.gasoline"),
+        diesel: t("editor.diesel"),
+        electric: t("editor.electric"),
+        hybrid: t("editor.hybrid"),
+        pluginHybrid: t("editor.pluginHybrid"),
+        available: t("editor.available"),
+        unavailable: t("editor.unavailable"),
+        pendingReview: t("editor.pendingReview"),
+        approvedActive: t("editor.approvedActive"),
+        rejected: t("editor.rejected"),
+      },
+      features: {
+        addFeature: t("editor.addFeature"),
+      },
+    }),
+    [t]
+  );
 
   async function handleCreateMode(values: FormValues, accessToken: string): Promise<void> {
     const payload: CarPayload = {
@@ -308,7 +416,7 @@ export default function VehicleDetailsClient({
         const validationErrors = errorData.errors ? Object.values(errorData.errors).flat().join(", ") : null;
 
         if (validationErrors) {
-          msg = `Validation failed: ${validationErrors}`;
+          msg = `${t("errors.validationFailed")}: ${validationErrors}`;
         } else if (detail) {
           msg = detail;
         }
@@ -352,7 +460,7 @@ export default function VehicleDetailsClient({
 
                 <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: 2 }}>
                   {canEdit ? (
-                    <GalleryEditor />
+                    <GalleryEditor labels={galleryEditorLabels} />
                   ) : (
                     <Gallery images={vehicle.images} vehicleLabel={`${vehicle.make} ${vehicle.model}`} />
                   )}
@@ -363,7 +471,7 @@ export default function VehicleDetailsClient({
                   sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: { xs: 2, md: 3 } }}
                 >
                   {canEdit ? (
-                    <VehicleInfoEditor isAdmin={isAdmin} categories={categories} />
+                    <VehicleInfoEditor isAdmin={isAdmin} categories={categories} labels={vehicleInfoEditorLabels} />
                   ) : (
                     <VehicleInfo vehicle={vehicle} />
                   )}

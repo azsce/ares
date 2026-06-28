@@ -4,20 +4,113 @@ import { Divider, Grid, Stack, Typography, TextField, MenuItem, IconButton, Card
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { useFormContext, Controller, useFieldArray } from "react-hook-form";
-import { useTranslations } from "next-intl";
 import {
   TRANSMISSION_OPTIONS,
   FUEL_OPTIONS,
 } from "@/app/[locale]/(dashboard)/supplier/vehicles/_components/VehicleForm.schema";
 
+export interface VehicleInfoEditorLabels {
+  readonly sections: {
+    readonly vehicleIdentity: string;
+    readonly aboutVehicle: string;
+    readonly specifications: string;
+    readonly includedFeatures: string;
+    readonly carSettings: string;
+  };
+  readonly fields: {
+    readonly make: string;
+    readonly model: string;
+    readonly year: string;
+    readonly color: string;
+    readonly licensePlate: string;
+    readonly description: string;
+    readonly transmission: string;
+    readonly fuelType: string;
+    readonly seats: string;
+    readonly pricePerDay: string;
+    readonly locationCity: string;
+    readonly category: string;
+    readonly availabilityStatus: string;
+    readonly approvalStatus: string;
+    readonly featureName: string;
+    readonly featureDescription: string;
+  };
+  readonly dropdowns: {
+    readonly automatic: string;
+    readonly manual: string;
+    readonly gasoline: string;
+    readonly diesel: string;
+    readonly electric: string;
+    readonly hybrid: string;
+    readonly pluginHybrid: string;
+    readonly available: string;
+    readonly unavailable: string;
+    readonly pendingReview: string;
+    readonly approvedActive: string;
+    readonly rejected: string;
+  };
+  readonly features: {
+    readonly addFeature: string;
+  };
+}
+
+const DEFAULT_LABELS: VehicleInfoEditorLabels = {
+  sections: {
+    vehicleIdentity: "Vehicle Identity",
+    aboutVehicle: "About this vehicle",
+    specifications: "Specifications",
+    includedFeatures: "Included Features",
+    carSettings: "Car Settings",
+  },
+  fields: {
+    make: "Make",
+    model: "Model",
+    year: "Year",
+    color: "Color",
+    licensePlate: "License Plate",
+    description: "Description",
+    transmission: "Transmission",
+    fuelType: "Fuel Type",
+    seats: "Seats",
+    pricePerDay: "Price Per Day ($)",
+    locationCity: "Location City",
+    category: "Category",
+    availabilityStatus: "Availability Status",
+    approvalStatus: "Approval Status (Admin Only)",
+    featureName: "Feature Name",
+    featureDescription: "Description",
+  },
+  dropdowns: {
+    automatic: "Automatic",
+    manual: "Manual",
+    gasoline: "Gasoline",
+    diesel: "Diesel",
+    electric: "Electric",
+    hybrid: "Hybrid",
+    pluginHybrid: "PluginHybrid",
+    available: "Available",
+    unavailable: "Unavailable",
+    pendingReview: "Pending Review",
+    approvedActive: "Approved / Active",
+    rejected: "Rejected",
+  },
+  features: {
+    addFeature: "Add Feature",
+  },
+};
+
+const TRANSMISSION_LABEL_KEYS = ["automatic", "manual"] as const;
+const FUEL_LABEL_KEYS = ["gasoline", "diesel", "electric", "hybrid", "pluginHybrid"] as const;
+
 export default function VehicleInfoEditor({
   isAdmin,
   categories = [],
+  labels = DEFAULT_LABELS,
 }: {
   readonly isAdmin: boolean;
   readonly categories?: readonly { id: string; name: string }[];
+  readonly labels?: VehicleInfoEditorLabels;
 }) {
-  const t = useTranslations("dashboardAdmin.vehicles");
   const {
     control,
     formState: { errors },
@@ -33,10 +126,9 @@ export default function VehicleInfoEditor({
 
   return (
     <Stack spacing={4}>
-      {/* Title & Basic Details */}
       <Stack spacing={2.5}>
         <Typography variant="h6" sx={{ fontWeight: 800, color: "primary.main" }}>
-          {t("editor.vehicleIdentity")}
+          {labels.sections.vehicleIdentity}
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -46,7 +138,7 @@ export default function VehicleInfoEditor({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label={t("editor.make")}
+                  label={labels.fields.make}
                   fullWidth
                   error={!!errors.make}
                   helperText={errors.make?.message as string}
@@ -61,7 +153,7 @@ export default function VehicleInfoEditor({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label={t("editor.model")}
+                  label={labels.fields.model}
                   fullWidth
                   error={!!errors.model}
                   helperText={errors.model?.message as string}
@@ -77,7 +169,7 @@ export default function VehicleInfoEditor({
                 <TextField
                   {...field}
                   type="number"
-                  label={t("editor.year")}
+                  label={labels.fields.year}
                   fullWidth
                   onChange={e => {
                     field.onChange(Number(e.target.value));
@@ -95,7 +187,7 @@ export default function VehicleInfoEditor({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label={t("editor.color")}
+                  label={labels.fields.color}
                   fullWidth
                   error={!!errors.color}
                   helperText={errors.color?.message as string}
@@ -110,7 +202,7 @@ export default function VehicleInfoEditor({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label={t("editor.licensePlate")}
+                  label={labels.fields.licensePlate}
                   fullWidth
                   error={!!errors.licensePlate}
                   helperText={errors.licensePlate?.message as string}
@@ -123,10 +215,9 @@ export default function VehicleInfoEditor({
 
       <Divider />
 
-      {/* Description */}
       <Stack spacing={2}>
         <Typography variant="h6" sx={{ fontWeight: 800, color: "primary.main" }}>
-          {t("editor.aboutVehicle")}
+          {labels.sections.aboutVehicle}
         </Typography>
         <Controller
           name="description"
@@ -136,7 +227,7 @@ export default function VehicleInfoEditor({
               {...field}
               multiline
               rows={4}
-              label={t("editor.description")}
+              label={labels.fields.description}
               fullWidth
               error={!!errors.description}
               helperText={errors.description?.message as string}
@@ -147,10 +238,9 @@ export default function VehicleInfoEditor({
 
       <Divider />
 
-      {/* Specifications */}
       <Stack spacing={2}>
         <Typography variant="h6" sx={{ fontWeight: 800, color: "primary.main" }}>
-          {t("editor.specifications")}
+          {labels.sections.specifications}
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -158,14 +248,10 @@ export default function VehicleInfoEditor({
               name="transmission"
               control={control}
               render={({ field }) => (
-                <TextField {...field} select label={t("editor.transmission")} fullWidth>
-                  {TRANSMISSION_OPTIONS.map(opt => (
+                <TextField {...field} select label={labels.fields.transmission} fullWidth>
+                  {TRANSMISSION_OPTIONS.map((opt, i) => (
                     <MenuItem key={opt} value={opt}>
-                      {opt.toLowerCase() === "automatic"
-                        ? t("transmissions.automatic")
-                        : opt.toLowerCase() === "manual"
-                          ? t("transmissions.manual")
-                          : opt}
+                      {labels.dropdowns[TRANSMISSION_LABEL_KEYS[i]]}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -177,18 +263,10 @@ export default function VehicleInfoEditor({
               name="fuelType"
               control={control}
               render={({ field }) => (
-                <TextField {...field} select label={t("editor.fuelType")} fullWidth>
-                  {FUEL_OPTIONS.map(opt => (
+                <TextField {...field} select label={labels.fields.fuelType} fullWidth>
+                  {FUEL_OPTIONS.map((opt, i) => (
                     <MenuItem key={opt} value={opt}>
-                      {opt.toLowerCase() === "gasoline"
-                        ? t("editor.gasoline")
-                        : opt.toLowerCase() === "diesel"
-                          ? t("editor.diesel")
-                          : opt.toLowerCase() === "electric"
-                            ? t("editor.electric")
-                            : opt.toLowerCase() === "hybrid"
-                              ? t("editor.hybrid")
-                              : opt}
+                      {labels.dropdowns[FUEL_LABEL_KEYS[i]]}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -203,7 +281,7 @@ export default function VehicleInfoEditor({
                 <TextField
                   {...field}
                   type="number"
-                  label={t("editor.seats")}
+                  label={labels.fields.seats}
                   fullWidth
                   onChange={e => {
                     field.onChange(Number(e.target.value));
@@ -220,7 +298,7 @@ export default function VehicleInfoEditor({
                 <TextField
                   {...field}
                   type="number"
-                  label={t("editor.pricePerDay")}
+                  label={labels.fields.pricePerDay}
                   fullWidth
                   onChange={e => {
                     field.onChange(Number(e.target.value));
@@ -233,7 +311,7 @@ export default function VehicleInfoEditor({
             <Controller
               name="locationCity"
               control={control}
-              render={({ field }) => <TextField {...field} label={t("editor.locationCity")} fullWidth />}
+              render={({ field }) => <TextField {...field} label={labels.fields.locationCity} fullWidth />}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -244,7 +322,7 @@ export default function VehicleInfoEditor({
                 <TextField
                   {...field}
                   select
-                  label={t("editor.category")}
+                  label={labels.fields.category}
                   fullWidth
                   error={!!errors.categoryId}
                   helperText={errors.categoryId?.message as string}
@@ -264,11 +342,10 @@ export default function VehicleInfoEditor({
 
       <Divider />
 
-      {/* Features */}
       <Stack spacing={2}>
         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: "primary.main" }}>
-            {t("editor.includedFeatures")}
+            {labels.sections.includedFeatures}
           </Typography>
           <Button
             startIcon={<AddRoundedIcon />}
@@ -277,7 +354,7 @@ export default function VehicleInfoEditor({
               addFeature({ featureName: "", featureDescription: "", featureCategory: "General" });
             }}
           >
-            {t("editor.addFeature")}
+            {labels.features.addFeature}
           </Button>
         </Stack>
         <Grid container spacing={2}>
@@ -299,14 +376,14 @@ export default function VehicleInfoEditor({
                     name={`features.${index}.featureName`}
                     control={control}
                     render={({ field }) => (
-                      <TextField {...field} label={t("editor.featureName")} size="small" fullWidth />
+                      <TextField {...field} label={labels.fields.featureName} size="small" fullWidth />
                     )}
                   />
                   <Controller
                     name={`features.${index}.featureDescription`}
                     control={control}
                     render={({ field }) => (
-                      <TextField {...field} label={t("editor.featureDescription")} size="small" fullWidth />
+                      <TextField {...field} label={labels.fields.featureDescription} size="small" fullWidth />
                     )}
                   />
                 </Stack>
@@ -318,10 +395,9 @@ export default function VehicleInfoEditor({
 
       <Divider />
 
-      {/* Car Settings */}
       <Stack spacing={2}>
         <Typography variant="h6" sx={{ fontWeight: 800, color: "primary.main" }}>
-          {t("editor.carSettings")}
+          {labels.sections.carSettings}
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -329,9 +405,9 @@ export default function VehicleInfoEditor({
               name="availabilityStatus"
               control={control}
               render={({ field }) => (
-                <TextField {...field} select label={t("editor.availabilityStatus")} fullWidth>
-                  <MenuItem value="Available">{t("editor.available")}</MenuItem>
-                  <MenuItem value="Unavailable">{t("editor.unavailable")}</MenuItem>
+                <TextField {...field} select label={labels.fields.availabilityStatus} fullWidth>
+                  <MenuItem value="Available">{labels.dropdowns.available}</MenuItem>
+                  <MenuItem value="Unavailable">{labels.dropdowns.unavailable}</MenuItem>
                 </TextField>
               )}
             />
@@ -342,10 +418,10 @@ export default function VehicleInfoEditor({
                 name="status"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} select label={t("editor.approvalStatus")} fullWidth>
-                    <MenuItem value="Pending">{t("editor.pendingReview")}</MenuItem>
-                    <MenuItem value="Approved">{t("editor.approvedActive")}</MenuItem>
-                    <MenuItem value="Rejected">{t("editor.rejected")}</MenuItem>
+                  <TextField {...field} select label={labels.fields.approvalStatus} fullWidth>
+                    <MenuItem value="Pending">{labels.dropdowns.pendingReview}</MenuItem>
+                    <MenuItem value="Approved">{labels.dropdowns.approvedActive}</MenuItem>
+                    <MenuItem value="Rejected">{labels.dropdowns.rejected}</MenuItem>
                   </TextField>
                 )}
               />

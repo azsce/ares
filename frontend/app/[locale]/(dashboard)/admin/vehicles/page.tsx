@@ -51,10 +51,12 @@ import { useRouter } from "@/shared/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import {
   useVehicles,
   useAdminVehicleStats,
   deleteCar,
+  VehicleStatus,
   type Vehicle,
   type AdminVehicleFilter,
   type VehicleStatusFilter,
@@ -65,19 +67,12 @@ import { getCategories, bulkAssignVehicles, type Category } from "@/api-clients/
 import VisibilityOutlinedIcon from "@mui/icons-material/LaunchOutlined";
 import { toImageUrl } from "@/utils/image-url";
 import { logger } from "@/utils/logger";
-import { useTranslations } from "next-intl";
 
-// ── Types ──
 interface FleetOverviewProps {
-  /** Total vehicles in the fleet */
   readonly total: number;
-  /** Currently available vehicles */
   readonly availableCount: number;
-  /** Vehicles currently on rental / fully booked */
   readonly rentalCount: number;
-  /** Vehicles in maintenance */
   readonly maintenanceCount: number;
-  /** Optional trend percentages (positive = up, negative = down) */
   readonly trends?: {
     totalAssets?: number;
     available?: number;
@@ -85,96 +80,6 @@ interface FleetOverviewProps {
   };
 }
 
-// ── Donut chart drawn with SVG ──
-function DonutChart({
-  available,
-  booked,
-  maintenance,
-  unavailable,
-  total,
-}: Readonly<{
-  available: number;
-  booked: number;
-  maintenance: number;
-  unavailable: number;
-  total: number;
-}>): JSX.Element {
-  const theme = useTheme();
-
-  // Compute percentages
-  const safeTotal = total || 1;
-  const availPct = (available / safeTotal) * 100;
-  const bookedPct = (booked / safeTotal) * 100;
-  const maintenancePct = (maintenance / safeTotal) * 100;
-  const unavailablePct = (unavailable / safeTotal) * 100;
-
-  // SVG donut via stroke-dasharray on a circle
-  const radius = 42;
-  const circumference = 2 * Math.PI * radius;
-
-  interface Segment {
-    pct: number;
-    color: string;
-    offset: number;
-  }
-
-  const segments: Segment[] = useMemo(() => {
-    const segmentsData: { pct: number; color: string }[] = [
-      { pct: availPct, color: theme.palette.success.main },
-      { pct: bookedPct, color: theme.palette.primary.main },
-      { pct: maintenancePct, color: theme.palette.warning.main },
-      { pct: unavailablePct, color: theme.palette.info.main },
-    ];
-    let cumulative = 0;
-    return segmentsData.map(s => {
-      const offset = (cumulative / 100) * circumference;
-      cumulative += s.pct;
-      return { ...s, offset };
-    });
-  }, [availPct, bookedPct, maintenancePct, unavailablePct, circumference, theme]);
-
-  return (
-    <Box sx={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
-      <svg width="110" height="110" viewBox="0 0 110 110">
-        {/* Background track */}
-        <circle cx="55" cy="55" r={radius} fill="none" stroke={alpha(theme.palette.divider, 0.4)} strokeWidth="10" />
-        {/* Segments — rotate so first segment starts at top */}
-        <g transform="rotate(-90 55 55)">
-          {segments.map((seg, i) => (
-            <circle
-              key={i}
-              cx="55"
-              cy="55"
-              r={radius}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth="10"
-              strokeDasharray={`${(seg.pct / 100) * circumference} ${circumference}`}
-              strokeDashoffset={-seg.offset}
-              strokeLinecap="butt"
-            />
-          ))}
-        </g>
-      </svg>
-
-      {/* Center label */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography sx={{ fontWeight: 800, fontSize: 22, lineHeight: 1 }}>{total}</Typography>
-      </Box>
-    </Box>
-  );
-}
-
-// ── Trend badge ──
 function TrendBadge({ value }: Readonly<{ value?: number }>): JSX.Element | null {
   if (value === undefined) return null;
   const isUp = value >= 0;
@@ -200,7 +105,6 @@ function TrendBadge({ value }: Readonly<{ value?: number }>): JSX.Element | null
   );
 }
 
-// ── Stat card ──
 function StatCard({
   icon,
   label,
@@ -259,7 +163,6 @@ function StatCard({
   );
 }
 
-// ── Legend item ──
 function LegendItem({ color, label, pct }: Readonly<{ color: string; label: string; pct: number }>): JSX.Element {
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
@@ -284,7 +187,88 @@ function LegendItem({ color, label, pct }: Readonly<{ color: string; label: stri
   );
 }
 
-// ── FLEET OVERVIEW COMPONENT ──
+function DonutChart({
+  available,
+  booked,
+  maintenance,
+  unavailable,
+  total,
+}: Readonly<{
+  available: number;
+  booked: number;
+  maintenance: number;
+  unavailable: number;
+  total: number;
+}>): JSX.Element {
+  const theme = useTheme();
+
+  const safeTotal = total || 1;
+  const availPct = (available / safeTotal) * 100;
+  const bookedPct = (booked / safeTotal) * 100;
+  const maintenancePct = (maintenance / safeTotal) * 100;
+  const unavailablePct = (unavailable / safeTotal) * 100;
+
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+
+  interface Segment {
+    pct: number;
+    color: string;
+    offset: number;
+  }
+
+  const segments: Segment[] = useMemo(() => {
+    const segmentsData: { pct: number; color: string }[] = [
+      { pct: availPct, color: theme.palette.success.main },
+      { pct: bookedPct, color: theme.palette.primary.main },
+      { pct: maintenancePct, color: theme.palette.warning.main },
+      { pct: unavailablePct, color: theme.palette.info.main },
+    ];
+    let cumulative = 0;
+    return segmentsData.map(s => {
+      const offset = (cumulative / 100) * circumference;
+      cumulative += s.pct;
+      return { ...s, offset };
+    });
+  }, [availPct, bookedPct, maintenancePct, unavailablePct, circumference, theme]);
+
+  return (
+    <Box sx={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
+      <svg viewBox="0 0 110 110" width={110} height={110}>
+        <circle cx="55" cy="55" r={radius} fill="none" stroke={theme.palette.divider} strokeWidth="10" />
+        <g transform="rotate(-90 55 55)">
+          {segments.map((seg, i) => (
+            <circle
+              key={i}
+              cx="55"
+              cy="55"
+              r={radius}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth="10"
+              strokeDasharray={`${(seg.pct / 100) * circumference} ${circumference}`}
+              strokeDashoffset={-seg.offset}
+              strokeLinecap="butt"
+            />
+          ))}
+        </g>
+      </svg>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography sx={{ fontWeight: 800, fontSize: 22, lineHeight: 1 }}>{total}</Typography>
+      </Box>
+    </Box>
+  );
+}
+
 function FleetOverview({
   total,
   availableCount,
@@ -304,7 +288,6 @@ function FleetOverview({
 
   return (
     <Grid container spacing={2} sx={{ mb: 3 }}>
-      {/* Donut chart card */}
       <Grid size={{ xs: 12, sm: 12, md: 4.5 }}>
         <Paper
           elevation={0}
@@ -341,7 +324,6 @@ function FleetOverview({
         </Paper>
       </Grid>
 
-      {/* Total Assets */}
       <Grid size={{ xs: 6, sm: 4, md: 2.5 }}>
         <StatCard
           icon={<CarIcon sx={{ fontSize: 18, color: theme.palette.primary.main }} />}
@@ -352,7 +334,6 @@ function FleetOverview({
         />
       </Grid>
 
-      {/* Available Now */}
       <Grid size={{ xs: 6, sm: 4, md: 2.5 }}>
         <StatCard
           icon={<AvailableIcon sx={{ fontSize: 18, color: theme.palette.success.main }} />}
@@ -363,7 +344,6 @@ function FleetOverview({
         />
       </Grid>
 
-      {/* In Maintenance */}
       <Grid size={{ xs: 6, sm: 4, md: 2.5 }}>
         <StatCard
           icon={<MaintenanceIcon sx={{ fontSize: 18, color: theme.palette.warning.main }} />}
@@ -377,17 +357,12 @@ function FleetOverview({
   );
 }
 
-// ── Static filter option lists. Defined as module-level constants so the
-//    dropdowns don't re-create their option arrays on every render and so
-//    the labels stay one source of truth between the filter UI and any
-//    future status-badge consumers.
-
 const STATUS_OPTIONS: readonly { value: VehicleStatusFilter; label: string }[] = [
   { value: "", label: "All statuses" },
-  { value: "Available", label: "Available" },
-  { value: "FullyBooked", label: "Fully Booked (On Rental)" },
-  { value: "Maintenance", label: "Maintenance" },
-  { value: "Retired", label: "Retired" },
+  { value: VehicleStatus.Available, label: "Available" },
+  { value: VehicleStatus.FullyBooked, label: "Fully Booked (On Rental)" },
+  { value: VehicleStatus.Maintenance, label: "Maintenance" },
+  { value: VehicleStatus.Retired, label: "Retired" },
 ];
 
 const TRANSMISSION_OPTIONS: readonly { value: string; label: string }[] = [
@@ -423,17 +398,6 @@ const getErrorMessage = (err: unknown, t: (key: string) => string): string => {
 
 type StatusColor = "success" | "warning" | "info" | "error";
 
-/**
- * Maps a Vehicle row to one of the four canonical VehicleStatus enum buckets
- * the backend exposes:
- *   - Available     → green
- *   - FullyBooked   → amber (vehicle currently on rental)
- *   - Maintenance   → blue
- *   - Retired       → red (soft-deleted / inactive)
- *
- * Falls back to the raw `category` string for any other backend value so we
- * never silently swallow a state we don't recognize.
- */
 const getStatusConfig = (v: Vehicle, t: (key: string) => string): { label: string; colorKey: StatusColor } => {
   if (v.isOnRental) return { label: t("statusLabels.fullyBooked"), colorKey: "warning" };
   const rawStatus = (v.status ?? "").toLowerCase();
@@ -448,7 +412,6 @@ const getStatusConfig = (v: Vehicle, t: (key: string) => string): { label: strin
   return { label: t("statusLabels.unavailable"), colorKey: "info" };
 };
 
-// ── ACTION BUTTONS ──
 const ActionButtons = memo(function ActionButtons({
   vehicleId,
   available,
@@ -515,7 +478,6 @@ const ActionButtons = memo(function ActionButtons({
   );
 });
 
-// ── MOBILE VEHICLE CARD ──
 const VehicleMobileCard = memo(function VehicleMobileCard({
   v,
   theme,
@@ -1141,7 +1103,6 @@ function VehicleTableRow({
   );
 }
 
-// ── MAIN PAGE ──
 export default function AdminCarsPage() {
   const theme = useTheme();
   const router = useRouter();
@@ -1159,10 +1120,6 @@ export default function AdminCarsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
 
-  // ── Filter state. Search is debounced inside `useVehicles`; the other fields
-  //    take effect immediately. All flow into the backend
-  //    AdminVehicleFilterRequest so search/filter/sort run on the database
-  //    instead of being computed from the paginated array.
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get("categoryId") || "";
 
@@ -1173,7 +1130,6 @@ export default function AdminCarsPage() {
   const [sortBy, setSortBy] = useState<VehicleSortBy>("newest");
   const [categoryIdFilter, setCategoryIdFilter] = useState<string>(initialCategoryId);
 
-  // Sync categoryId filter if the URL search parameter changes
   useEffect(() => {
     const paramVal = searchParams.get("categoryId");
     if (paramVal !== null) {
@@ -1193,8 +1149,6 @@ export default function AdminCarsPage() {
     [search, statusFilter, supplierFilter, transmissionFilter, sortBy, categoryIdFilter]
   );
 
-  // True when any filter / search input is non-default. Drives the
-  // empty-state copy + the "Clear filters" action.
   const filtersActive = useMemo(
     () =>
       Boolean(search) ||
@@ -1226,11 +1180,6 @@ export default function AdminCarsPage() {
     refresh,
   } = useVehicles(session?.accessToken, vehicleFilter);
 
-  // ── Suppliers list for the "Supplier" filter dropdown. Loaded once on mount.
-  //    Falls back silently to an empty list — the dropdown still works, it just
-  //    won't have any options to pick from. The fetch isn't cancellable; the
-  //    extra setState after unmount is benign with React 19 and lets us avoid a
-  //    useless flag that lint complains about as a no-op.
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   useEffect(() => {
     void (async () => {
@@ -1251,23 +1200,13 @@ export default function AdminCarsPage() {
     })();
   }, []);
 
-  // ── DB-truth stats for the dashboard cards. Counts come from
-  //    /api/vehicles/admin/stats so they are independent of pagination,
-  //    search, and filter state. `refreshStats()` is called alongside
-  //    `refresh()` after a delete so the cards re-sync.
   const { stats: vehicleStats, error: statsError, refresh: refreshStats } = useAdminVehicleStats(session?.accessToken);
 
-  // ── STATS ──
-  // Read from the server stats endpoint (not from the paginated `vehicles`
-  // array) so the cards always show real database totals across all pages
-  // and filters.
   const total = vehicleStats?.totalVehicles ?? 0;
   const availableCount = vehicleStats?.availableVehicles ?? 0;
   const rentalCount = vehicleStats?.onRentalVehicles ?? 0;
-  // Added fallback logic to retrieve maintenance count or default to 0
   const maintenanceCount = vehicleStats?.maintenanceVehicles ?? 0;
 
-  // ── HANDLERS ──
   const handleDelete = useCallback(
     (id: string, isAvailable: boolean, hasBookings?: boolean) => {
       if (hasBookings) {
@@ -1369,7 +1308,6 @@ export default function AdminCarsPage() {
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3, md: 4 }, maxWidth: 1300, mx: "auto" }}>
-      {/* HEADER */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         sx={{ gap: 2, justifyContent: "space-between", mb: 4, alignItems: { xs: "flex-start", sm: "center" } }}
@@ -1446,7 +1384,6 @@ export default function AdminCarsPage() {
         </Alert>
       )}
 
-      {/* STATS (Replaced VehicleStats with FleetOverview) */}
       <FleetOverview
         total={total}
         availableCount={availableCount}
@@ -1454,9 +1391,6 @@ export default function AdminCarsPage() {
         maintenanceCount={maintenanceCount}
       />
 
-      {/* FILTER ROW — search + four dropdowns. All four flow through `vehicleFilter`
-          into the backend; the search input is debounced inside the hook so each
-          keystroke doesn't fire a request. */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 3 }}>
           <TextField
@@ -1598,9 +1532,6 @@ export default function AdminCarsPage() {
         </Grid>
       </Grid>
 
-      {/* Inline retry banner: shown when a refetch fails but we still have
-          rows from the previous successful fetch. Avoids replacing the table
-          with a blocking error screen. */}
       {listError && vehicles.length > 0 && (
         <Alert
           severity="warning"
@@ -1622,7 +1553,6 @@ export default function AdminCarsPage() {
         </Alert>
       )}
 
-      {/* TABLE / MOBILE CARDS */}
       <VehicleListContent
         loading={loading}
         vehicles={vehicles}
@@ -1643,7 +1573,6 @@ export default function AdminCarsPage() {
         toggleSelectAll={toggleSelectAll}
       />
 
-      {/* BULK ASSIGN DIALOG */}
       <Dialog
         open={openBulkAssign}
         onClose={() => {
@@ -1704,7 +1633,6 @@ export default function AdminCarsPage() {
         </DialogActions>
       </Dialog>
 
-      {/* DELETE DIALOG */}
       <Dialog
         open={openDelete}
         onClose={handleCloseDelete}
@@ -1733,7 +1661,6 @@ export default function AdminCarsPage() {
         </DialogActions>
       </Dialog>
 
-      {/* ERROR SNACKBAR */}
       <Snackbar
         open={!!errorMsg}
         autoHideDuration={4000}

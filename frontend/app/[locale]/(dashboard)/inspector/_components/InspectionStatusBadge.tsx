@@ -8,12 +8,6 @@ interface Props {
   readonly size?: "small" | "medium";
 }
 
-/**
- * Consistent status badge used throughout the inspection UI:
- *   Pending  → yellow
- *   Approved → green
- *   Rejected → red
- */
 export default function InspectionStatusBadge({ status, size = "small" }: Props) {
   const theme = useTheme();
   const t = useTranslations("dashboardInspector.inspections");

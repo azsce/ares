@@ -21,6 +21,10 @@ import type { AdminSidebarLabels } from "./dashboard/admin-sidebar";
 import type { DriverSidebarLabels } from "./dashboard/driver-sidebar";
 import type { SupplierSidebarLabels } from "./dashboard/supplier-sidebar";
 import type { InspectorSidebarLabels } from "./dashboard/inspector-sidebar";
+import type { InspectorHistoryLabels } from "./dashboard/inspector/history";
+import type { InspectorInspectionsLabels } from "./dashboard/inspector/inspections";
+import type { InspectorInspectionDetailLabels } from "./dashboard/inspector/inspection-detail";
+import type { InspectorProfileLabels } from "./dashboard/inspector/profile";
 import type { DashboardLabels } from "./dashboard/shell";
 import type { DriverCompleteProfileLabels } from "./dashboard/driver-complete-profile";
 import type { DriverDashboardLabels } from "./dashboard/driver-dashboard";
@@ -28,12 +32,32 @@ import type { DriverEarningsLabels } from "./dashboard/driver-earnings";
 import type { DriverNotificationsLabels } from "./dashboard/driver-notifications";
 import type { DriverProfileLabels } from "./dashboard/driver-profile";
 import type { DriverTripsLabels } from "./dashboard/driver-trips";
+import type { SupplierNotificationsLabels } from "./dashboard/supplier/notifications";
+import type { SupplierDashboardLabels } from "./dashboard/supplier/dashboard";
+import type { SupplierEarningsLabels } from "./dashboard/supplier/earnings";
+import type { SupplierReviewsLabels } from "./dashboard/supplier/reviews";
+import type { SupplierBookingsLabels } from "./dashboard/supplier/bookings";
+import type { SupplierBookingDetailLabels } from "./dashboard/supplier/bookings/_id";
+import type { SupplierVehiclesLabels } from "./dashboard/supplier/vehicles";
+import type { CreateSupplierVehicleLabels } from "./dashboard/supplier/vehicles/create";
+import type { SupplierVehicleDetailLabels } from "./dashboard/supplier/vehicles/_id";
 import type { LogoutDialogLabels } from "./dashboard/logout-dialog";
 import type { DeleteNotificationDialogLabels } from "./delete-notification-dialog";
 import type { AdminComplianceLabels } from "./dashboard/admin/admin/compliance";
 import type { AdminSecurityLabels } from "./dashboard/admin/admin/security";
 import type { AdminVehiclesMgmtLabels } from "./dashboard/admin/admin/vehicles";
 import type { BankDetailsLabels } from "./dashboard/admin/bank-details";
+import type { AboutLabels } from "./public/about";
+import type { PrivacyLabels } from "./public/privacy";
+import type { TermsLabels } from "./public/terms";
+import type { AdminBookingsLabels } from "./dashboard/admin/bookings";
+import type { CreateBookingLabels } from "./dashboard/admin/bookings/create";
+import type { BookingDetailsLabels } from "./dashboard/admin/bookings/_id/details";
+import type { EditBookingLabels } from "./dashboard/admin/bookings/_id/edit";
+import type { CategoriesLabels } from "./dashboard/admin/categories";
+import type { CategoryDetailsLabels } from "./dashboard/admin/categories/detail";
+import type { CountriesLabels } from "./dashboard/admin/countries";
+import type { CreateCountryLabels } from "./dashboard/admin/countries/create";
 import type { AdminLocationsEditLabels } from "./dashboard/admin/locations/edit";
 import type { AdminNotificationsLabels } from "./dashboard/admin/notifications";
 import type { AdminSchedulerLabels } from "./dashboard/admin/scheduler";
@@ -43,10 +67,6 @@ import type { AdminDriversLabels } from "./dashboard/admin/drivers";
 import type { AdminInspectorsLabels } from "./dashboard/admin/inspectors";
 import type { AdminVehiclesLabels } from "./dashboard/admin/vehicles";
 import type { AdminVerificationsLabels } from "./dashboard/admin/verifications";
-import type { InspectorHistoryLabels } from "./dashboard/inspector/history";
-import type { InspectorInspectionsLabels } from "./dashboard/inspector/inspections";
-import type { InspectorInspectionDetailLabels } from "./dashboard/inspector/inspection-detail";
-import type { InspectorProfileLabels } from "./dashboard/inspector/profile";
 
 export type {
   AuthLabels,
@@ -72,6 +92,10 @@ export type {
   DriverSidebarLabels,
   SupplierSidebarLabels,
   InspectorSidebarLabels,
+  InspectorHistoryLabels,
+  InspectorInspectionsLabels,
+  InspectorInspectionDetailLabels,
+  InspectorProfileLabels,
   DashboardLabels,
   LogoutDialogLabels,
   DeleteNotificationDialogLabels,
@@ -79,6 +103,32 @@ export type {
   AdminSecurityLabels,
   AdminVehiclesMgmtLabels,
   BankDetailsLabels,
+  DriverCompleteProfileLabels,
+  DriverDashboardLabels,
+  DriverEarningsLabels,
+  DriverNotificationsLabels,
+  DriverProfileLabels,
+  DriverTripsLabels,
+  SupplierNotificationsLabels,
+  SupplierDashboardLabels,
+  SupplierEarningsLabels,
+  SupplierReviewsLabels,
+  SupplierBookingsLabels,
+  SupplierBookingDetailLabels,
+  SupplierVehiclesLabels,
+  CreateSupplierVehicleLabels,
+  SupplierVehicleDetailLabels,
+  AboutLabels,
+  PrivacyLabels,
+  TermsLabels,
+  AdminBookingsLabels,
+  CreateBookingLabels,
+  BookingDetailsLabels,
+  EditBookingLabels,
+  CategoriesLabels,
+  CategoryDetailsLabels,
+  CountriesLabels,
+  CreateCountryLabels,
   AdminLocationsEditLabels,
   AdminNotificationsLabels,
   AdminSchedulerLabels,
@@ -88,10 +138,6 @@ export type {
   AdminInspectorsLabels,
   AdminVehiclesLabels,
   AdminVerificationsLabels,
-  InspectorHistoryLabels,
-  InspectorInspectionsLabels,
-  InspectorInspectionDetailLabels,
-  InspectorProfileLabels,
 };
 
 export type AuthPagesSchema = {
@@ -127,6 +173,15 @@ export type DashboardSchema = {
   readonly driverNotifications: DriverNotificationsLabels;
   readonly driverProfile: DriverProfileLabels;
   readonly driverTrips: DriverTripsLabels;
+  readonly supplierDashboard: SupplierDashboardLabels;
+  readonly supplierEarnings: SupplierEarningsLabels;
+  readonly supplierNotifications: SupplierNotificationsLabels;
+  readonly supplierReviews: SupplierReviewsLabels;
+  readonly supplierBookings: SupplierBookingsLabels;
+  readonly supplierBookingDetail: SupplierBookingDetailLabels;
+  readonly supplierVehicles: SupplierVehiclesLabels;
+  readonly createSupplierVehicle: CreateSupplierVehicleLabels;
+  readonly supplierVehicleDetail: SupplierVehicleDetailLabels;
   readonly logoutDialog: LogoutDialogLabels;
 };
 
@@ -139,6 +194,14 @@ export type DashboardAdminAdminSchema = {
 export type DashboardAdminSchema = {
   readonly admin: DashboardAdminAdminSchema;
   readonly bankDetails: BankDetailsLabels;
+  readonly bookings: AdminBookingsLabels;
+  readonly createBooking: CreateBookingLabels;
+  readonly bookingDetails: BookingDetailsLabels;
+  readonly editBooking: EditBookingLabels;
+  readonly categories: CategoriesLabels;
+  readonly categoryDetails: CategoryDetailsLabels;
+  readonly countries: CountriesLabels;
+  readonly createCountry: CreateCountryLabels;
   readonly locationsEdit: AdminLocationsEditLabels;
   readonly notifications: AdminNotificationsLabels;
   readonly scheduler: AdminSchedulerLabels;
@@ -155,6 +218,12 @@ export type DashboardInspectorSchema = {
   readonly inspections: InspectorInspectionsLabels;
   readonly inspectionDetail: InspectorInspectionDetailLabels;
   readonly profile: InspectorProfileLabels;
+};
+
+export type PublicPagesSchema = {
+  readonly about: AboutLabels;
+  readonly privacy: PrivacyLabels;
+  readonly terms: TermsLabels;
 };
 
 export type MessageSchema = {

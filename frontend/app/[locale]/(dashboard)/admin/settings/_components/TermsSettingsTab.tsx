@@ -17,10 +17,6 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
@@ -59,11 +55,6 @@ interface FormState {
 const SUPPORTED_LOCALES = ["en", "ar"] as const;
 type LocaleCode = (typeof SUPPORTED_LOCALES)[number];
 
-const LOCALE_LABELS: Record<LocaleCode, string> = {
-  en: "English (Default)",
-  ar: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
-};
-
 const emptyLocalization: SectionLocalization = { title: "", content: "" };
 const defaultLocalizations: LocalizationsMap = { ar: { ...emptyLocalization } };
 const emptyForm: FormState = { title: "", content: "", order: 0, localizations: { ...defaultLocalizations } };
@@ -77,7 +68,7 @@ export default function TermsSettingsTab() {
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [selectedLocale, setSelectedLocale] = useState<LocaleCode>("en");
+  const selectedLocale = "en" as LocaleCode;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -138,17 +129,6 @@ export default function TermsSettingsTab() {
   const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: name === "order" ? Number(value) : value }));
-  };
-
-  const handleLocaleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
-      ...prev,
-      localizations: {
-        ...prev.localizations,
-        ar: { ...prev.localizations.ar, [name]: value },
-      },
-    }));
   };
 
   const handleSave = async () => {

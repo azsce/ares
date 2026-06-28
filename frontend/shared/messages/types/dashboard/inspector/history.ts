@@ -15,6 +15,7 @@ export type InspectorHistoryLabels = {
   readonly mobileCard: {
     readonly photosCount: string;
     readonly submittedAt: string;
+    readonly submittedFallback: string;
     readonly viewReport: string;
   };
   readonly table: {

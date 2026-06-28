@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "@/shared/i18n/routing";
+import { useTranslations } from "next-intl";
 import VehicleDetailsClient, {
   type FormValues,
 } from "@/app/[locale]/(public)/vehicles/[vehicleId]/_components/vehicle-details/VehicleDetailsClient";
@@ -24,10 +25,11 @@ interface SupplierCreateVehicleClientProps {
 export default function SupplierCreateVehicleClient({ emptyVehicle, locations }: SupplierCreateVehicleClientProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const t = useTranslations("dashboard.createSupplierVehicle");
 
   const handleSave = async (values: FormValues) => {
     if (!session?.accessToken) {
-      throw new Error("You must be signed in to create a vehicle.");
+      throw new Error(t("errors.notSignedIn"));
     }
 
     const payload: CreateSupplierVehiclePayload = {
@@ -41,18 +43,17 @@ export default function SupplierCreateVehicleClient({ emptyVehicle, locations }:
       seats: values.seats,
       pricePerDay: values.pricePerDay,
       locationCity: values.locationCity,
-      categoryId: values.categoryId, // Pass categoryId from form dropdown
+      categoryId: values.categoryId,
       description: values.description?.trim() ? values.description : undefined,
-      imageUrl: undefined, // Handled separately by upload
+      imageUrl: undefined,
     };
 
     const response = await createSupplierVehicle(session.accessToken, payload);
 
     if (!response.vehicleId) {
-      throw new Error("Failed to get vehicle ID from response");
+      throw new Error(t("errors.vehicleIdNotFound"));
     }
 
-    // Upload images if any
     if (values.images.length > 0) {
       for (const img of values.images) {
         if (img.file) {

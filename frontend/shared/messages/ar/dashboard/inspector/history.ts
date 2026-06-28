@@ -17,6 +17,7 @@ const history: InspectorHistoryLabels = {
   mobileCard: {
     photosCount: "الصور: {count}",
     submittedAt: "تاريخ التقديم: {date}",
+    submittedFallback: "—",
     viewReport: "عرض التقرير",
   },
   table: {
