@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -32,6 +32,15 @@ import axios from "axios";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
+interface SectionLocalization {
+  title: string;
+  content: string;
+}
+
+interface LocalizationsMap {
+  ar: SectionLocalization;
+}
+
 interface AboutSection {
   id: string;
   title: string;
@@ -39,6 +48,7 @@ interface AboutSection {
   order: number;
   sectionType: string;
   updatedAt: string;
+  localizations: LocalizationsMap;
 }
 
 interface FormState {
@@ -46,10 +56,27 @@ interface FormState {
   content: string;
   order: number;
   sectionType: string;
+  localizations: LocalizationsMap;
 }
 
 const SECTION_TYPES = ["hero", "story", "offer", "stats", "values", "cta"];
-const emptyForm: FormState = { title: "", content: "", order: 0, sectionType: "story" };
+const SUPPORTED_LOCALES = ["en", "ar"] as const;
+type LocaleCode = (typeof SUPPORTED_LOCALES)[number];
+
+const LOCALE_LABELS: Record<LocaleCode, string> = {
+  en: "English (Default)",
+  ar: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
+};
+
+const emptyLocalization: SectionLocalization = { title: "", content: "" };
+const defaultLocalizations: LocalizationsMap = { ar: { ...emptyLocalization } };
+const emptyForm: FormState = {
+  title: "",
+  content: "",
+  order: 0,
+  sectionType: "story",
+  localizations: { ...defaultLocalizations },
+};
 
 export default function AboutSettingsTab() {
   const { data: session } = useSession();
@@ -60,6 +87,7 @@ export default function AboutSettingsTab() {
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedLocale, setSelectedLocale] = useState<LocaleCode>("en");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -69,38 +97,66 @@ export default function AboutSettingsTab() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const authHeader = { Authorization: `Bearer ${session?.accessToken ?? ""}` };
+  const authHeader = useMemo(() => ({ Authorization: `Bearer ${session?.accessToken ?? ""}` }), [session?.accessToken]);
+  const isDefaultLocale = selectedLocale === "en";
 
-  const fetchSections = async () => {
+  const getLocaleTitle = (section: AboutSection): string => {
+    if (isDefaultLocale) return section.title;
+    return section.localizations.ar.title || section.title;
+  };
+
+  const getLocaleContent = (section: AboutSection): string => {
+    if (isDefaultLocale) return section.content;
+    return section.localizations.ar.content || section.content;
+  };
+
+  const fetchSections = useCallback(async () => {
     try {
-      const res = await axios.get<AboutSection[]>(toApiUrl("/api/about"));
+      const res = await axios.get<AboutSection[]>(toApiUrl("/api/about?includeLocalizations=true"));
       setSections(res.data);
     } catch (err) {
       logger.error("Failed to fetch about sections", err);
     } finally {
       setFetching(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void fetchSections();
-  }, []);
+  }, [fetchSections]);
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ ...emptyForm, order: sections.length + 1 });
+    setForm({ ...emptyForm, order: sections.length + 1, localizations: { ...defaultLocalizations } });
     setDialogOpen(true);
   };
 
   const openEdit = (section: AboutSection) => {
     setEditingId(section.id);
-    setForm({ title: section.title, content: section.content, order: section.order, sectionType: section.sectionType });
+    setForm({
+      title: section.title,
+      content: section.content,
+      order: section.order,
+      sectionType: section.sectionType,
+      localizations: { ...section.localizations },
+    });
     setDialogOpen(true);
   };
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: name === "order" ? Number(value) : value }));
+  };
+
+  const handleLocaleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      localizations: {
+        ...prev.localizations,
+        ar: { ...prev.localizations.ar, [name]: value },
+      },
+    }));
   };
 
   const handleSave = async () => {
@@ -110,11 +166,22 @@ export default function AboutSettingsTab() {
     }
     setSaving(true);
     try {
+      const payload = {
+        title: form.title,
+        content: form.content,
+        order: form.order,
+        sectionType: form.sectionType,
+        localizations: form.localizations,
+      };
       if (editingId) {
-        const res = await axios.put<AboutSection>(toApiUrl(`/api/about/${editingId}`), form, { headers: authHeader });
+        const res = await axios.put<AboutSection>(toApiUrl(`/api/about/${editingId}`), payload, {
+          headers: authHeader,
+        });
         setSections(prev => prev.map(s => (s.id === editingId ? res.data : s)));
       } else {
-        const res = await axios.post<AboutSection>(toApiUrl("/api/about"), form, { headers: authHeader });
+        const res = await axios.post<AboutSection>(toApiUrl("/api/about?includeLocalizations=true"), payload, {
+          headers: authHeader,
+        });
         setSections(prev => [...prev, res.data]);
       }
       setSuccessMsg(editingId ? t("about.sectionUpdated") : t("about.sectionCreated"));
@@ -196,7 +263,7 @@ export default function AboutSettingsTab() {
                   </Typography>
                   <Chip label={section.sectionType} size="small" color="primary" variant="outlined" />
                   <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {section.title}
+                    {getLocaleTitle(section)}
                   </Typography>
                 </Stack>
                 <Typography
@@ -204,7 +271,7 @@ export default function AboutSettingsTab() {
                   color="text.secondary"
                   sx={{ whiteSpace: "pre-wrap", overflow: "hidden", maxHeight: 60, textOverflow: "ellipsis" }}
                 >
-                  {section.content}
+                  {getLocaleContent(section)}
                 </Typography>
               </Box>
               <Stack sx={{ flexDirection: "row", gap: 0.5, flexShrink: 0 }}>
@@ -308,7 +375,7 @@ export default function AboutSettingsTab() {
             onClick={() => {
               void handleSave();
             }}
-            disabled={saving || !form.title || !form.content}
+            disabled={saving || (isDefaultLocale && (!form.title || !form.content))}
             sx={{ fontWeight: 700 }}
           >
             {saving ? <CircularProgress size={20} color="inherit" /> : tc("save")}

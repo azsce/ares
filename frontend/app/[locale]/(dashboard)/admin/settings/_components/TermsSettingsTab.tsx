@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -17,6 +17,10 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
@@ -27,21 +31,42 @@ import axios from "axios";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
+interface SectionLocalization {
+  title: string;
+  content: string;
+}
+
+interface LocalizationsMap {
+  ar: SectionLocalization;
+}
+
 interface TermsSection {
   id: string;
   title: string;
   content: string;
   order: number;
   updatedAt: string;
+  localizations: LocalizationsMap;
 }
 
 interface FormState {
   title: string;
   content: string;
   order: number;
+  localizations: LocalizationsMap;
 }
 
-const emptyForm: FormState = { title: "", content: "", order: 0 };
+const SUPPORTED_LOCALES = ["en", "ar"] as const;
+type LocaleCode = (typeof SUPPORTED_LOCALES)[number];
+
+const LOCALE_LABELS: Record<LocaleCode, string> = {
+  en: "English (Default)",
+  ar: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
+};
+
+const emptyLocalization: SectionLocalization = { title: "", content: "" };
+const defaultLocalizations: LocalizationsMap = { ar: { ...emptyLocalization } };
+const emptyForm: FormState = { title: "", content: "", order: 0, localizations: { ...defaultLocalizations } };
 
 export default function TermsSettingsTab() {
   const { data: session } = useSession();
@@ -52,6 +77,7 @@ export default function TermsSettingsTab() {
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedLocale, setSelectedLocale] = useState<LocaleCode>("en");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -62,38 +88,67 @@ export default function TermsSettingsTab() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const authHeader = { Authorization: `Bearer ${session?.accessToken ?? ""}` };
+  const authHeader = useMemo(() => ({ Authorization: `Bearer ${session?.accessToken ?? ""}` }), [session?.accessToken]);
+  const isDefaultLocale = selectedLocale === "en";
 
-  const fetchSections = async () => {
+  const getLocaleTitle = (section: TermsSection): string => {
+    if (isDefaultLocale) return section.title;
+    return section.localizations.ar.title;
+  };
+
+  const getLocaleContent = (section: TermsSection): string => {
+    if (isDefaultLocale) return section.content;
+    return section.localizations.ar.content;
+  };
+
+  const fetchSections = useCallback(async () => {
     try {
-      const res = await axios.get<TermsSection[]>(toApiUrl("/api/terms"));
+      const res = await axios.get<TermsSection[]>(toApiUrl("/api/terms?includeLocalizations=true"), {
+        headers: authHeader,
+      });
       setSections(res.data);
     } catch (err) {
       logger.error("Failed to fetch terms sections", err);
     } finally {
       setFetching(false);
     }
-  };
+  }, [authHeader]);
 
   useEffect(() => {
     void fetchSections();
-  }, []);
+  }, [fetchSections]);
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ ...emptyForm, order: sections.length + 1 });
+    setForm({ ...emptyForm, order: sections.length + 1, localizations: { ...defaultLocalizations } });
     setDialogOpen(true);
   };
 
   const openEdit = (section: TermsSection) => {
     setEditingId(section.id);
-    setForm({ title: section.title, content: section.content, order: section.order });
+    setForm({
+      title: section.title,
+      content: section.content,
+      order: section.order,
+      localizations: { ...section.localizations },
+    });
     setDialogOpen(true);
   };
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: name === "order" ? Number(value) : value }));
+  };
+
+  const handleLocaleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      localizations: {
+        ...prev.localizations,
+        ar: { ...prev.localizations.ar, [name]: value },
+      },
+    }));
   };
 
   const handleSave = async () => {
@@ -103,11 +158,21 @@ export default function TermsSettingsTab() {
     }
     setSaving(true);
     try {
+      const payload = {
+        title: form.title,
+        content: form.content,
+        order: form.order,
+        localizations: form.localizations,
+      };
       if (editingId) {
-        const res = await axios.put<TermsSection>(toApiUrl(`/api/terms/${editingId}`), form, { headers: authHeader });
+        const res = await axios.put<TermsSection>(toApiUrl(`/api/terms/${editingId}`), payload, {
+          headers: authHeader,
+        });
         setSections(prev => prev.map(s => (s.id === editingId ? res.data : s)));
       } else {
-        const res = await axios.post<TermsSection>(toApiUrl("/api/terms"), form, { headers: authHeader });
+        const res = await axios.post<TermsSection>(toApiUrl("/api/terms?includeLocalizations=true"), payload, {
+          headers: authHeader,
+        });
         setSections(prev => [...prev, res.data]);
       }
       setSuccessMsg(editingId ? t("terms.sectionUpdated") : t("terms.sectionCreated"));
@@ -188,11 +253,11 @@ export default function TermsSettingsTab() {
                     #{section.order}
                   </Typography>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {section.title}
+                    {getLocaleTitle(section)}
                   </Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-wrap" }}>
-                  {section.content}
+                  {getLocaleContent(section)}
                 </Typography>
               </Box>
               <Stack sx={{ flexDirection: "row", gap: 0.5, flexShrink: 0 }}>
@@ -277,7 +342,7 @@ export default function TermsSettingsTab() {
             onClick={() => {
               void handleSave();
             }}
-            disabled={saving || !form.title || !form.content}
+            disabled={saving || (isDefaultLocale && (!form.title || !form.content))}
             sx={{ fontWeight: 700 }}
           >
             {saving ? <CircularProgress size={20} color="inherit" /> : tc("save")}
