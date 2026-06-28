@@ -16,6 +16,7 @@ import {
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { apiFetchJson } from "@/utils/api-client";
 import { useTheme } from "@mui/material";
 import { logger } from "@/utils/logger";
@@ -23,6 +24,7 @@ import { logger } from "@/utils/logger";
 export default function CommissionSettingsTab() {
   const theme = useTheme();
   const { data: session } = useSession();
+  const t = useTranslations("dashboardAdmin.settings");
   const [percentage, setPercentage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,12 +43,12 @@ export default function CommissionSettingsTab() {
       setPercentage(res.globalCommissionPercentage?.toString() || "0");
     } catch (err: unknown) {
       logger.error("Failed to fetch global commission:", err);
-      const errMsg = err instanceof Error ? err.message : "Failed to load global commission.";
+      const errMsg = err instanceof Error ? err.message : t("commission.error");
       setError(errMsg);
     } finally {
       setLoading(false);
     }
-  }, [session?.accessToken]);
+  }, [session?.accessToken, t]);
 
   useEffect(() => {
     fetchCommission().catch((err: unknown) => {
@@ -56,7 +58,10 @@ export default function CommissionSettingsTab() {
 
   const handleSave = async () => {
     try {
-      if (!session?.accessToken) return;
+      if (!session?.accessToken) {
+        setError(t("commission.unauthorized"));
+        return;
+      }
 
       setSaving(true);
       setError(null);
@@ -71,11 +76,11 @@ export default function CommissionSettingsTab() {
         accessToken: session.accessToken,
         body: JSON.stringify({ percentage: numValue }),
       });
-      setSuccess("Global commission percentage updated successfully.");
+      setSuccess(t("commission.success"));
     } catch (err: unknown) {
       logger.error("Failed to update global commission:", err);
       const apiError = err as { message?: string; response?: { data?: { message?: string } } };
-      setError(apiError.message || apiError.response?.data?.message || "Failed to update global commission.");
+      setError(apiError.message || apiError.response?.data?.message || t("commission.error"));
     } finally {
       setSaving(false);
     }
@@ -102,11 +107,10 @@ export default function CommissionSettingsTab() {
         <Stack spacing={4}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-              Global Commission Rate
+              {t("commission.title")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Set the default commission percentage the platform takes from each booking. This applies to all vehicles
-              unless overridden by a category-specific commission.
+              {t("commission.subtitle")}
             </Typography>
           </Box>
 
@@ -115,7 +119,7 @@ export default function CommissionSettingsTab() {
 
           <Box sx={{ maxWidth: 400 }}>
             <TextField
-              label="Commission Percentage"
+              label={t("commission.rateLabel")}
               fullWidth
               type="number"
               value={percentage}
@@ -146,7 +150,7 @@ export default function CommissionSettingsTab() {
               disabled={saving}
               sx={{ px: 4, py: 1.5, borderRadius: 2 }}
             >
-              {saving ? "Saving..." : "Save Settings"}
+              {saving ? t("commission.updating") : t("commission.updateRates")}
             </Button>
           </Box>
         </Stack>

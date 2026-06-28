@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Box, InputAdornment, Paper, Skeleton, Stack, TextField, Typography, useTheme, alpha } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SearchIcon from "@mui/icons-material/Search";
@@ -16,8 +17,8 @@ interface FilterTab {
 
 const FILTER_TABS: FilterTab[] = [
   { label: "All", value: "All" },
-  { label: "Check-Outs 🟢", value: "CheckOut" },
-  { label: "Check-Ins 🔴", value: "CheckIn" },
+  { label: "CheckOut", value: "CheckOut" },
+  { label: "CheckIn", value: "CheckIn" },
 ];
 
 interface TodaysTasksListProps {
@@ -27,6 +28,7 @@ interface TodaysTasksListProps {
 
 export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps) {
   const theme = useTheme();
+  const t = useTranslations("dashboardInspector.inspections");
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [plateSearch, setPlateSearch] = useState("");
 
@@ -51,6 +53,12 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
       <Stack direction="row" sx={{ gap: 1, mb: 2, flexWrap: "wrap" }}>
         {FILTER_TABS.map(tab => {
           const isActive = activeFilter === tab.value;
+          const tabLabel =
+            tab.value === "All"
+              ? t("filters.all")
+              : tab.value === "CheckOut"
+                ? t("filters.checkOuts")
+                : t("filters.checkIns");
           return (
             <Box
               key={tab.value}
@@ -78,7 +86,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
                 },
               }}
             >
-              {tab.label}
+              {tabLabel}
             </Box>
           );
         })}
@@ -87,7 +95,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
       {/* Plate number search */}
       <TextField
         id="plate-search"
-        placeholder="Search by plate number…"
+        placeholder={t("searchPlaceholder")}
         value={plateSearch}
         onChange={e => {
           setPlateSearch(e.target.value);
@@ -103,7 +111,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
             ),
           },
         }}
-        aria-label="Search by plate number"
+        aria-label={t("searchAriaLabel")}
       />
 
       {/* Task list */}
@@ -127,6 +135,7 @@ export default function TodayTasksList({ tasks, loading }: TodaysTasksListProps)
 }
 
 function EmptyState({ hasSearch }: { readonly hasSearch: boolean }) {
+  const t = useTranslations("dashboardInspector.inspections");
   return (
     <Paper
       elevation={0}
@@ -141,10 +150,10 @@ function EmptyState({ hasSearch }: { readonly hasSearch: boolean }) {
     >
       <AssignmentIcon sx={{ fontSize: 56, mb: 2, color: "text.disabled" }} />
       <Typography variant="h6" sx={{ fontWeight: 700 }}>
-        {hasSearch ? "No matching tasks" : "All caught up!"}
+        {hasSearch ? t("emptyState.noMatchingTasks") : t("emptyState.allCaughtUp")}
       </Typography>
       <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        {hasSearch ? "Try adjusting the filter or search term." : "You have no pending tasks for today."}
+        {hasSearch ? t("emptyState.adjustFilter") : t("emptyState.noPendingTasks")}
       </Typography>
     </Paper>
   );

@@ -26,6 +26,19 @@ import type { AdminComplianceLabels } from "./dashboard/admin/admin/compliance";
 import type { AdminSecurityLabels } from "./dashboard/admin/admin/security";
 import type { AdminVehiclesMgmtLabels } from "./dashboard/admin/admin/vehicles";
 import type { BankDetailsLabels } from "./dashboard/admin/bank-details";
+import type { AdminLocationsEditLabels } from "./dashboard/admin/locations/edit";
+import type { AdminNotificationsLabels } from "./dashboard/admin/notifications";
+import type { AdminSchedulerLabels } from "./dashboard/admin/scheduler";
+import type { AdminSettingsLabels } from "./dashboard/admin/settings";
+import type { AdminUsersLabels } from "./dashboard/admin/users";
+import type { AdminDriversLabels } from "./dashboard/admin/drivers";
+import type { AdminInspectorsLabels } from "./dashboard/admin/inspectors";
+import type { AdminVehiclesLabels } from "./dashboard/admin/vehicles";
+import type { AdminVerificationsLabels } from "./dashboard/admin/verifications";
+import type { InspectorHistoryLabels } from "./dashboard/inspector/history";
+import type { InspectorInspectionsLabels } from "./dashboard/inspector/inspections";
+import type { InspectorInspectionDetailLabels } from "./dashboard/inspector/inspection-detail";
+import type { InspectorProfileLabels } from "./dashboard/inspector/profile";
 
 export type {
   AuthLabels,
@@ -56,6 +69,19 @@ export type {
   AdminSecurityLabels,
   AdminVehiclesMgmtLabels,
   BankDetailsLabels,
+  AdminLocationsEditLabels,
+  AdminNotificationsLabels,
+  AdminSchedulerLabels,
+  AdminSettingsLabels,
+  AdminUsersLabels,
+  AdminDriversLabels,
+  AdminInspectorsLabels,
+  AdminVehiclesLabels,
+  AdminVerificationsLabels,
+  InspectorHistoryLabels,
+  InspectorInspectionsLabels,
+  InspectorInspectionDetailLabels,
+  InspectorProfileLabels,
 };
 
 export type AuthPagesSchema = {
@@ -95,6 +121,22 @@ export type DashboardAdminAdminSchema = {
 export type DashboardAdminSchema = {
   readonly admin: DashboardAdminAdminSchema;
   readonly bankDetails: BankDetailsLabels;
+  readonly locationsEdit: AdminLocationsEditLabels;
+  readonly notifications: AdminNotificationsLabels;
+  readonly scheduler: AdminSchedulerLabels;
+  readonly settings: AdminSettingsLabels;
+  readonly users: AdminUsersLabels;
+  readonly drivers: AdminDriversLabels;
+  readonly inspectors: AdminInspectorsLabels;
+  readonly vehicles: AdminVehiclesLabels;
+  readonly verifications: AdminVerificationsLabels;
+};
+
+export type DashboardInspectorSchema = {
+  readonly history: InspectorHistoryLabels;
+  readonly inspections: InspectorInspectionsLabels;
+  readonly inspectionDetail: InspectorInspectionDetailLabels;
+  readonly profile: InspectorProfileLabels;
 };
 
 export type MessageSchema = {
@@ -106,5 +148,6 @@ export type MessageSchema = {
   readonly header: HeaderLabels;
   readonly dashboard: DashboardSchema;
   readonly dashboardAdmin: DashboardAdminSchema;
+  readonly dashboardInspector: DashboardInspectorSchema;
   readonly deleteNotificationDialog: DeleteNotificationDialogLabels;
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Chip, useTheme, alpha } from "@mui/material";
 
 interface Props {
@@ -15,21 +16,22 @@ interface Props {
  */
 export default function InspectionStatusBadge({ status, size = "small" }: Props) {
   const theme = useTheme();
+  const t = useTranslations("dashboardInspector.inspections");
   const palette: Record<string, { bg: string; color: string; label: string }> = {
     Pending: {
       bg: alpha(theme.palette.warning.main, 0.15),
       color: theme.palette.warning.main,
-      label: "Pending",
+      label: t("status.pending"),
     },
     Approved: {
       bg: alpha(theme.palette.success.main, 0.15),
       color: theme.palette.success.main,
-      label: "Approved",
+      label: t("status.approved"),
     },
     Rejected: {
       bg: alpha(theme.palette.error.main, 0.15),
       color: theme.palette.error.main,
-      label: "Rejected",
+      label: t("status.rejected"),
     },
   };
   const c = palette[status] ?? {

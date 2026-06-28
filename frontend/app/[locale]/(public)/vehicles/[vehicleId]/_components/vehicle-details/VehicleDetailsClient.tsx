@@ -21,6 +21,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/shared/i18n/routing";
 import { useFormUndoRedo } from "./useFormUndoRedo";
 import Gallery from "./Gallery";
@@ -87,6 +88,7 @@ interface VehicleDetailsClientProps {
   readonly canEdit: boolean;
   readonly isCreateMode?: boolean;
   readonly onSave?: (values: FormValues) => Promise<void>;
+  readonly hideReviews?: boolean;
 }
 
 export default function VehicleDetailsClient({
@@ -96,10 +98,12 @@ export default function VehicleDetailsClient({
   canEdit,
   isCreateMode = false,
   onSave,
+  hideReviews = false,
 }: VehicleDetailsClientProps) {
   const theme = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
+  const t = useTranslations("dashboardAdmin.vehicles");
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [successToastOpen, setSuccessToastOpen] = useState(false);
@@ -204,7 +208,7 @@ export default function VehicleDetailsClient({
     const vehicleId = vehicleIdMatch ? vehicleIdMatch[0] : null;
 
     if (!vehicleId) {
-      throw new Error("Failed to get vehicle ID from response");
+      throw new Error(t("alerts.createVehicleIdError"));
     }
 
     if (values.images.length > 0) {
@@ -237,7 +241,7 @@ export default function VehicleDetailsClient({
             return { url: res.url, isPrimary: img.isPrimary };
           } catch (uploadErr) {
             logger.error("Failed to upload image during update", uploadErr);
-            throw new Error("Failed to upload one or more images. Please try again.", { cause: uploadErr });
+            throw new Error(t("alerts.uploadImageError"), { cause: uploadErr });
           }
         }
         return { url: img.url, isPrimary: img.isPrimary };
@@ -319,7 +323,7 @@ export default function VehicleDetailsClient({
       setSaveError(err.message);
     } else {
       logger.error("Failed to update vehicle", "Unknown error");
-      setSaveError("Unknown error occurred while updating the vehicle");
+      setSaveError(t("errors.generic"));
     }
   };
 
@@ -365,12 +369,14 @@ export default function VehicleDetailsClient({
                   )}
                 </Paper>
 
-                <Paper
-                  elevation={0}
-                  sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: { xs: 2, md: 3 } }}
-                >
-                  <ReviewSection reviews={reviews} />
-                </Paper>
+                {!isCreateMode && !hideReviews && (
+                  <Paper
+                    elevation={0}
+                    sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: { xs: 2, md: 3 } }}
+                  >
+                    <ReviewSection reviews={reviews} />
+                  </Paper>
+                )}
               </Stack>
             </Grid>
 
@@ -407,7 +413,7 @@ export default function VehicleDetailsClient({
                 sx={{ px: 3, fontWeight: 700, boxShadow: theme.shadows[10] }}
               >
                 <UndoRoundedIcon sx={{ mr: 1 }} />
-                Undo
+                {t("undoBtn")}
               </Fab>
 
               <Fab
@@ -429,7 +435,7 @@ export default function VehicleDetailsClient({
                 ) : (
                   <SaveRoundedIcon sx={{ mr: 1 }} />
                 )}
-                {isCreateMode ? "Create Vehicle" : "Save All Changes"}
+                {isCreateMode ? t("createVehicleBtn") : t("saveAllBtn")}
               </Fab>
 
               <Fab
@@ -439,7 +445,7 @@ export default function VehicleDetailsClient({
                 disabled={!canRedo || submitting}
                 sx={{ px: 3, fontWeight: 700, boxShadow: theme.shadows[10] }}
               >
-                Redo
+                {t("redoBtn")}
                 <RedoRoundedIcon sx={{ ml: 1 }} />
               </Fab>
             </Stack>
@@ -462,7 +468,7 @@ export default function VehicleDetailsClient({
           variant="filled"
           sx={{ width: "100%", borderRadius: 2 }}
         >
-          {isCreateMode ? "Vehicle created successfully" : "Vehicle updated successfully"}
+          {isCreateMode ? t("alerts.createSuccess") : t("alerts.updateSuccess")}
         </Alert>
       </Snackbar>
     </FormProvider>

@@ -22,6 +22,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
@@ -44,6 +45,8 @@ const emptyForm: FormState = { title: "", content: "", order: 0 };
 
 export default function TermsSettingsTab() {
   const { data: session } = useSession();
+  const t = useTranslations("dashboardAdmin.settings");
+  const tc = useTranslations("common");
 
   const [sections, setSections] = useState<TermsSection[]>([]);
   const [fetching, setFetching] = useState(true);
@@ -95,7 +98,7 @@ export default function TermsSettingsTab() {
 
   const handleSave = async () => {
     if (!session?.accessToken) {
-      setErrorMsg("You must be signed in to perform this action.");
+      setErrorMsg(t("terms.unauthorized"));
       return;
     }
     setSaving(true);
@@ -107,11 +110,11 @@ export default function TermsSettingsTab() {
         const res = await axios.post<TermsSection>(toApiUrl("/api/terms"), form, { headers: authHeader });
         setSections(prev => [...prev, res.data]);
       }
-      setSuccessMsg(editingId ? "Section updated." : "Section created.");
+      setSuccessMsg(editingId ? t("terms.sectionUpdated") : t("terms.sectionCreated"));
       setDialogOpen(false);
     } catch (err) {
       logger.error("Failed to save terms section", err);
-      setErrorMsg("Failed to save section.");
+      setErrorMsg(t("terms.saveError"));
     } finally {
       setSaving(false);
     }
@@ -119,17 +122,17 @@ export default function TermsSettingsTab() {
 
   const handleDelete = async (id: string) => {
     if (!session?.accessToken) {
-      setErrorMsg("You must be signed in to perform this action.");
+      setErrorMsg(t("terms.unauthorized"));
       return;
     }
     setDeleting(id);
     try {
       await axios.delete(toApiUrl(`/api/terms/${id}`), { headers: authHeader });
       setSections(prev => prev.filter(s => s.id !== id));
-      setSuccessMsg("Section deleted.");
+      setSuccessMsg(t("terms.sectionDeleted"));
     } catch (err) {
       logger.error("Failed to delete terms section", err);
-      setErrorMsg("Failed to delete section.");
+      setErrorMsg(t("terms.deleteError"));
     } finally {
       setDeleting(null);
       setDeleteConfirmId(null);
@@ -151,10 +154,10 @@ export default function TermsSettingsTab() {
       <Stack sx={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Terms of Service Sections
+            {t("terms.title")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Manage the sections displayed on the public Terms of Service page.
+            {t("terms.subtitle")}
           </Typography>
         </Box>
         <Button
@@ -163,14 +166,14 @@ export default function TermsSettingsTab() {
           onClick={openCreate}
           sx={{ borderRadius: 2, fontWeight: 700 }}
         >
-          Add Section
+          {t("terms.addSection")}
         </Button>
       </Stack>
 
       <Stack sx={{ gap: 2 }}>
         {sortedSections.length === 0 && (
           <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
-            No terms sections yet. Click &quot;Add Section&quot; to create one.
+            {t("terms.noSections")}
           </Typography>
         )}
         {sortedSections.map(section => (
@@ -193,7 +196,7 @@ export default function TermsSettingsTab() {
                 </Typography>
               </Box>
               <Stack sx={{ flexDirection: "row", gap: 0.5, flexShrink: 0 }}>
-                <Tooltip title="Edit">
+                <Tooltip title={tc("edit")}>
                   <IconButton
                     size="small"
                     onClick={() => {
@@ -203,7 +206,7 @@ export default function TermsSettingsTab() {
                     <EditRoundedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Delete">
+                <Tooltip title={tc("delete")}>
                   <IconButton
                     size="small"
                     color="error"
@@ -229,12 +232,19 @@ export default function TermsSettingsTab() {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>{editingId ? "Edit Section" : "New Section"}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>{editingId ? t("terms.editSection") : t("terms.newSection")}</DialogTitle>
         <DialogContent>
           <Stack sx={{ gap: 2, pt: 1 }}>
-            <TextField label="Title" name="title" value={form.title} onChange={handleFormChange} fullWidth required />
             <TextField
-              label="Content"
+              label={t("terms.titleLabel")}
+              name="title"
+              value={form.title}
+              onChange={handleFormChange}
+              fullWidth
+              required
+            />
+            <TextField
+              label={t("terms.contentLabel")}
               name="content"
               value={form.content}
               onChange={handleFormChange}
@@ -244,7 +254,7 @@ export default function TermsSettingsTab() {
               minRows={4}
             />
             <TextField
-              label="Order"
+              label={t("terms.orderLabel")}
               name="order"
               type="number"
               value={form.order}
@@ -260,7 +270,7 @@ export default function TermsSettingsTab() {
               setDialogOpen(false);
             }}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button
             variant="contained"
@@ -270,7 +280,7 @@ export default function TermsSettingsTab() {
             disabled={saving || !form.title || !form.content}
             sx={{ fontWeight: 700 }}
           >
-            {saving ? <CircularProgress size={20} color="inherit" /> : "Save"}
+            {saving ? <CircularProgress size={20} color="inherit" /> : tc("save")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -282,9 +292,9 @@ export default function TermsSettingsTab() {
           setDeleteConfirmId(null);
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Delete Section?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>{t("terms.deleteTitle")}</DialogTitle>
         <DialogContent>
-          <Typography>This action cannot be undone.</Typography>
+          <Typography>{t("terms.deleteConfirmDesc")}</Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
@@ -292,7 +302,7 @@ export default function TermsSettingsTab() {
               setDeleteConfirmId(null);
             }}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button
             variant="contained"
@@ -303,7 +313,7 @@ export default function TermsSettingsTab() {
             disabled={!!deleting}
             sx={{ fontWeight: 700 }}
           >
-            {deleting ? <CircularProgress size={20} color="inherit" /> : "Delete"}
+            {deleting ? <CircularProgress size={20} color="inherit" /> : tc("delete")}
           </Button>
         </DialogActions>
       </Dialog>

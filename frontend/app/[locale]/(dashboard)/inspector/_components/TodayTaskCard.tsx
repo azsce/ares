@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "@/shared/i18n/routing";
+import { useTranslations } from "next-intl";
 import { Box, Paper, Stack, Typography, IconButton, Tooltip, useTheme, alpha } from "@mui/material";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import CarRepairIcon from "@mui/icons-material/CarRepair";
@@ -17,6 +18,7 @@ interface TodayTaskCardProps {
 export default function TodayTaskCard({ task }: TodayTaskCardProps) {
   const theme = useTheme();
   const router = useRouter();
+  const t = useTranslations("dashboardInspector.inspections");
 
   const isCheckOut = task.inspectionType === "CheckOut";
 
@@ -24,7 +26,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
 
   const accentLight = isCheckOut ? theme.palette.status.active.light : theme.palette.status.cancelled.light;
 
-  const typeLabel = isCheckOut ? "Check-Out 🟢" : "Check-In 🔴";
+  const typeLabel = isCheckOut ? t("card.checkOutBadge") : t("card.checkInBadge");
   const TypeIcon = isCheckOut ? DirectionsCarIcon : CarRepairIcon;
 
   const scheduledDate = new Date(task.scheduledTime);
@@ -136,7 +138,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
 
         {/* Action buttons — independent, stop propagation */}
         <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
-          <Tooltip title={`Call ${task.customerName}`} arrow>
+          <Tooltip title={t("card.callTooltip", { customerName: task.customerName })} arrow>
             <IconButton
               component="a"
               href={`tel:${task.customerPhone}`}
@@ -153,13 +155,13 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
                 width: 36,
                 height: 36,
               }}
-              aria-label={`Call ${task.customerName}`}
+              aria-label={t("card.callAriaLabel", { customerName: task.customerName })}
             >
               <PhoneIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Open in Google Maps" arrow>
+          <Tooltip title={t("card.mapsTooltip")} arrow>
             <IconButton
               component="a"
               href={mapsHref}
@@ -178,7 +180,7 @@ export default function TodayTaskCard({ task }: TodayTaskCardProps) {
                 width: 36,
                 height: 36,
               }}
-              aria-label="Open location in Google Maps"
+              aria-label={t("card.mapsAriaLabel")}
             >
               <PlaceIcon sx={{ fontSize: 16 }} />
             </IconButton>

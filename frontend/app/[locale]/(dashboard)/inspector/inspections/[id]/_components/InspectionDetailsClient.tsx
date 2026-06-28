@@ -25,6 +25,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useRouter } from "@/shared/i18n/routing";
+import { useTranslations } from "next-intl";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlineRounded";
@@ -60,6 +61,7 @@ const MIN_IMAGES = 1;
 export default function InspectionDetailsClient({ inspectionId }: Props): JSX.Element {
   const router = useRouter();
   const theme = useTheme();
+  const t = useTranslations("dashboardInspector.inspectionDetail");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [details, setDetails] = useState<InspectionDetails | null>(null);
@@ -97,11 +99,11 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
     } catch (err) {
       logger.error("Failed to load inspection", err);
       if (err instanceof ApiError && err.status === 403) {
-        setLoadError("You do not have access to this inspection.");
+        setLoadError(t("errors.accessDenied"));
       } else if (err instanceof ApiError && err.status === 404) {
-        setLoadError("Inspection not found.");
+        setLoadError(t("errors.notFound"));
       } else {
-        setLoadError("Failed to load inspection details.");
+        setLoadError(t("errors.failedToLoad"));
       }
     } finally {
       setLoading(false);
@@ -130,7 +132,7 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
 
     const remainingSlots = MAX_IMAGES - totalImageCount;
     if (remainingSlots <= 0) {
-      setToast({ open: true, severity: "error", message: `Maximum ${String(MAX_IMAGES)} images allowed` });
+      setToast({ open: true, severity: "error", message: t("errors.maxImages", { max: MAX_IMAGES }) });
       event.target.value = "";
       return;
     }
@@ -159,10 +161,10 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!decision) errors.decision = "Please select a decision (Approve or Reject)";
-    if (!notes.trim()) errors.notes = "Please provide inspection notes";
-    if (odometerReading === "" || odometerReading < 0) errors.odometerReading = "Please enter a valid odometer reading";
-    if (totalImageCount < MIN_IMAGES) errors.images = `At least ${String(MIN_IMAGES)} photo is required`;
+    if (!decision) errors.decision = t("errors.selectDecision");
+    if (!notes.trim()) errors.notes = t("errors.provideNotes");
+    if (odometerReading === "" || odometerReading < 0) errors.odometerReading = t("errors.enterOdometer");
+    if (totalImageCount < MIN_IMAGES) errors.images = t("errors.photoRequired", { min: MIN_IMAGES });
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -194,11 +196,11 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
         approve: decision === "approve",
       });
 
-      setToast({ open: true, severity: "success", message: "Inspection submitted successfully" });
+      setToast({ open: true, severity: "success", message: t("success.submitted") });
       void fetchData();
     } catch (err) {
       logger.error("Failed to submit inspection", err);
-      const msg = err instanceof Error ? err.message : "Submission failed. Please try again.";
+      const msg = err instanceof Error ? err.message : t("errors.submitFailed");
       setToast({ open: true, severity: "error", message: msg });
     } finally {
       setSubmitting(false);
@@ -241,7 +243,7 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
                 router.back();
               }}
             >
-              Go Back
+              {t("actions.goBack")}
             </Button>
           }
         >
@@ -251,7 +253,7 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
     );
   }
 
-  if (!details) return <Box>Not found</Box>;
+  if (!details) return <Box>{t("labels.notFound")}</Box>;
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
@@ -271,10 +273,10 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
           </IconButton>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              Inspection Report
+              {t("labels.title")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Review details and submit for booking #{details.bookingNumber}
+              {t("labels.subtitle", { bookingNumber: details.bookingNumber ?? "" })}
             </Typography>
           </Box>
         </Stack>
@@ -322,11 +324,13 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
         }}
         sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>Submit Inspection Report?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>{t("labels.dialogTitle")}</DialogTitle>
         <DialogContent>
           <Typography variant="body1" color="text.secondary">
-            You are about to mark this vehicle as <strong>{decision?.toUpperCase()}</strong>. This action is permanent
-            and will notify the relevant parties.
+            {t.rich("labels.dialogText", {
+              decision: decision === "approve" ? t("actions.approveVehicle") : t("actions.rejectVehicle"),
+              bold: chunks => <strong>{chunks}</strong>,
+            })}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0 }}>
@@ -337,7 +341,7 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
             color="inherit"
             sx={{ fontWeight: 600 }}
           >
-            Cancel
+            {t("actions.cancel")}
           </Button>
           <Button
             onClick={() => {
@@ -347,7 +351,7 @@ export default function InspectionDetailsClient({ inspectionId }: Props): JSX.El
             color="primary"
             sx={{ fontWeight: 700, borderRadius: 2, px: 3 }}
           >
-            Confirm & Submit
+            {t("actions.confirmSubmit")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -393,6 +397,7 @@ function InfoRow({ label, value }: { readonly label: string; readonly value: str
 }
 
 function BookingInfoSection({ details }: { readonly details: InspectionDetails }) {
+  const t = useTranslations("dashboardInspector.inspectionDetail");
   return (
     <Paper
       elevation={0}
@@ -406,15 +411,17 @@ function BookingInfoSection({ details }: { readonly details: InspectionDetails }
       }}
     >
       <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
-        Details
+        {t("labels.detailsTitle")}
       </Typography>
       <Divider sx={{ mb: 3 }} />
       <Stack spacing={3}>
-        <InfoRow label="Booking Number" value={details.bookingNumber || "—"} />
-        <InfoRow label="Vehicle" value={details.vehicleDisplayName} />
-        <InfoRow label="Assigned To" value={details.inspectorFullName} />
-        <InfoRow label="Scheduled Date" value={new Date(details.inspectionDate).toLocaleString()} />
-        {details.submittedAt && <InfoRow label="Submitted At" value={new Date(details.submittedAt).toLocaleString()} />}
+        <InfoRow label={t("labels.bookingNumber")} value={details.bookingNumber || "—"} />
+        <InfoRow label={t("labels.vehicle")} value={details.vehicleDisplayName} />
+        <InfoRow label={t("labels.assignedTo")} value={details.inspectorFullName} />
+        <InfoRow label={t("labels.scheduledDate")} value={new Date(details.inspectionDate).toLocaleString()} />
+        {details.submittedAt && (
+          <InfoRow label={t("labels.submittedAt")} value={new Date(details.submittedAt).toLocaleString()} />
+        )}
       </Stack>
     </Paper>
   );
@@ -465,6 +472,7 @@ function InspectionReportForm({
   handleConfirmSubmit,
   theme,
 }: InspectionReportFormProps) {
+  const t = useTranslations("dashboardInspector.inspectionDetail");
   return (
     <Paper
       elevation={0}
@@ -478,24 +486,24 @@ function InspectionReportForm({
     >
       {isLocked && (
         <Alert icon={<LockIcon />} severity="info" sx={{ borderRadius: 2, mb: 4 }}>
-          This inspection report has been submitted and is locked for editing.
+          {t("labels.lockedAlert")}
         </Alert>
       )}
 
       {/* Vehicle Status (Odometer & Fuel) */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
-          Vehicle Metrics
+          {t("labels.vehicleMetrics")}
         </Typography>
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              Odometer Reading
+              {t("labels.odometerReading")}
             </Typography>
             <TextField
               fullWidth
               type="number"
-              placeholder="e.g. 45000"
+              placeholder={t("labels.odometerPlaceholder")}
               value={odometerReading}
               onChange={e => {
                 const val = e.target.value;
@@ -519,7 +527,7 @@ function InspectionReportForm({
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              Fuel Level: {fuelLevel}%
+              {t("labels.fuelLevel", { level: fuelLevel })}
             </Typography>
             <Box
               sx={{
@@ -563,7 +571,7 @@ function InspectionReportForm({
       <Box sx={{ mb: 4 }}>
         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Visual Evidence ({String(totalImageCount)}/{String(MAX_IMAGES)})
+            {t("labels.visualEvidence", { count: totalImageCount, max: MAX_IMAGES })}
           </Typography>
           {!isLocked && (
             <Button
@@ -576,7 +584,7 @@ function InspectionReportForm({
               disabled={totalImageCount >= MAX_IMAGES || submitting}
               sx={{ borderRadius: 2, fontWeight: 700 }}
             >
-              Upload Photos
+              {t("actions.uploadPhotos")}
             </Button>
           )}
         </Stack>
@@ -608,11 +616,11 @@ function InspectionReportForm({
           >
             <AddPhotoAlternateIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {isLocked ? "No photos provided" : "Upload Inspection Photos"}
+              {isLocked ? t("labels.noPhotos") : t("labels.uploadTitle")}
             </Typography>
             {!isLocked && (
               <Typography variant="body2" color="text.secondary">
-                Drag and drop or click to browse (Min {MIN_IMAGES}, Max {MAX_IMAGES})
+                {t("labels.uploadSubtitle", { min: MIN_IMAGES, max: MAX_IMAGES })}
               </Typography>
             )}
           </Box>
@@ -681,17 +689,17 @@ function InspectionReportForm({
       {/* Conditions & Notes */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
-          Condition & Notes
+          {t("labels.conditionTitle")}
         </Typography>
 
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-          Damage Report / General Condition (Optional)
+          {t("labels.damageReport")}
         </Typography>
         <TextField
           fullWidth
           multiline
           rows={2}
-          placeholder="List any visible damage, scratches, or general condition remarks..."
+          placeholder={t("labels.damagePlaceholder")}
           value={generalCondition}
           onChange={e => {
             setGeneralCondition(e.target.value);
@@ -702,13 +710,13 @@ function InspectionReportForm({
         />
 
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-          Final Inspection Notes (Required)
+          {t("labels.finalNotes")}
         </Typography>
         <TextField
           fullWidth
           multiline
           rows={4}
-          placeholder="Detailed observations to support your final decision..."
+          placeholder={t("labels.finalNotesPlaceholder")}
           value={notes}
           onChange={e => {
             setNotes(e.target.value);
@@ -723,7 +731,7 @@ function InspectionReportForm({
       {/* Decision */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
-          Final Decision
+          {t("labels.finalDecision")}
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -738,7 +746,7 @@ function InspectionReportForm({
               startIcon={<CheckCircleIcon />}
               sx={{ py: 2, borderRadius: 2, fontWeight: 800, fontSize: "1.1rem" }}
             >
-              Approve Vehicle
+              {t("actions.approveVehicle")}
             </Button>
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -753,7 +761,7 @@ function InspectionReportForm({
               startIcon={<CancelIcon />}
               sx={{ py: 2, borderRadius: 2, fontWeight: 800, fontSize: "1.1rem" }}
             >
-              Reject Vehicle
+              {t("actions.rejectVehicle")}
             </Button>
           </Grid>
         </Grid>
@@ -776,7 +784,7 @@ function InspectionReportForm({
             disabled={submitting}
             sx={{ py: 2, borderRadius: 3, fontWeight: 800, fontSize: "1.1rem" }}
           >
-            {submitting ? <CircularProgress size={26} color="inherit" /> : "Submit Final Report"}
+            {submitting ? <CircularProgress size={26} color="inherit" /> : t("actions.submitFinalReport")}
           </Button>
         </Box>
       )}

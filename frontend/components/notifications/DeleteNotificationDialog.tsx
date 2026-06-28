@@ -64,7 +64,7 @@ export default function DeleteNotificationDialog({
             fontSize: "0.95rem",
           }}
         >
-          "{notificationTitle}"
+          {`"${notificationTitle}"`}
         </Box>
         <DialogContentText sx={{ color: "text.secondary", fontSize: "0.875rem" }}>{t("cannotUndo")}</DialogContentText>
       </DialogContent>
@@ -103,24 +103,6 @@ export default function DeleteNotificationDialog({
           }}
         >
           {tc("delete")}
-        </Button>
-        <Button
-          onClick={onConfirm}
-          disabled={loading}
-          variant="contained"
-          color="error"
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
-          sx={{
-            color: "common.white",
-            fontWeight: 600,
-            textTransform: "none",
-            boxShadow: "none",
-            "&:hover": {
-              boxShadow: "none",
-            },
-          }}
-        >
-          Delete
         </Button>
       </DialogActions>
     </Dialog>

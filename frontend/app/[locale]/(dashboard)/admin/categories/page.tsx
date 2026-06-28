@@ -25,13 +25,13 @@ import {
   AddRounded as AddIcon,
   DeleteOutlineRounded as DeleteIcon,
   Category as CategoryIcon,
+  VisibilityRounded as ViewIcon,
 } from "@mui/icons-material";
 import { useRouter } from "@/shared/i18n/routing";
 import { useSession } from "next-auth/react";
 import { getCategories, deleteCategory, Category } from "@/api-clients/categories/categories";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-import CategoryForm from "./_components/CategoryForm";
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
@@ -40,9 +40,6 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
     open: false,
@@ -91,22 +88,6 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleEdit = (category: Category) => {
-    setEditingCategory(category);
-    setFormOpen(true);
-  };
-
-  const handleCreate = () => {
-    setEditingCategory(null);
-    setFormOpen(true);
-  };
-
-  const handleFormSuccess = () => {
-    setFormOpen(false);
-    void fetchCategories();
-    setSnackbar({ open: true, message: "Category saved successfully.", severity: "success" });
-  };
-
   return (
     <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto", p: { xs: 2, sm: 3 } }}>
       <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -116,7 +97,9 @@ export default function AdminCategoriesPage() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleCreate}
+          onClick={() => {
+            router.push("/admin/categories/create");
+          }}
           sx={{ borderRadius: 2, textTransform: "none", fontWeight: 700 }}
         >
           Add Category
@@ -168,7 +151,7 @@ export default function AdminCategoriesPage() {
                       key={c.id}
                       hover
                       onClick={() => {
-                        router.push(`/admin/categories/${c.id}`);
+                        router.push(`/admin/vehicles?categoryId=${c.id}`);
                       }}
                       sx={{ cursor: "pointer" }}
                     >
@@ -216,12 +199,23 @@ export default function AdminCategoriesPage() {
                       </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                          <Tooltip title="View details">
+                            <IconButton
+                              size="small"
+                              onClick={e => {
+                                e.stopPropagation();
+                                router.push(`/admin/categories/${c.id}`);
+                              }}
+                            >
+                              <ViewIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                           <Tooltip title="Edit">
                             <IconButton
                               size="small"
                               onClick={e => {
                                 e.stopPropagation();
-                                handleEdit(c);
+                                router.push(`/admin/categories/${c.id}/edit`);
                               }}
                             >
                               <EditIcon fontSize="small" />
@@ -263,16 +257,7 @@ export default function AdminCategoriesPage() {
         )}
       </Paper>
 
-      {formOpen && (
-        <CategoryForm
-          open={formOpen}
-          category={editingCategory}
-          onClose={() => {
-            setFormOpen(false);
-          }}
-          onSuccess={handleFormSuccess}
-        />
-      )}
+      {/* CategoryForm is no longer rendered here as creation/editing uses separate pages */}
 
       <Snackbar
         open={snackbar.open}

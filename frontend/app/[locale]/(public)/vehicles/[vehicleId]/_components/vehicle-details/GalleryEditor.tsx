@@ -34,7 +34,7 @@ export default function GalleryEditor() {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [fileError, setFileError] = useState<string | null>(null);
 
-  const activeImage = images[activeIndex];
+  const activeImage = images[activeIndex] as ImageFormItem | undefined;
 
   const handleSetPrimary = (index: number) => {
     const updatedImages = images.map((img: ImageFormItem, i: number) => ({
@@ -100,7 +100,7 @@ export default function GalleryEditor() {
           bgcolor: "action.hover",
         }}
       >
-        {activeImage.url && (activeImage.url.startsWith("blob:") || toImageUrl(activeImage.url)) ? (
+        {activeImage?.url && (activeImage.url.startsWith("blob:") || toImageUrl(activeImage.url)) ? (
           <Image
             src={activeImage.url.startsWith("blob:") ? activeImage.url : (toImageUrl(activeImage.url) as string)}
             alt="Vehicle"

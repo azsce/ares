@@ -27,6 +27,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
@@ -52,6 +53,8 @@ const emptyForm: FormState = { title: "", content: "", order: 0, sectionType: "s
 
 export default function AboutSettingsTab() {
   const { data: session } = useSession();
+  const t = useTranslations("dashboardAdmin.settings");
+  const tc = useTranslations("common");
 
   const [sections, setSections] = useState<AboutSection[]>([]);
   const [fetching, setFetching] = useState(true);
@@ -102,7 +105,7 @@ export default function AboutSettingsTab() {
 
   const handleSave = async () => {
     if (!session?.accessToken) {
-      setErrorMsg("You must be signed in to perform this action.");
+      setErrorMsg(t("about.unauthorized"));
       return;
     }
     setSaving(true);
@@ -114,11 +117,11 @@ export default function AboutSettingsTab() {
         const res = await axios.post<AboutSection>(toApiUrl("/api/about"), form, { headers: authHeader });
         setSections(prev => [...prev, res.data]);
       }
-      setSuccessMsg(editingId ? "Section updated." : "Section created.");
+      setSuccessMsg(editingId ? t("about.sectionUpdated") : t("about.sectionCreated"));
       setDialogOpen(false);
     } catch (err) {
       logger.error("Failed to save about section", err);
-      setErrorMsg("Failed to save section.");
+      setErrorMsg(t("about.saveError"));
     } finally {
       setSaving(false);
     }
@@ -126,17 +129,17 @@ export default function AboutSettingsTab() {
 
   const handleDelete = async (id: string) => {
     if (!session?.accessToken) {
-      setErrorMsg("You must be signed in to perform this action.");
+      setErrorMsg(t("about.unauthorized"));
       return;
     }
     setDeleting(id);
     try {
       await axios.delete(toApiUrl(`/api/about/${id}`), { headers: authHeader });
       setSections(prev => prev.filter(s => s.id !== id));
-      setSuccessMsg("Section deleted.");
+      setSuccessMsg(t("about.sectionDeleted"));
     } catch (err) {
       logger.error("Failed to delete about section", err);
-      setErrorMsg("Failed to delete section.");
+      setErrorMsg(t("about.deleteError"));
     } finally {
       setDeleting(null);
       setDeleteConfirmId(null);
@@ -158,10 +161,10 @@ export default function AboutSettingsTab() {
       <Stack sx={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            About Page Sections
+            {t("about.title")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Manage the sections displayed on the public About page.
+            {t("about.subtitle")}
           </Typography>
         </Box>
         <Button
@@ -170,14 +173,14 @@ export default function AboutSettingsTab() {
           onClick={openCreate}
           sx={{ borderRadius: 2, fontWeight: 700 }}
         >
-          Add Section
+          {t("about.addSection")}
         </Button>
       </Stack>
 
       <Stack sx={{ gap: 2 }}>
         {sortedSections.length === 0 && (
           <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
-            No about sections yet. Click &quot;Add Section&quot; to create one.
+            {t("about.noSections")}
           </Typography>
         )}
         {sortedSections.map(section => (
@@ -205,7 +208,7 @@ export default function AboutSettingsTab() {
                 </Typography>
               </Box>
               <Stack sx={{ flexDirection: "row", gap: 0.5, flexShrink: 0 }}>
-                <Tooltip title="Edit">
+                <Tooltip title={tc("edit")}>
                   <IconButton
                     size="small"
                     onClick={() => {
@@ -215,7 +218,7 @@ export default function AboutSettingsTab() {
                     <EditRoundedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Delete">
+                <Tooltip title={tc("delete")}>
                   <IconButton
                     size="small"
                     color="error"
@@ -241,12 +244,19 @@ export default function AboutSettingsTab() {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>{editingId ? "Edit Section" : "New Section"}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>{editingId ? t("about.editSection") : t("about.newSection")}</DialogTitle>
         <DialogContent>
           <Stack sx={{ gap: 2, pt: 1 }}>
-            <TextField label="Title" name="title" value={form.title} onChange={handleFormChange} fullWidth required />
             <TextField
-              label="Content"
+              label={t("about.titleLabel")}
+              name="title"
+              value={form.title}
+              onChange={handleFormChange}
+              fullWidth
+              required
+            />
+            <TextField
+              label={t("about.contentLabel")}
               name="content"
               value={form.content}
               onChange={handleFormChange}
@@ -257,9 +267,9 @@ export default function AboutSettingsTab() {
             />
             <Stack direction="row" spacing={2}>
               <FormControl fullWidth required>
-                <InputLabel>Section Type</InputLabel>
+                <InputLabel>{t("about.typeLabel")}</InputLabel>
                 <Select
-                  label="Section Type"
+                  label={t("about.typeLabel")}
                   name="sectionType"
                   value={form.sectionType}
                   onChange={e => {
@@ -274,7 +284,7 @@ export default function AboutSettingsTab() {
                 </Select>
               </FormControl>
               <TextField
-                label="Order"
+                label={t("about.orderLabel")}
                 name="order"
                 type="number"
                 value={form.order}
@@ -291,7 +301,7 @@ export default function AboutSettingsTab() {
               setDialogOpen(false);
             }}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button
             variant="contained"
@@ -301,7 +311,7 @@ export default function AboutSettingsTab() {
             disabled={saving || !form.title || !form.content}
             sx={{ fontWeight: 700 }}
           >
-            {saving ? <CircularProgress size={20} color="inherit" /> : "Save"}
+            {saving ? <CircularProgress size={20} color="inherit" /> : tc("save")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -313,9 +323,9 @@ export default function AboutSettingsTab() {
           setDeleteConfirmId(null);
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Delete Section?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>{t("about.deleteTitle")}</DialogTitle>
         <DialogContent>
-          <Typography>This action cannot be undone.</Typography>
+          <Typography>{t("about.deleteConfirmDesc")}</Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
@@ -323,7 +333,7 @@ export default function AboutSettingsTab() {
               setDeleteConfirmId(null);
             }}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button
             variant="contained"
@@ -334,7 +344,7 @@ export default function AboutSettingsTab() {
             disabled={!!deleting}
             sx={{ fontWeight: 700 }}
           >
-            {deleting ? <CircularProgress size={20} color="inherit" /> : "Delete"}
+            {deleting ? <CircularProgress size={20} color="inherit" /> : tc("delete")}
           </Button>
         </DialogActions>
       </Dialog>

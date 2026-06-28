@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { Box, Typography, Stack, Avatar, CardContent } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import BadgeIcon from "@mui/icons-material/Badge";
@@ -10,6 +11,7 @@ import { type ProfileData } from "@/app/[locale]/(customer)/account/profile/type
 
 export default function InspectorProfilePage() {
   const { data: session } = useSession();
+  const t = useTranslations("dashboardInspector.profile");
   const user = session?.user;
   const theme = useTheme();
 
@@ -39,7 +41,7 @@ export default function InspectorProfilePage() {
       <ProfileCard>
         <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-            Employee Credentials
+            {t("credentialsTitle")}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
             <Avatar sx={{ bgcolor: theme.palette.icon.business.bg, color: theme.palette.icon.business.color }}>
@@ -47,7 +49,7 @@ export default function InspectorProfilePage() {
             </Avatar>
             <Box>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                Assigned Employee Roles
+                {t("rolesLabel")}
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 600, textTransform: "capitalize" }}>
                 {user.roles.join(", ")}

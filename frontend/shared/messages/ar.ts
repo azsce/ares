@@ -27,6 +27,19 @@ import compliance from "./ar/dashboard/admin/admin/compliance";
 import security from "./ar/dashboard/admin/admin/security";
 import vehicles from "./ar/dashboard/admin/admin/vehicles";
 import bankDetails from "./ar/dashboard/admin/bank-details";
+import locationsEdit from "./ar/dashboard/admin/locations/edit";
+import notifications from "./ar/dashboard/admin/notifications";
+import scheduler from "./ar/dashboard/admin/scheduler";
+import settings from "./ar/dashboard/admin/settings";
+import users from "./ar/dashboard/admin/users";
+import drivers from "./ar/dashboard/admin/drivers";
+import inspectors from "./ar/dashboard/admin/inspectors";
+import vehiclesAdmin from "./ar/dashboard/admin/vehicles";
+import verifications from "./ar/dashboard/admin/verifications";
+import inspectorHistory from "./ar/dashboard/inspector/history";
+import inspectorInspections from "./ar/dashboard/inspector/inspections";
+import inspectorInspectionDetail from "./ar/dashboard/inspector/inspection-detail";
+import inspectorProfile from "./ar/dashboard/inspector/profile";
 
 const ar: MessageSchema = {
   common,
@@ -65,6 +78,21 @@ const ar: MessageSchema = {
       vehicles,
     },
     bankDetails,
+    locationsEdit,
+    notifications,
+    scheduler,
+    settings,
+    users,
+    drivers,
+    inspectors,
+    vehicles: vehiclesAdmin,
+    verifications,
+  },
+  dashboardInspector: {
+    history: inspectorHistory,
+    inspections: inspectorInspections,
+    inspectionDetail: inspectorInspectionDetail,
+    profile: inspectorProfile,
   },
   deleteNotificationDialog,
 };
