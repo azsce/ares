@@ -35,6 +35,9 @@ import compliance from "./ar/dashboard/admin/admin/compliance";
 import security from "./ar/dashboard/admin/admin/security";
 import vehicles from "./ar/dashboard/admin/admin/vehicles";
 import bankDetails from "./ar/dashboard/admin/bank-details";
+import about from "./ar/public/about";
+import privacy from "./ar/public/privacy";
+import terms from "./ar/public/terms";
 import adminBookings from "./ar/dashboard/admin/bookings";
 import createBooking from "./ar/dashboard/admin/bookings/create";
 import bookingDetails from "./ar/dashboard/admin/bookings/_id/details";
@@ -100,6 +103,11 @@ const ar: MessageSchema = {
     createCountry,
   },
   deleteNotificationDialog,
+  publicPages: {
+    about,
+    privacy,
+    terms,
+  },
 };
 
 export default ar;

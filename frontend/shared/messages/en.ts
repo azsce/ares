@@ -35,6 +35,9 @@ import compliance from "./en/dashboard/admin/admin/compliance";
 import security from "./en/dashboard/admin/admin/security";
 import vehicles from "./en/dashboard/admin/admin/vehicles";
 import bankDetails from "./en/dashboard/admin/bank-details";
+import about from "./en/public/about";
+import privacy from "./en/public/privacy";
+import terms from "./en/public/terms";
 import adminBookings from "./en/dashboard/admin/bookings";
 import createBooking from "./en/dashboard/admin/bookings/create";
 import bookingDetails from "./en/dashboard/admin/bookings/_id/details";
@@ -100,6 +103,11 @@ const en: MessageSchema = {
     createCountry,
   },
   deleteNotificationDialog,
+  publicPages: {
+    about,
+    privacy,
+    terms,
+  },
 };
 
 export default en;
