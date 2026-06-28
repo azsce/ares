@@ -87,6 +87,7 @@ interface VehicleDetailsClientProps {
   readonly canEdit: boolean;
   readonly isCreateMode?: boolean;
   readonly onSave?: (values: FormValues) => Promise<void>;
+  readonly mode?: "create" | "edit" | "details";
 }
 
 export default function VehicleDetailsClient({
@@ -96,6 +97,7 @@ export default function VehicleDetailsClient({
   canEdit,
   isCreateMode = false,
   onSave,
+  mode = "details",
 }: VehicleDetailsClientProps) {
   const theme = useTheme();
   const router = useRouter();
@@ -146,7 +148,7 @@ export default function VehicleDetailsClient({
     })),
     status: vehicle.status,
     availabilityStatus: vehicle.availabilityStatus,
-    categoryId: "",
+    categoryId: vehicle.categoryId ?? "",
   };
 
   const methods = useForm<FormValues>({
@@ -156,21 +158,25 @@ export default function VehicleDetailsClient({
 
   useEffect(() => {
     if (categories.length > 0) {
-      const matched = categories.find(
-        c => c.name.toLowerCase() === vehicle.status.toLowerCase() || c.id === vehicle.status
-      );
-      if (matched) {
-        methods.setValue("categoryId", matched.id);
-      } else if (isCreateMode && !methods.getValues("categoryId")) {
-        const sedan = categories.find(c => c.name.toLowerCase() === "sedan");
-        if (sedan) {
-          methods.setValue("categoryId", sedan.id);
-        } else if (categories[0]) {
-          methods.setValue("categoryId", categories[0].id);
+      if (vehicle.categoryId) {
+        methods.setValue("categoryId", vehicle.categoryId);
+      } else {
+        const matched = categories.find(
+          c => c.name.toLowerCase() === vehicle.status.toLowerCase() || c.id === vehicle.status
+        );
+        if (matched) {
+          methods.setValue("categoryId", matched.id);
+        } else if (isCreateMode && !methods.getValues("categoryId")) {
+          const sedan = categories.find(c => c.name.toLowerCase() === "sedan");
+          if (sedan) {
+            methods.setValue("categoryId", sedan.id);
+          } else if (categories[0]) {
+            methods.setValue("categoryId", categories[0].id);
+          }
         }
       }
     }
-  }, [categories, vehicle.status, isCreateMode, methods]);
+  }, [categories, vehicle.categoryId, vehicle.status, isCreateMode, methods]);
 
   const { undo, redo, canUndo, canRedo } = useFormUndoRedo(methods, initialValues);
 
@@ -324,6 +330,7 @@ export default function VehicleDetailsClient({
   };
 
   const verification = useVerificationStatus();
+  const isDetails = mode === "details";
 
   return (
     <FormProvider {...methods}>
@@ -365,12 +372,14 @@ export default function VehicleDetailsClient({
                   )}
                 </Paper>
 
-                <Paper
-                  elevation={0}
-                  sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: { xs: 2, md: 3 } }}
-                >
-                  <ReviewSection reviews={reviews} />
-                </Paper>
+                {isDetails && (
+                  <Paper
+                    elevation={0}
+                    sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: { xs: 2, md: 3 } }}
+                  >
+                    <ReviewSection reviews={reviews} />
+                  </Paper>
+                )}
               </Stack>
             </Grid>
 
