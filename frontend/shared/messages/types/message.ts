@@ -36,6 +36,13 @@ import type { AdminVehiclesMgmtLabels } from "./dashboard/admin/admin/vehicles";
 import type { BankDetailsLabels } from "./dashboard/admin/bank-details";
 import type { AdminBookingsLabels } from "./dashboard/admin/bookings";
 import type { CreateBookingLabels } from "./dashboard/admin/bookings/create";
+import type { BookingDetailsLabels } from "./dashboard/admin/bookings/_id/details";
+import type { EditBookingLabels } from "./dashboard/admin/bookings/_id/edit";
+import type { CategoriesLabels } from "./dashboard/admin/categories";
+import type { CategoryDetailsLabels } from "./dashboard/admin/categories/detail";
+import type { CountriesLabels } from "./dashboard/admin/countries";
+import type { CreateCountryLabels } from "./dashboard/admin/countries/create";
+
 
 export type {
   AuthLabels,
@@ -74,6 +81,12 @@ export type {
   DriverEarningsLabels,
   DriverNotificationsLabels,
   DriverProfileLabels,
+  BookingDetailsLabels,
+  EditBookingLabels,
+  CategoriesLabels,
+  CategoryDetailsLabels,
+  CountriesLabels,
+  CreateCountryLabels,
 };
 
 export type AuthPagesSchema = {
@@ -123,6 +136,12 @@ export type DashboardAdminSchema = {
   readonly bankDetails: BankDetailsLabels;
   readonly bookings: AdminBookingsLabels;
   readonly createBooking: CreateBookingLabels;
+  readonly bookingDetails: BookingDetailsLabels;
+  readonly editBooking: EditBookingLabels;
+  readonly categories: CategoriesLabels;
+  readonly categoryDetails: CategoryDetailsLabels;
+  readonly countries: CountriesLabels;
+  readonly createCountry: CreateCountryLabels;
 };
 
 export type MessageSchema = {
