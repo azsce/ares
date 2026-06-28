@@ -17,7 +17,10 @@ export const RULE_NO_INIT_DIRECTIVES =
   "Do NOT use %%{init:...}%% directives with theme overrides (they conflict with Quarto rendering). Plain %%{init:}%% for non-theme config is acceptable.";
 
 export const RULE_STANDARD_DIAGRAM_TYPES =
-  "Use only standard diagram types: flowchart, graph, sequenceDiagram, classDiagram, erDiagram, gantt, pie, gitGraph, quadrantChart.";
+  "Use only standard Mermaid diagram types: flowchart, graph, sequenceDiagram, classDiagram, erDiagram, gantt, pie, gitGraph, quadrantChart.";
+
+export const RULE_ALTERNATIVE_DIAGRAM_ENGINES =
+  "Alternative diagram engines are available for better results when Mermaid is insufficient: use ```{.tikz} code blocks for TikZ diagrams (native vector PDF, ideal for precise technical drawings), ```{.d2} for D2 diagrams (modern architecture/flow diagrams), and ```{.plantuml} for PlantUML (superior UML class/sequence/use-case diagrams). Prefer Mermaid for simple diagrams; use TikZ for precision, D2 for architecture, PlantUML for UML.";
 
 export const RULE_SEMANTIC_CLASS_NAMES =
   "In style and classDef lines, use only semantic class names. Do NOT use hardcoded hex colors (e.g. fill:#f9f).";
@@ -64,6 +67,7 @@ export const MERMAID_PROMPT_RULES: string[] = [
   RULE_QUADRANT_CHART_FORMAT,
   RULE_NO_INIT_DIRECTIVES,
   RULE_STANDARD_DIAGRAM_TYPES,
+  RULE_ALTERNATIVE_DIAGRAM_ENGINES,
   RULE_SEMANTIC_CLASS_NAMES,
   RULE_DIAGRAM_TYPE_FIRST_LINE,
 ];

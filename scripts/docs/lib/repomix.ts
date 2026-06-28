@@ -1,6 +1,7 @@
 import { resolve, join } from "node:path";
 import { runCli, type CliOptions } from "repomix";
 import type { DocEnvConfig } from "./config";
+import { resolveOutputDir } from "./output";
 import { calculateTokenBudget, needsContextSplit, formatTokenCount, calculateSplitChunks } from "./token-utils";
 import { logInfo, logSuccess, logWarn, startSpinner, stopSpinner } from "./logger";
 
@@ -38,7 +39,7 @@ export async function packRepository(
   includePatterns?: string[]
 ): Promise<PackResult> {
   const budget = calculateTokenBudget(config.MAX_INPUT_TOKENS, config.MAX_OUTPUT_TOKENS);
-  const outputDir = resolve(import.meta.dirname, config.OUTPUT_DIR);
+  const outputDir = resolveOutputDir(config.OUTPUT_DIR);
   const outputPath = join(outputDir, TEMP_OUTPUT_FILENAME);
   const repoRoot = resolve(import.meta.dirname, "../../..");
 

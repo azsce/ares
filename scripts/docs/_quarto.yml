@@ -38,9 +38,14 @@ format:
     lof: true
     number-sections: true
     secnumdepth: 3
+    pdf-standard: a-2b
     highlight-style: github
     include-in-header:
       text: |
+        \usepackage{polyglossia}
+        \setmainlanguage{english}
+        \setotherlanguage{arabic}
+        \newfontfamily\arabicfont[Script=Arabic]{Cairo}
         \usepackage{setspace}
         \onehalfspacing
         \usepackage{float}
@@ -58,7 +63,7 @@ format:
         {\Large\bfseries AL-AZHAR UNIVERSITY}\\[4pt]
         {\large\bfseries Faculty of Engineering}\\[2pt]
         {\large\bfseries Systems \& Computers Department}\\[12pt]
-        {\large جامعة الأزهر - كلية الهندسه - قسم هندسة النظم والحاسبات}\\[24pt]
+        {\large\begin{Arabic}جامعة الأزهر - كلية الهندسه - قسم هندسة النظم والحاسبات\end{Arabic}}\\[24pt]
         {\large\bfseries A Project Submitted in partial fulfilment of the requirements\\for the Degree of Bachelor of Science\\in Systems and Computers Engineering}\\[24pt]
         {\LARGE\bfseries Ares Car Rental Platform}\\[18pt]
         {\large\bfseries 2025}\\[24pt]
@@ -78,6 +83,27 @@ format:
         \rule{4cm}{0.4pt} & Member       & \rule{3cm}{0.4pt}
         \end{tabular}
         \newpage
+
+filters:
+  - diagram
+
+pseudocode:
+  caption-prefix: Algorithm
+  reference-prefix: Algorithm
+  caption-number: true
+  caption-align: left
+
+watermark:
+  text: DRAFT
+  color: "#D0D0D0"
+  opacity: 0.15
+  angle: 30
+  size: 1.2
+
+diagram:
+  engine:
+    tikz:
+      execpath: lualatex
 
 execute:
   echo: false

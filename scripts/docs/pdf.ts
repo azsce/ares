@@ -8,12 +8,9 @@ import {
   logInfo,
   logSuccess,
   logError,
-  logWarn,
   printBanner,
 } from "./lib/logger";
 
-const MIKTEX_BIN =
-  "C:\\Users\\PC\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64";
 const QUARTO_EXE =
   process.env.QUARTO_PATH ||
   "C:\\Users\\PC\\AppData\\Local\\Programs\\Quarto\\bin\\quarto.exe";
@@ -21,22 +18,15 @@ const QUARTO_EXE =
 const ROOT_DIR = import.meta.dirname;
 const PDF_DIR = resolve(ROOT_DIR, "_pdf");
 
-function ensureMiktexOnPath(): void {
-  if (!process.env.PATH?.includes("MiKTeX")) {
-    process.env.PATH = `${MIKTEX_BIN};${process.env.PATH}`;
-  }
-}
-
 function findQuarto(): string {
   if (existsSync(QUARTO_EXE)) return QUARTO_EXE;
-  ensureMiktexOnPath();
   try {
     const which = execSync("where.exe quarto", { encoding: "utf-8" })
       .trim()
       .split("\n")[0]
       ?.trim();
     if (which && existsSync(which)) return which;
-  } catch {}
+  } catch (_e) { /* quarto not on PATH */ }
   throw new Error(
     "Quarto CLI not found. Install from https://quarto.org or set QUARTO_PATH env var."
   );
@@ -52,14 +42,13 @@ function countPdfPages(pdfPath: string): number {
   return 0;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const args = process.argv.slice(2);
   const countOnly = args.includes("--count-only");
   const clean = args.includes("--clean");
 
   printBanner();
 
-  ensureMiktexOnPath();
   const quarto = findQuarto();
   logInfo(`Quarto: ${quarto}`);
   logInfo(`Quarto version: ${execSync(`"${quarto}" --version`, { encoding: "utf-8" }).trim()}`);
@@ -88,7 +77,6 @@ async function main(): Promise<void> {
       encoding: "utf-8",
       stdio: "inherit",
       timeout: 10 * 60 * 1000,
-      env: { ...process.env, PATH: process.env.PATH },
     });
   } catch {
     logError("Quarto render failed. See output above for LaTeX errors.");
@@ -108,7 +96,7 @@ async function main(): Promise<void> {
 }
 
 try {
-  await main();
+  main();
 } catch (error: unknown) {
   const message = error instanceof Error ? error.message : "Unknown error";
   logError(`PDF generation failed: ${message}`);

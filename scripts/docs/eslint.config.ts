@@ -6,7 +6,7 @@ import globals from "globals";
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 export default tseslint.config(
   {
-    ignores: ["node_modules/**", "dist/**", "build/**", ".bun/**", "*.log", "bun.lockb"],
+    ignores: ["node_modules/**", "dist/**", "build/**", ".bun/**", "*.log", "bun.lockb", "_extensions/**"],
   },
 
   eslint.configs.recommended,

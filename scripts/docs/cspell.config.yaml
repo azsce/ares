@@ -45,3 +45,5 @@ words:
   - gantt
   - gitgraph
   - quadrantchart
+  - tikz
+  - plantuml

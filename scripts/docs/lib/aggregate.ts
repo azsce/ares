@@ -1,7 +1,7 @@
-import { resolve, join } from "node:path";
+import { join } from "node:path";
 import { readdir, unlink } from "node:fs/promises";
 import { logInfo, logSuccess, logWarn } from "./logger";
-import { formatFileSize } from "./output";
+import { formatFileSize, resolveOutputDir } from "./output";
 
 export interface AggregateResult {
   filePath: string;
@@ -27,7 +27,7 @@ export async function aggregateChapterParts(
   expectedParts?: number,
   keepParts: boolean = false
 ): Promise<AggregateResult> {
-  const dir = resolve(import.meta.dirname, outputDir);
+  const dir = resolveOutputDir(outputDir);
   const baseName = baseFilename.replace(/\.md$/, "");
 
   const dirEntries = await readdir(dir);

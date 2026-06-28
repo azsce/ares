@@ -1,6 +1,10 @@
 import { resolve, join } from "node:path";
 import { logSuccess } from "./logger";
 
+export function resolveOutputDir(outputDir: string): string {
+  return resolve(import.meta.dirname, outputDir);
+}
+
 export interface WriteResult {
   filePath: string;
   sizeBytes: number;
@@ -26,7 +30,7 @@ export function validateChapterOutput(content: string, expectedHeading: string):
 }
 
 async function writeMarkdownFile(outputDir: string, filename: string, content: string): Promise<WriteResult> {
-  const dir = resolve(import.meta.dirname, outputDir);
+  const dir = resolveOutputDir(outputDir);
   const filePath = join(dir, filename);
 
   const cleaned = cleanMarkdownResponse(content);

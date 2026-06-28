@@ -1,7 +1,7 @@
 import { loadConfig, validateConfig, type DocEnvConfig } from "./lib/config";
 import { packRepository, type PackResult } from "./lib/repomix";
 import { generateChapter } from "./lib/ai-client";
-import { writeChapterFile, writeChapterPartFile, logWriteResult, validateChapterOutput } from "./lib/output";
+import { writeChapterFile, writeChapterPartFile, logWriteResult, validateChapterOutput, resolveOutputDir } from "./lib/output";
 import { calculateTokenBudget, formatTokenCount } from "./lib/token-utils";
 import { splitChapterIntoParts, type ChapterSplit } from "./lib/chapter-splitter";
 import { aggregateChapterParts } from "./lib/aggregate";
@@ -205,7 +205,7 @@ async function packForChapter(
 }
 
 async function cleanupOrphanPartFiles(outputDir: string, baseFilename: string, partCount: number): Promise<void> {
-  const dir = resolve(import.meta.dirname, outputDir);
+  const dir = resolveOutputDir(outputDir);
   const baseName = baseFilename.replace(/\.md$/, "");
 
   try {
@@ -557,7 +557,7 @@ async function main(): Promise<void> {
     if (diagramChapters.length === 0) {
       logWarn("No diagram chapters found in this run — skipping mermaid validation");
     } else {
-      const outputDir = resolve(import.meta.dirname, config.OUTPUT_DIR);
+      const outputDir = resolveOutputDir(config.OUTPUT_DIR);
       const { results, totalErrors, totalWarnings } = await validateAllDiagrams(outputDir, true);
 
       if (totalErrors > 0) {
@@ -627,7 +627,7 @@ async function main(): Promise<void> {
       } else {
         logWarn("PDF not found at _pdf/ares-docs.pdf. Run `bun run pdf` first to get an accurate page count.");
         logInfo("Falling back to character-based estimation...");
-        const outputDir = resolve(import.meta.dirname, config.OUTPUT_DIR);
+        const outputDir = resolveOutputDir(config.OUTPUT_DIR);
         const entries = await readdir(outputDir);
         const mdFiles = entries.filter(e => e.endsWith(".md") && !e.includes(".part"));
         let totalChars = 0;

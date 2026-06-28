@@ -7,7 +7,7 @@ import { getMermaidSystemPromptSection } from "./lib/mermaid-rules";
 import { extractMermaidDiagrams, type MermaidValidationResult } from "./validate-mermaid";
 import { generateChapter } from "./lib/ai-client";
 import { packRepository, type PackResult } from "./lib/repomix";
-import { writeChapterFile } from "./lib/output";
+import { resolveOutputDir, writeChapterFile } from "./lib/output";
 import { getChapterById, type ChapterConfig } from "./chapters";
 import {
   printBanner,
@@ -245,7 +245,7 @@ function logValidationResults(results: MermaidValidationResult[]): void {
 }
 
 async function validateChapterFile(chapter: ChapterConfig, config: DocEnvConfig): Promise<MermaidValidationResult[]> {
-  const outputDir = resolve(import.meta.dirname, config.OUTPUT_DIR);
+  const outputDir = resolveOutputDir(config.OUTPUT_DIR);
   const filePath = resolve(outputDir, chapter.filename);
 
   logDebug(`Validating file: ${filePath}`);
