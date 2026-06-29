@@ -45,7 +45,16 @@ interface VehicleResponse {
 
 // ── Filter shape forwarded to the backend admin search endpoint ──────────────
 
-export type VehicleStatusFilter = "" | "Available" | "FullyBooked" | "Maintenance" | "Retired";
+export enum VehicleStatus {
+  Available = "Available",
+  Unavailable = "Unavailable",
+  FullyBooked = "FullyBooked",
+  ComingSoon = "ComingSoon",
+  Maintenance = "Maintenance",
+  Retired = "Retired",
+}
+
+export type VehicleStatusFilter = "" | VehicleStatus;
 export type VehicleSortBy = "newest" | "oldest" | "priceHigh" | "priceLow";
 
 export interface AdminVehicleFilter {
@@ -54,18 +63,19 @@ export interface AdminVehicleFilter {
   supplierId?: string;
   transmission?: string;
   sortBy?: VehicleSortBy;
+  categoryId?: string;
 }
 
 function mapStatusToBackend(status: VehicleStatusFilter | undefined): string | undefined {
   if (!status) return undefined;
   switch (status) {
-    case "FullyBooked":
+    case VehicleStatus.FullyBooked:
       return "OnRental";
-    case "Retired":
+    case VehicleStatus.Retired:
       return "Inactive";
-    case "Maintenance":
+    case VehicleStatus.Maintenance:
       return "Maintenance";
-    case "Available":
+    case VehicleStatus.Available:
       return "Available";
     default:
       return undefined;
@@ -100,8 +110,9 @@ export function useVehicles(accessToken: string | undefined, filter: AdminVehicl
       supplierId: filter.supplierId ?? "",
       transmission: filter.transmission ?? "",
       sortBy: filter.sortBy ?? "newest",
+      categoryId: filter.categoryId ?? "",
     }),
-    [filter.status, filter.supplierId, filter.transmission, filter.sortBy]
+    [filter.status, filter.supplierId, filter.transmission, filter.sortBy, filter.categoryId]
   );
 
   const firstRun = useRef(true);
@@ -120,8 +131,9 @@ export function useVehicles(accessToken: string | undefined, filter: AdminVehicl
       status: mapStatusToBackend(filter.status) ?? null,
       transmission: filter.transmission ? filter.transmission.trim() : null,
       sortBy: filter.sortBy ?? null,
+      categoryId: filter.categoryId ? filter.categoryId : null,
     }),
-    [debouncedKeyword, filter.status, filter.supplierId, filter.transmission, filter.sortBy]
+    [debouncedKeyword, filter.status, filter.supplierId, filter.transmission, filter.sortBy, filter.categoryId]
   );
 
   const fetchVehicles = useCallback(

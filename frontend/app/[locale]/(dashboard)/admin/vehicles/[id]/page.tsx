@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { Box, Typography, Container, IconButton, Stack } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import { getTranslations } from "next-intl/server";
 import AdminVehicleDetailsClient from "./AdminVehicleDetailsClient";
 import {
   type BookingLocationOption,
@@ -51,6 +52,8 @@ interface ApiVehicleDto {
   };
   readonly averageRating?: number;
   readonly reviewCount?: number;
+  readonly categoryId?: string;
+  readonly categoryName?: string;
 }
 
 interface ApiReviewDto {
@@ -118,6 +121,8 @@ function normalizeVehicle(vehicle: ApiVehicleDto): VehicleDetailsViewModel {
     supplierName: asString(vehicle.supplier?.name),
     averageRating: asNumber(vehicle.averageRating),
     reviewCount: asNumber(vehicle.reviewCount),
+    categoryId: vehicle.categoryId ? asString(vehicle.categoryId) : undefined,
+    categoryName: vehicle.categoryName ? asString(vehicle.categoryName) : undefined,
   };
 }
 
@@ -175,6 +180,7 @@ async function fetchLocations(): Promise<readonly BookingLocationOption[]> {
 
 export default async function AdminVehicleDetailsPage({ params }: PageProps) {
   const { id } = await params;
+  const t = await getTranslations("dashboardAdmin.vehicles");
 
   const [session, pageData] = await Promise.all([
     getServerSession(authOptions).catch(() => null),
@@ -197,7 +203,7 @@ export default async function AdminVehicleDetailsPage({ params }: PageProps) {
     return (
       <Box component="main" sx={{ minHeight: "60vh", display: "grid", placeItems: "center", px: 2 }}>
         <Typography variant="h6" color="text.secondary" sx={{ textAlign: "center" }}>
-          We were unable to load this vehicle right now.
+          {t("alerts.loadError")}
         </Typography>
       </Box>
     );
@@ -229,7 +235,7 @@ export default async function AdminVehicleDetailsPage({ params }: PageProps) {
             </IconButton>
           </Link>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Vehicle Details
+            {t("detailsTitle")}
           </Typography>
         </Stack>
       </Container>

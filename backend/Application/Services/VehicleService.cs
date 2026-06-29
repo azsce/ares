@@ -146,6 +146,7 @@ public class VehicleService : IVehicleService
         var vehicle = await _context.Vehicles
             .Include(v => v.Images)
             .Include(v => v.User)
+            .Include(v => v.Category)
             .FirstOrDefaultAsync(v => v.Id == vehicleId, cancellationToken);
 
         if (vehicle == null)
@@ -221,7 +222,9 @@ public class VehicleService : IVehicleService
             featureDtos,
             supplierDto,
             averageRating,
-            reviewCount
+            reviewCount,
+            vehicle.CategoryId,
+            vehicle.Category?.Name
         );
     }
 
@@ -497,6 +500,12 @@ public class VehicleService : IVehicleService
 
         // Filter out soft-deleted vehicles
         query = query.Where(v => v.IsActive);
+
+        // Filter by Category if provided
+        if (filter.CategoryId.HasValue)
+        {
+            query = query.Where(v => v.CategoryId == filter.CategoryId.Value);
+        }
 
         // Search Keyword - matches Make, Model, LicensePlate, or supplier name
         // (case-insensitive). Translates to a single SQL WHERE with OR'd LIKEs.
