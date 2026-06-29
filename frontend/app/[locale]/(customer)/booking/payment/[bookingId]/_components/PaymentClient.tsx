@@ -240,9 +240,7 @@ export default function PaymentClient({ booking, accessToken }: PaymentClientPro
   const effectiveDiscountAmount = appliedDiscount
     ? (booking.discountAmount ?? 0) + appliedDiscount.discountAmount
     : booking.discountAmount;
-  const effectivePrice = appliedDiscount
-    ? booking.price - appliedDiscount.discountAmount
-    : booking.price;
+  const effectivePrice = appliedDiscount ? booking.price - appliedDiscount.discountAmount : booking.price;
 
   return (
     <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 4, md: 10 } }}>

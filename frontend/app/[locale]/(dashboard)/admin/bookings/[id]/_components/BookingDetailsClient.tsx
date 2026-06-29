@@ -1010,7 +1010,11 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
             bgcolor: theme.palette.status.pendingApproval.light,
           }}
         >
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}
+          >
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
               <HourglassIcon sx={{ color: theme.palette.status.pendingApproval.main }} />
               <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.status.pendingApproval.main }}>
@@ -1169,9 +1173,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
                     <Chip
                       size="small"
                       label={t("customerInfo.idVerification", {
-                        status: t(
-                          `badges.${customerVerificationStatus.toLowerCase()}`
-                        ),
+                        status: t(`badges.${customerVerificationStatus.toLowerCase()}`),
                       })}
                       color={getStatusConfig(customerVerificationStatus)}
                       variant="outlined"
@@ -1240,9 +1242,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
                   {booking.car?.availabilityStatus && (
                     <Chip
                       size="small"
-                      label={t(
-                        `badges.${booking.car.availabilityStatus.toLowerCase()}`
-                      )}
+                      label={t(`badges.${booking.car.availabilityStatus.toLowerCase()}`)}
                       color={getStatusConfig(booking.car.availabilityStatus)}
                       variant="outlined"
                       sx={{ fontWeight: 600, textTransform: "capitalize" }}
@@ -1262,9 +1262,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
                     label={t("vehicleInfo.availability")}
                     value={
                       booking.car?.availabilityStatus
-                        ? t(
-                            `badges.${booking.car.availabilityStatus.toLowerCase()}`
-                          )
+                        ? t(`badges.${booking.car.availabilityStatus.toLowerCase()}`)
                         : "—"
                     }
                   />
@@ -1340,9 +1338,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
                   value={
                     <Chip
                       size="small"
-                      label={t(
-                        `badges.${booking.paymentDetails.status.toLowerCase()}`
-                      )}
+                      label={t(`badges.${booking.paymentDetails.status.toLowerCase()}`)}
                       color={getPaymentStatusConfig(booking.paymentDetails.status)}
                       sx={{ fontWeight: 700, textTransform: "capitalize" }}
                     />
@@ -1429,9 +1425,7 @@ export default function BookingDetailsClient({ bookingId }: { readonly bookingId
                           booking.paymentDetails.refundStatus ? (
                             <Chip
                               size="small"
-                              label={t(
-                                `badges.${booking.paymentDetails.refundStatus.toLowerCase()}`
-                              )}
+                              label={t(`badges.${booking.paymentDetails.refundStatus.toLowerCase()}`)}
                               color={getStatusConfig(booking.paymentDetails.refundStatus)}
                               variant="outlined"
                               sx={{ fontWeight: 600, textTransform: "capitalize" }}

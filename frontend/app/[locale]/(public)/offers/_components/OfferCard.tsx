@@ -1,14 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import {
-  Box,
-  Card,
-  Typography,
-  Stack,
-  Chip,
-  Button,
-} from "@mui/material";
+import { Box, Card, Typography, Stack, Chip, Button } from "@mui/material";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
 import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
@@ -86,10 +79,7 @@ export default function OfferCard({ offer }: OfferCardProps) {
           </Box>
         </Box>
 
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 700, color: "text.primary", lineHeight: 1.3 }}
-        >
+        <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary", lineHeight: 1.3 }}>
           {offer.description}
         </Typography>
 
@@ -181,13 +171,7 @@ export default function OfferCard({ offer }: OfferCardProps) {
           </Stack>
         )}
 
-        <Button
-          variant="contained"
-          component={Link}
-          href="/search"
-          fullWidth
-          sx={{ mt: 1 }}
-        >
+        <Button variant="contained" component={Link} href="/search" fullWidth sx={{ mt: 1 }}>
           {t("browseVehicles")}
         </Button>
       </Box>

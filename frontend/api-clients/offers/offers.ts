@@ -76,7 +76,10 @@ export async function getPublicOffers(page: number = 1, size: number = 20): Prom
   });
 }
 
-export async function validateDiscountCode(request: DiscountValidationRequest, token?: string): Promise<DiscountValidationResponse> {
+export async function validateDiscountCode(
+  request: DiscountValidationRequest,
+  token?: string
+): Promise<DiscountValidationResponse> {
   const session = await getSession();
 
   return apiFetchJson<DiscountValidationResponse>("/api/public/promotions/validate", {
@@ -86,7 +89,10 @@ export async function validateDiscountCode(request: DiscountValidationRequest, t
   });
 }
 
-export async function applyDiscountToBooking(request: DiscountApplyRequest, token: string): Promise<BookingDiscountResult> {
+export async function applyDiscountToBooking(
+  request: DiscountApplyRequest,
+  token: string
+): Promise<BookingDiscountResult> {
   return apiFetchJson<BookingDiscountResult>("/api/v1/promotions/apply", {
     method: "POST",
     accessToken: token,

@@ -75,11 +75,7 @@ export default function RejectBookingDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      slotProps={{ paper: { sx: { borderRadius: 2, p: 1, minWidth: 420 } } }}
-    >
+    <Dialog open={open} onClose={handleClose} slotProps={{ paper: { sx: { borderRadius: 2, p: 1, minWidth: 420 } } }}>
       <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Box

@@ -100,7 +100,11 @@ export default function ApproveBookingDialog({
             #{bookingNumber}
           </Typography>
         )}
-        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button variant="outlined" disabled={submitting} onClick={onClose} sx={{ borderRadius: 2 }}>

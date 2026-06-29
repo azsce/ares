@@ -69,10 +69,8 @@ const getPaymentStatusConfig = (status: string | undefined, t: (key: string) => 
   const s = status?.toLowerCase() ?? "";
   if (s === "captured" || s === "paid" || s === "succeeded")
     return { label: t("paymentStatuses.captured"), colorKey: "success" as const };
-  if (s === "refunded")
-    return { label: t("paymentStatuses.refunded"), colorKey: "error" as const };
-  if (s === "failed")
-    return { label: t("paymentStatuses.failed"), colorKey: "error" as const };
+  if (s === "refunded") return { label: t("paymentStatuses.refunded"), colorKey: "error" as const };
+  if (s === "failed") return { label: t("paymentStatuses.failed"), colorKey: "error" as const };
   if (s === "pending" || s === "paymentpending")
     return { label: t("paymentStatuses.pending"), colorKey: "warning" as const };
   return { label: t("paymentStatuses.unpaid"), colorKey: null };
@@ -177,7 +175,9 @@ export default function BookingsTable({
                       fontSize: 14,
                     }}
                   >
-                    {getInitials(booking.customerName ?? booking.customer?.fullName ?? t("table.fallbacks.unknownCustomer"))}
+                    {getInitials(
+                      booking.customerName ?? booking.customer?.fullName ?? t("table.fallbacks.unknownCustomer")
+                    )}
                   </Avatar>
                   <Box>
                     <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
@@ -307,7 +307,8 @@ export default function BookingsTable({
                 <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                   <PriceIcon sx={{ fontSize: 14, color: "success.main" }} />
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {t("table.fallbacks.currencySymbol")}{(booking.price ?? 0).toFixed(2)}
+                    {t("table.fallbacks.currencySymbol")}
+                    {(booking.price ?? 0).toFixed(2)}
                   </Typography>
                 </Stack>
               </TableCell>

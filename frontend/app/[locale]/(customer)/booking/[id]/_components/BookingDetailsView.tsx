@@ -316,7 +316,11 @@ export default function BookingDetailsView({
                   </Box>
 
                   <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}>
-                    <Chip label={getStatusLabel(booking.status, t)} color={getStatusColor(booking.status)} size="small" />
+                    <Chip
+                      label={getStatusLabel(booking.status, t)}
+                      color={getStatusColor(booking.status)}
+                      size="small"
+                    />
                     <Chip
                       label={booking.payLater ? t("car.payLater") : t("car.prepaid")}
                       variant="outlined"

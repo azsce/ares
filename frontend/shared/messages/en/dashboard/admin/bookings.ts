@@ -91,11 +91,13 @@ const bookings: AdminBookingsLabels = {
   approvals: {
     approveDialog: {
       title: "Approve Booking",
-      content: "Are you sure you want to approve this booking? The customer will be notified and the booking will become confirmed.",
+      content:
+        "Are you sure you want to approve this booking? The customer will be notified and the booking will become confirmed.",
     },
     rejectDialog: {
       title: "Reject Booking",
-      content: "Are you sure you want to reject this booking? The payment will be refunded and the customer will be notified.",
+      content:
+        "Are you sure you want to reject this booking? The payment will be refunded and the customer will be notified.",
       reasonLabel: "Rejection Reason",
       reasonPlaceholder: "Provide a reason for rejecting this booking…",
     },

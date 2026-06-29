@@ -2,16 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Stack,
-  TextField,
-  Button,
-  CircularProgress,
-  Box,
-  Typography,
-  IconButton,
-  alpha,
-} from "@mui/material";
+import { Stack, TextField, Button, CircularProgress, Box, Typography, IconButton, alpha } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import { validateDiscountCode, type DiscountValidationResponse } from "@/api-clients/offers/offers";
@@ -51,13 +42,16 @@ export default function DiscountCodeInput({
     setError(null);
 
     try {
-      const result = await validateDiscountCode({
-        code: trimmed,
-        vehicleId,
-        startDate,
-        endDate,
-        subtotal,
-      }, accessToken);
+      const result = await validateDiscountCode(
+        {
+          code: trimmed,
+          vehicleId,
+          startDate,
+          endDate,
+          subtotal,
+        },
+        accessToken
+      );
 
       if (result.isValid) {
         setAppliedDiscount(result);
@@ -88,7 +82,7 @@ export default function DiscountCodeInput({
         spacing={1}
         sx={{
           alignItems: "center",
-          bgcolor: (theme) => alpha(theme.palette.success.main, 0.1),
+          bgcolor: theme => alpha(theme.palette.success.main, 0.1),
           borderRadius: 1,
           p: 1.5,
         }}
@@ -117,7 +111,9 @@ export default function DiscountCodeInput({
           label={t("discountCodeLabel")}
           placeholder={t("discountCodePlaceholder")}
           value={code}
-          onChange={(e) => { setCode(e.target.value); }}
+          onChange={e => {
+            setCode(e.target.value);
+          }}
           slotProps={{ htmlInput: { autoComplete: "off" } }}
           disabled={loading}
           sx={{ flexGrow: 1 }}
@@ -126,7 +122,9 @@ export default function DiscountCodeInput({
           variant="contained"
           size="small"
           disabled={!code.trim() || loading}
-          onClick={() => { void handleApply(); }}
+          onClick={() => {
+            void handleApply();
+          }}
           sx={{ minWidth: 80, height: 40 }}
         >
           {loading ? <CircularProgress size={20} /> : t("discountCodeApply")}

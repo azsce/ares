@@ -2,16 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  CircularProgress,
-  Stack,
-  Chip,
-  Alert,
-} from "@mui/material";
+import { Box, Container, Grid, Typography, CircularProgress, Stack, Chip, Alert } from "@mui/material";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import SentimentDissatisfiedOutlinedIcon from "@mui/icons-material/SentimentDissatisfiedOutlined";
 import { getPublicOffers, type PublicOffer } from "@/api-clients/offers/offers";
@@ -56,9 +47,7 @@ export default function OffersPageContent() {
 
   const filteredOffers = useMemo(() => {
     if (!activeCategory) return offers;
-    return offers.filter(
-      offer => offer.categoryNames?.includes(activeCategory) ?? false
-    );
+    return offers.filter(offer => offer.categoryNames?.includes(activeCategory) ?? false);
   }, [offers, activeCategory]);
 
   return (
@@ -117,7 +106,9 @@ export default function OffersPageContent() {
               label={t("allCategories")}
               color={activeCategory === null ? "primary" : "default"}
               variant={activeCategory === null ? "filled" : "outlined"}
-              onClick={() => { setActiveCategory(null); }}
+              onClick={() => {
+                setActiveCategory(null);
+              }}
               sx={{ flexShrink: 0 }}
             />
             {categories.map(category => (
@@ -126,7 +117,9 @@ export default function OffersPageContent() {
                 label={category}
                 color={activeCategory === category ? "primary" : "default"}
                 variant={activeCategory === category ? "filled" : "outlined"}
-                onClick={() => { setActiveCategory(category); }}
+                onClick={() => {
+                  setActiveCategory(category);
+                }}
                 sx={{ flexShrink: 0 }}
               />
             ))}
@@ -145,13 +138,8 @@ export default function OffersPageContent() {
           </Box>
         ) : filteredOffers.length === 0 ? (
           <Stack sx={{ alignItems: "center", py: 10, gap: 2 }}>
-            <SentimentDissatisfiedOutlinedIcon
-              sx={{ fontSize: 64, color: "text.secondary" }}
-            />
-            <Typography
-              variant="h6"
-              sx={{ color: "text.secondary", textAlign: "center" }}
-            >
+            <SentimentDissatisfiedOutlinedIcon sx={{ fontSize: 64, color: "text.secondary" }} />
+            <Typography variant="h6" sx={{ color: "text.secondary", textAlign: "center" }}>
               {t("emptyState")}
             </Typography>
           </Stack>

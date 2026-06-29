@@ -12,19 +12,37 @@ interface RawBooking {
   status?: string;
 }
 
-const EXPECTED_STATUSES = ["Draft", "PaymentPending", "PendingApproval", "Confirmed", "Active", "Completed", "Cancelled", "Rejected"];
+const EXPECTED_STATUSES = [
+  "Draft",
+  "PaymentPending",
+  "PendingApproval",
+  "Confirmed",
+  "Active",
+  "Completed",
+  "Cancelled",
+  "Rejected",
+];
 
 function getStatusLabel(status: string, t: (key: string) => string): string {
   switch (status.toLowerCase()) {
-    case "draft": return t("analytics.statuses.draft");
-    case "paymentpending": return t("analytics.statuses.paymentPending");
-    case "pendingapproval": return t("analytics.statuses.pendingApproval");
-    case "confirmed": return t("analytics.statuses.confirmed");
-    case "active": return t("analytics.statuses.active");
-    case "completed": return t("analytics.statuses.completed");
-    case "cancelled": return t("analytics.statuses.cancelled");
-    case "rejected": return t("analytics.statuses.rejected");
-    default: return t("overview.fallbackStatus");
+    case "draft":
+      return t("analytics.statuses.draft");
+    case "paymentpending":
+      return t("analytics.statuses.paymentPending");
+    case "pendingapproval":
+      return t("analytics.statuses.pendingApproval");
+    case "confirmed":
+      return t("analytics.statuses.confirmed");
+    case "active":
+      return t("analytics.statuses.active");
+    case "completed":
+      return t("analytics.statuses.completed");
+    case "cancelled":
+      return t("analytics.statuses.cancelled");
+    case "rejected":
+      return t("analytics.statuses.rejected");
+    default:
+      return t("overview.fallbackStatus");
   }
 }
 
@@ -264,9 +282,9 @@ export default function BookingOverview() {
               <Box key={stat.name} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Box sx={{ width: 14, height: 14, borderRadius: "50%", bgcolor: stat.fill }} />
-                    <Typography variant="body2" sx={{ fontWeight: "600", color: "text.primary" }}>
-                      {getStatusLabel(stat.name, t)}
-                    </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: "600", color: "text.primary" }}>
+                    {getStatusLabel(stat.name, t)}
+                  </Typography>
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Typography variant="body2" sx={{ fontWeight: "700", color: "text.primary" }}>
