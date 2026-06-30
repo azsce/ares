@@ -80,6 +80,7 @@ import type { AdminDriversLabels } from "./dashboard/admin/drivers";
 import type { AdminInspectorsLabels } from "./dashboard/admin/inspectors";
 import type { AdminVehiclesLabels } from "./dashboard/admin/vehicles";
 import type { AdminVerificationsLabels } from "./dashboard/admin/verifications";
+import type { FinancialReportsLabels } from "./dashboard/admin/financial-reports";
 import type { SupplierDetailLabels } from "./public/suppliers/_supplierId";
 import type { PromotionsLabels } from "./dashboard/admin/promotions";
 import type { ErrorPageLabels } from "./root/error";
@@ -153,6 +154,7 @@ export type {
   PromotionsLabels,
   AdminVehiclesLabels,
   AdminVerificationsLabels,
+  FinancialReportsLabels,
   VehiclesLabels,
   ErrorPageLabels,
   LoadingPageLabels,
@@ -231,6 +233,7 @@ export type DashboardAdminSchema = {
   readonly vehicles: AdminVehiclesLabels;
   readonly verifications: AdminVerificationsLabels;
   readonly promotions: PromotionsLabels;
+  readonly financialReports: FinancialReportsLabels;
 };
 
 export type DashboardInspectorSchema = {

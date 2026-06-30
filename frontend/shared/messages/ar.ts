@@ -75,6 +75,7 @@ import inspectors from "./ar/dashboard/admin/inspectors";
 import vehiclesAdmin from "./ar/dashboard/admin/vehicles";
 import verifications from "./ar/dashboard/admin/verifications";
 import promotions from "./ar/dashboard/admin/promotions";
+import financialReports from "./ar/dashboard/admin/financial-reports";
 import inspectorHistory from "./ar/dashboard/inspector/history";
 import inspectorInspections from "./ar/dashboard/inspector/inspections";
 import inspectorInspectionDetail from "./ar/dashboard/inspector/inspection-detail";
@@ -159,6 +160,7 @@ const ar: MessageSchema = {
     vehicles: vehiclesAdmin,
     verifications,
     promotions,
+    financialReports,
   },
   dashboardInspector: {
     history: inspectorHistory,
