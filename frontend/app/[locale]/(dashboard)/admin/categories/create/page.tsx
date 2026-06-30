@@ -1,36 +1,53 @@
 "use client";
 
-import React, { useState } from "react";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import SaveIcon from "@mui/icons-material/Save";
 import {
   Box,
-  Typography,
-  Container,
-  IconButton,
-  Stack,
+  Button,
   Card,
   CardContent,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Divider,
-  Button,
   CircularProgress,
+  Container,
+  Divider,
+  FormControlLabel,
+  IconButton,
   InputAdornment,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
   useTheme,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import SaveIcon from "@mui/icons-material/Save";
-import { Link, useRouter } from "@/shared/i18n/routing";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { createCategory } from "@/api-clients/categories/categories";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { createCategory, uploadCategoryImage } from "@/api-clients/categories/categories";
+import { Link, useRouter } from "@/shared/i18n/routing";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ACCEPTED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export default function CreateCategoryPage() {
   const t = useTranslations("dashboardAdmin.categories");
   const theme = useTheme();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -45,6 +62,36 @@ export default function CreateCategoryPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value,
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
+      setError("Only PNG, JPG, and WEBP images are allowed.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError("File size exceeds 10MB limit.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setError(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -65,10 +112,22 @@ export default function CreateCategoryPage() {
         isActive: formData.isActive,
       };
 
-      await createCategory(payload);
+      const createdCategory = await createCategory(payload);
+
+      if (imageFile) {
+        try {
+          await uploadCategoryImage(createdCategory.id, imageFile);
+        } catch {
+          router.push("/admin/categories");
+          return;
+        }
+      }
+
       router.push("/admin/categories");
     } catch (err: unknown) {
-      const errorResponse = err as { response?: { data?: { message?: string } } };
+      const errorResponse = err as {
+        response?: { data?: { message?: string } };
+      };
       setError(errorResponse.response?.data?.message || t("form.errors.saveFailed"));
     } finally {
       setLoading(false);
@@ -208,6 +267,89 @@ export default function CreateCategoryPage() {
                       </Typography>
                     }
                   />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: "text.primary" }}>
+                    Category Image
+                  </Typography>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                    style={{ display: "none" }}
+                    onChange={handleImageChange}
+                  />
+
+                  {imagePreview ? (
+                    <Box>
+                      <Box
+                        sx={{
+                          position: "relative",
+                          width: "100%",
+                          height: 220,
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          border: "1px solid",
+                          borderColor: "divider",
+                          mb: 1,
+                        }}
+                      >
+                        <Image src={imagePreview} alt="Category preview" fill style={{ objectFit: "cover" }} />
+                      </Box>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          disabled={loading}
+                          onClick={() => {
+                            fileInputRef.current?.click();
+                          }}
+                        >
+                          Change Image
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          disabled={loading}
+                          onClick={handleRemoveImage}
+                        >
+                          Remove
+                        </Button>
+                      </Stack>
+                    </Box>
+                  ) : (
+                    <Box
+                      onClick={() => {
+                        if (!loading) fileInputRef.current?.click();
+                      }}
+                      sx={{
+                        border: "2px dashed",
+                        borderColor: "divider",
+                        borderRadius: 2,
+                        p: 4,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1,
+                        cursor: loading ? "not-allowed" : "pointer",
+                        transition: "border-color 0.2s",
+                        "&:hover": {
+                          borderColor: loading ? "divider" : "primary.main",
+                        },
+                      }}
+                    >
+                      <CloudUploadIcon sx={{ fontSize: 40, color: "text.secondary" }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Click to upload an image
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled">
+                        PNG, JPG, WEBP up to 10 MB
+                      </Typography>
+                    </Box>
+                  )}
                 </Grid>
 
                 {error && (

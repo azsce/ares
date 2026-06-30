@@ -8,6 +8,7 @@ export interface Category {
   commissionPercentage: number;
   isActive: boolean;
   vehicleCount?: number;
+  imageUrl?: string;
 }
 
 export interface CategoryDetails extends Category {
@@ -121,6 +122,19 @@ export async function createCategory(payload: {
     method: "POST",
     accessToken: session?.accessToken ?? undefined,
     body: JSON.stringify(payload),
+  });
+}
+
+export async function uploadCategoryImage(id: string, file: File): Promise<Category> {
+  const session = await getSession();
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiFetchJson<Category>(`/api/admin/categories/${id}/image`, {
+    method: "POST",
+    accessToken: session?.accessToken ?? undefined,
+    body: formData,
   });
 }
 

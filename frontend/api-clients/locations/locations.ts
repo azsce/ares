@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { apiFetchJson } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
@@ -91,6 +91,17 @@ export async function createLocation(accessToken: string, data: Record<string, u
     method: "POST",
     accessToken,
     body: JSON.stringify(data),
+  });
+}
+
+export async function uploadLocationImage(accessToken: string, id: string, file: File): Promise<Location> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiFetchJson<Location>(`/api/admin/locations/${encodeURIComponent(id)}/image`, {
+    method: "POST",
+    accessToken,
+    body: formData,
   });
 }
 
