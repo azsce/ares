@@ -228,7 +228,11 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getUsers(page, PAGE_SIZE, { searchTerm: debouncedSearch, role: roleFilter, status: statusFilter });
+      const data = await getUsers(page, PAGE_SIZE, {
+        searchTerm: debouncedSearch,
+        role: roleFilter,
+        status: statusFilter,
+      });
 
       const normalized: User[] = (data.items || []).map(u => ({
         ...u,
@@ -314,7 +318,7 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
           borderRadius: 2,
           border: "1px solid",
           borderColor: "divider",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
       >
         <Stack
@@ -466,7 +470,9 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
                     <TableCell>Role</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Created</TableCell>
-                    <TableCell align="right" sx={{ pr: 3 }}>Actions</TableCell>
+                    <TableCell align="right" sx={{ pr: 3 }}>
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHead>
 
@@ -523,7 +529,9 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
                           </TableCell>
 
                           <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" color="text.secondary">{u.phoneNumber || "—"}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {u.phoneNumber || "—"}
+                            </Typography>
                           </TableCell>
 
                           <TableCell sx={{ py: 2 }}>

@@ -56,7 +56,8 @@ const getStatusConfig = (status: string | undefined, t: TFunction) => {
   if (s === "confirmed")
     return { label: t("filters.bookingStatusOptions.confirmed"), colorPalette: "confirmed" as const };
   if (s === "completed") return { label: t("statusLabels.completed"), colorPalette: "completed" as const };
-  if (s === "cancelled" || s === "returned") return { label: t("statusLabels.cancelled"), colorPalette: "cancelled" as const };
+  if (s === "cancelled" || s === "returned")
+    return { label: t("statusLabels.cancelled"), colorPalette: "cancelled" as const };
   if (s === "draft") return { label: t("statusLabels.draft"), colorPalette: "pending" as const };
   return { label: t("statusLabels.paymentPending"), colorPalette: "pendingApproval" as const };
 };

@@ -156,7 +156,7 @@ export async function getInspectionHistory(): Promise<InspectionSummary[]> {
 export async function getPendingAssignments(accessToken?: string): Promise<PendingAssignment[]> {
   return apiFetchJson<PendingAssignment[]>(`/api/admin/bookings/pending-assignments`, {
     method: "GET",
-    accessToken: accessToken ?? await token(),
+    accessToken: accessToken ?? (await token()),
   });
 }
 

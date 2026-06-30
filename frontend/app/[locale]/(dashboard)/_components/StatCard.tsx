@@ -54,16 +54,9 @@ export default function StatCard({ title, value, icon, trend, color = "primary" 
         }}
       />
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-        <Avatar sx={{ bgcolor: alpha(mainColor, 0.15), color: mainColor, width: 40, height: 40 }}>
-          {icon}
-        </Avatar>
+        <Avatar sx={{ bgcolor: alpha(mainColor, 0.15), color: mainColor, width: 40, height: 40 }}>{icon}</Avatar>
         <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-          <Typography
-            variant="overline"
-            color="text.secondary"
-            sx={{ fontWeight: 700, lineHeight: 1.2 }}
-            noWrap
-          >
+          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, lineHeight: 1.2 }} noWrap>
             {title}
           </Typography>
           <Typography
@@ -79,7 +72,10 @@ export default function StatCard({ title, value, icon, trend, color = "primary" 
             {value}
           </Typography>
           {trend && (
-            <Typography variant="caption" sx={{ color: trend.isUp ? 'success.main' : 'error.main', display: 'block', mt: 0.5, fontWeight: 600 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: trend.isUp ? "success.main" : "error.main", display: "block", mt: 0.5, fontWeight: 600 }}
+            >
               {trend.label}
             </Typography>
           )}

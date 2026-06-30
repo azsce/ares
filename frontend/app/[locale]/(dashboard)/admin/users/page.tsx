@@ -39,13 +39,13 @@ function UsersHubInner() {
     router.push(`/admin/users?tab=${newTab}`, { scroll: false });
   };
 
-  const [counts, setCounts] = useState({ 
+  const [counts, setCounts] = useState({
     totalUsers: 0,
-    customers: 0, 
-    suppliers: 0, 
-    drivers: 0, 
-    inspectors: 0, 
-    blockedUsers: 0 
+    customers: 0,
+    suppliers: 0,
+    drivers: 0,
+    inspectors: 0,
+    blockedUsers: 0,
   });
 
   const totalUsers = counts.totalUsers;
@@ -100,18 +100,12 @@ function UsersHubInner() {
           "& > *": {
             flexShrink: 0,
             flexBasis: { xs: "280px", sm: "240px", md: "calc((100% - 5 * 24px) / 6)" },
-            minWidth: { xs: "280px", sm: "240px", md: "auto" }
-          }
+            minWidth: { xs: "280px", sm: "240px", md: "auto" },
+          },
         }}
       >
         {statCards.map((card, idx) => (
-          <StatCard
-            key={idx}
-            title={card.title}
-            value={card.value.toString()}
-            icon={card.icon}
-            color={card.color}
-          />
+          <StatCard key={idx} title={card.title} value={card.value.toString()} icon={card.icon} color={card.color} />
         ))}
       </Box>
       {/* TAB BAR */}

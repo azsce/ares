@@ -27,7 +27,7 @@ export default async function AssignmentCenterPage() {
   try {
     const [assignmentsRes, inspectorsRes] = await Promise.all([
       getPendingAssignments(session.accessToken),
-      listInspectors(true, session.accessToken)
+      listInspectors(true, session.accessToken),
     ]);
     pendingAssignments = assignmentsRes || [];
     inspectors = inspectorsRes || [];
@@ -35,10 +35,5 @@ export default async function AssignmentCenterPage() {
     logger.error("Failed to fetch data for Assignment Center", error);
   }
 
-  return (
-    <AssignmentCenterClient
-      initialAssignments={pendingAssignments}
-      inspectors={inspectors}
-    />
-  );
+  return <AssignmentCenterClient initialAssignments={pendingAssignments} inspectors={inspectors} />;
 }

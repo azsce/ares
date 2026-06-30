@@ -58,7 +58,7 @@ export async function listInspectors(activeOnly?: boolean, accessToken?: string)
   const qs = activeOnly === undefined ? "" : `?activeOnly=${String(activeOnly)}`;
   return apiFetchJson<Inspector[]>(`/api/admin/inspectors${qs}`, {
     method: "GET",
-    accessToken: accessToken ?? await token(),
+    accessToken: accessToken ?? (await token()),
   });
 }
 

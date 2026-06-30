@@ -581,7 +581,7 @@ export default function CreateUserPage() {
                       value={form.phoneCountryCode}
                       onChange={e => setForm({ ...form, phoneCountryCode: e.target.value })}
                       displayEmpty
-                      renderValue={(selected) => selected}
+                      renderValue={selected => selected}
                       sx={{
                         bgcolor: "background.neutral",
                         borderRadius: 1.5,
@@ -595,7 +595,7 @@ export default function CreateUserPage() {
                         },
                       }}
                     >
-                      {phoneCodes.map((c) => (
+                      {phoneCodes.map(c => (
                         <MenuItem key={c.code} value={c.code}>
                           {c.code} {c.label}
                         </MenuItem>

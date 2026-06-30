@@ -204,7 +204,7 @@ export default function SuppliersTab() {
           borderRadius: 2,
           border: "1px solid",
           borderColor: "divider",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
       >
         <Stack
@@ -239,7 +239,7 @@ export default function SuppliersTab() {
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <Select
               value={statusFilter}
-              onChange={(e) => {
+              onChange={e => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
@@ -336,7 +336,9 @@ export default function SuppliersTab() {
                   <TableCell sx={{ pl: 3 }}>Supplier</TableCell>
                   <TableCell>Company</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell align="right" sx={{ pr: 3 }}>Actions</TableCell>
+                  <TableCell align="right" sx={{ pr: 3 }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
 
@@ -345,10 +347,27 @@ export default function SuppliersTab() {
                   pageData.map(s => {
                     const isActive = s.status === "active";
                     return (
-                      <TableRow key={s.id} hover sx={{ transition: "all 0.2s ease", "&:last-child td": { border: 0 }, "&:hover": { bgcolor: t => alpha(t.palette.primary.main, 0.03) } }}>
+                      <TableRow
+                        key={s.id}
+                        hover
+                        sx={{
+                          transition: "all 0.2s ease",
+                          "&:last-child td": { border: 0 },
+                          "&:hover": { bgcolor: t => alpha(t.palette.primary.main, 0.03) },
+                        }}
+                      >
                         <TableCell sx={{ pl: 3 }}>
                           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-                            <Avatar sx={{ bgcolor: t => alpha(t.palette.primary.main, 0.08), color: "primary.main", fontWeight: 700, width: 40, height: 40, fontSize: 16 }}>
+                            <Avatar
+                              sx={{
+                                bgcolor: t => alpha(t.palette.primary.main, 0.08),
+                                color: "primary.main",
+                                fontWeight: 700,
+                                width: 40,
+                                height: 40,
+                                fontSize: 16,
+                              }}
+                            >
                               {s.firstName[0]}
                               {s.lastName[0]}
                             </Avatar>
@@ -396,10 +415,20 @@ export default function SuppliersTab() {
 
                         <TableCell align="right" sx={{ pr: 3 }}>
                           <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
-                            <IconButton component={Link} href={`/admin/suppliers/${s.id}`} size="small" sx={{ color: "text.secondary" }}>
+                            <IconButton
+                              component={Link}
+                              href={`/admin/suppliers/${s.id}`}
+                              size="small"
+                              sx={{ color: "text.secondary" }}
+                            >
                               <VisibilityOutlinedIcon fontSize="small" />
                             </IconButton>
-                            <IconButton component={Link} href={`/admin/suppliers/${s.id}/edit`} size="small" sx={{ color: "text.secondary" }}>
+                            <IconButton
+                              component={Link}
+                              href={`/admin/suppliers/${s.id}/edit`}
+                              size="small"
+                              sx={{ color: "text.secondary" }}
+                            >
                               <EditOutlinedIcon fontSize="small" />
                             </IconButton>
                             <IconButton size="small" color={isActive ? "error" : "success"}>

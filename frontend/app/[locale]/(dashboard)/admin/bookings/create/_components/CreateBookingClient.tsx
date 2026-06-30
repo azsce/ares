@@ -244,7 +244,13 @@ export default function CreateBookingClient() {
     const token = session?.accessToken;
     if (!token) return;
 
-    if (!pickupDate || !returnDate || isNaN(pickupDate.getTime()) || isNaN(returnDate.getTime()) || pickupDate >= returnDate) {
+    if (
+      !pickupDate ||
+      !returnDate ||
+      isNaN(pickupDate.getTime()) ||
+      isNaN(returnDate.getTime()) ||
+      pickupDate >= returnDate
+    ) {
       setDriverOptions([]);
       return;
     }
@@ -264,11 +270,12 @@ export default function CreateBookingClient() {
         );
         let drivers = data.drivers || [];
         if (driverSearch.trim()) {
-            const term = driverSearch.toLowerCase();
-            drivers = drivers.filter(d => 
-                (d.firstName && d.firstName.toLowerCase().includes(term)) ||
-                (d.lastName && d.lastName.toLowerCase().includes(term))
-            );
+          const term = driverSearch.toLowerCase();
+          drivers = drivers.filter(
+            d =>
+              (d.firstName && d.firstName.toLowerCase().includes(term)) ||
+              (d.lastName && d.lastName.toLowerCase().includes(term))
+          );
         }
         setDriverOptions(drivers);
         // If the selected driver disappeared from the results, clear it.
@@ -382,7 +389,7 @@ export default function CreateBookingClient() {
 
   // ── Derived pricing ───────────────────────────────────────────────
   const dailyRate = vehicle?.dailyRate ?? 0;
-  
+
   const [pricingState, setPricingState] = useState({
     totalDays: 0,
     vehicleFee: 0,
@@ -965,18 +972,14 @@ export default function CreateBookingClient() {
           </SectionCard>
 
           {/* 4. Driver Selection */}
-          <SectionCard
-            step={4}
-            title="Driver"
-            subtitle="Select a professional driver"
-            done={driverDone}
-          >
+          <SectionCard step={4} title="Driver" subtitle="Select a professional driver" done={driverDone}>
             {customerLacksLicense && (
               <Alert icon={<WarningIcon />} severity="warning" sx={{ mb: 2 }}>
-                This customer does not have a valid driving license. A professional driver must be assigned before creating this booking.
+                This customer does not have a valid driving license. A professional driver must be assigned before
+                creating this booking.
               </Alert>
             )}
-            
+
             {!driver ? (
               <Autocomplete
                 disabled={!datesValid}
@@ -997,9 +1000,7 @@ export default function CreateBookingClient() {
                 isOptionEqualToValue={(option, value) => option.driverProfileId === value.driverProfileId}
                 getOptionLabel={option => `${option.firstName ?? ""} ${option.lastName ?? ""}`.trim()}
                 filterOptions={x => x}
-                noOptionsText={
-                  !datesValid ? "Select valid dates first" : "No available drivers found"
-                }
+                noOptionsText={!datesValid ? "Select valid dates first" : "No available drivers found"}
                 slotProps={{
                   paper: {
                     sx: { bgcolor: theme => darken(theme.palette.background.paper, 0.04) },
@@ -1024,7 +1025,8 @@ export default function CreateBookingClient() {
                           {`${option.firstName ?? ""} ${option.lastName ?? ""}`.trim() || "Unnamed Driver"}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" noWrap>
-                          ⭐ {option.averageRating > 0 ? option.averageRating.toFixed(1) : "New"} · {option.totalTrips} trips
+                          ⭐ {option.averageRating > 0 ? option.averageRating.toFixed(1) : "New"} · {option.totalTrips}{" "}
+                          trips
                         </Typography>
                       </Box>
                       <Typography sx={{ fontWeight: 700, color: "success.main", whiteSpace: "nowrap" }}>
@@ -1088,9 +1090,12 @@ export default function CreateBookingClient() {
                       <DriverIcon />
                     </Avatar>
                     <Box>
-                      <Typography sx={{ fontWeight: 700 }}>{`${driver.firstName ?? ""} ${driver.lastName ?? ""}`.trim() || "Unnamed Driver"}</Typography>
+                      <Typography sx={{ fontWeight: 700 }}>
+                        {`${driver.firstName ?? ""} ${driver.lastName ?? ""}`.trim() || "Unnamed Driver"}
+                      </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        ⭐ {driver.averageRating > 0 ? driver.averageRating.toFixed(1) : "New"} · {driver.totalTrips} trips
+                        ⭐ {driver.averageRating > 0 ? driver.averageRating.toFixed(1) : "New"} · {driver.totalTrips}{" "}
+                        trips
                       </Typography>
                     </Box>
                   </Stack>
