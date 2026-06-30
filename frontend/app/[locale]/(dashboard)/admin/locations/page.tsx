@@ -1,12 +1,31 @@
 "use client";
 
-import { useState, useCallback, memo, SyntheticEvent } from "react";
-import { Theme } from "@mui/material/styles";
 import {
+  AddRounded as AddIcon,
+  DeleteOutlineRounded as DeleteIcon,
+  EditRounded as EditIcon,
+  LocationOnTwoTone as LocationIcon,
+  MapTwoTone as MapIcon,
+  OpenInNewRounded as OpenInNewIcon,
+  SearchRounded as SearchIcon,
+} from "@mui/icons-material";
+import {
+  Avatar,
+  alpha,
   Box,
-  Typography,
+  Button,
+  Card,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
-  TextField,
+  InputAdornment,
+  Pagination,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -14,38 +33,20 @@ import {
   TableFooter,
   TableHead,
   TableRow,
-  Paper,
-  Avatar,
-  Chip,
-  Stack,
-  CircularProgress,
-  InputAdornment,
-  Card,
-  Pagination,
+  TextField,
   Tooltip,
-  useTheme,
+  Typography,
   useMediaQuery,
-  alpha,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
+  useTheme,
 } from "@mui/material";
+import Alert from "@mui/material/Alert";
 import Grid from "@mui/material/Grid";
 import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-import {
-  EditRounded as EditIcon,
-  AddRounded as AddIcon,
-  DeleteOutlineRounded as DeleteIcon,
-  LocationOnTwoTone as LocationIcon,
-  SearchRounded as SearchIcon,
-  MapTwoTone as MapIcon,
-} from "@mui/icons-material";
-import { useRouter } from "@/shared/i18n/routing";
+import type { Theme } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
-import { useLocations, deleteLocation, type Location } from "@/api-clients/locations/locations";
+import { memo, type SyntheticEvent, useCallback, useState } from "react";
+import { deleteLocation, type Location, useLocations } from "@/api-clients/locations/locations";
+import { Link, useRouter } from "@/shared/i18n/routing";
 import { toImageUrl } from "@/utils/image-url";
 import { logger } from "@/utils/logger";
 
@@ -94,7 +95,14 @@ const StatCard = memo(function StatCard({ label, value, color, icon }: StatCardP
           <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
             {label}
           </Typography>
-          <Typography variant="h4" sx={{ color, lineHeight: 1.1, fontSize: { xs: "1.6rem", sm: "2.125rem" } }}>
+          <Typography
+            variant="h4"
+            sx={{
+              color,
+              lineHeight: 1.1,
+              fontSize: { xs: "1.6rem", sm: "2.125rem" },
+            }}
+          >
             {value}
           </Typography>
         </Box>
@@ -115,6 +123,19 @@ const ActionButtons = memo(function ActionButtons({
 }) {
   return (
     <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
+      <Tooltip title="View on Search">
+        <IconButton
+          size="small"
+          component={Link}
+          href={`/search?pickupLocationId=${locationId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ borderRadius: 2 }}
+        >
+          <OpenInNewIcon sx={{ fontSize: "small" }} />
+        </IconButton>
+      </Tooltip>
+
       <Tooltip title="Edit">
         <IconButton
           size="small"
@@ -200,7 +221,18 @@ const LocationMobileCard = memo(function LocationMobileCard({
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography noWrap sx={{ fontWeight: 700, fontSize: 15 }}>
+          <Typography
+            noWrap
+            component={Link}
+            href={`/admin/locations/${loc.id}/edit`}
+            sx={{
+              fontWeight: 700,
+              fontSize: 15,
+              color: "primary.main",
+              textDecoration: "none",
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
             {loc.name}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap>
@@ -332,7 +364,15 @@ export default function AdminLocationsPage() {
     }
 
     return (
-      <Paper elevation={0} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", overflow: "hidden" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          overflow: "hidden",
+        }}
+      >
         <TableContainer sx={{ overflowX: "auto" }}>
           <Table sx={{ minWidth: 600 }}>
             <TableHead>
@@ -395,14 +435,30 @@ export default function AdminLocationsPage() {
                               component="img"
                               src={toImageUrl(loc.imageUrl)}
                               alt={loc.name}
-                              sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              sx={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
                             />
                           ) : (
                             <LocationIcon color="primary" sx={{ fontSize: "small" }} />
                           )}
                         </Box>
                         <Box>
-                          <Typography sx={{ fontSize: { xs: 13, sm: 15 }, fontWeight: 700 }}>{loc.name}</Typography>
+                          <Typography
+                            component={Link}
+                            href={`/admin/locations/${loc.id}/edit`}
+                            sx={{
+                              fontSize: { xs: 13, sm: 15 },
+                              fontWeight: 700,
+                              color: "primary.main",
+                              textDecoration: "none",
+                              "&:hover": { textDecoration: "underline" },
+                            }}
+                          >
+                            {loc.name}
+                          </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {loc.addressLine}
                           </Typography>
@@ -499,7 +555,13 @@ export default function AdminLocationsPage() {
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontSize: { xs: "1.5rem", sm: "1.6rem", md: "2rem" }, fontWeight: 800 }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "1.6rem", md: "2rem" },
+              fontWeight: 800,
+            }}
+          >
             Locations Management
           </Typography>
           <Typography color="text.secondary" variant="body2" sx={{ paddingInlineStart: { xs: 0.6, sm: 1.2 } }}>
@@ -557,7 +619,12 @@ export default function AdminLocationsPage() {
             setSearch(e.target.value);
           }}
           size="small"
-          sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "background.paper" } }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+              bgcolor: "background.paper",
+            },
+          }}
           slotProps={{
             input: {
               startAdornment: (
@@ -578,7 +645,9 @@ export default function AdminLocationsPage() {
         open={openDelete}
         onClose={handleCloseDelete}
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 2, p: 1, mx: { xs: 2, sm: "auto" } } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 2, p: 1, mx: { xs: 2, sm: "auto" } } },
+        }}
       >
         <DialogTitle sx={{ fontWeight: 700 }}>Delete Location</DialogTitle>
         <DialogContent>
@@ -597,7 +666,11 @@ export default function AdminLocationsPage() {
             }}
             color="error"
             variant="contained"
-            sx={{ borderRadius: 2, fontWeight: 700, flex: { xs: 1, sm: "none" } }}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+              flex: { xs: 1, sm: "none" },
+            }}
           >
             Delete
           </Button>
@@ -610,7 +683,10 @@ export default function AdminLocationsPage() {
         autoHideDuration={4000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        sx={{ maxWidth: { xs: "calc(100% - 32px)", sm: "auto" }, left: { xs: 16, sm: "auto" } }}
+        sx={{
+          maxWidth: { xs: "calc(100% - 32px)", sm: "auto" },
+          left: { xs: 16, sm: "auto" },
+        }}
       >
         <Alert severity="error" onClose={handleCloseError}>
           {errorMsg}
