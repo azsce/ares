@@ -39,7 +39,8 @@ import {
 } from "@mui/icons-material";
 import { useRouter } from "@/shared/i18n/routing";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatUtcDate, formatUtcDateTime } from "@/utils/dateTime";
 import {
   useSupplierBookings,
   type SupplierBookingListItemDto,
@@ -72,11 +73,14 @@ const getPaymentStatusLabel = (status: string | undefined | null, t: TFunction):
   return status ?? t("paymentDefault");
 };
 
-const formatCompactDate = (dateString?: string) => {
+const formatCompactDate = (dateString: string | undefined, locale: string): string => {
   if (!dateString) return "—";
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return formatUtcDate(dateString, locale, { month: "short", day: "numeric", year: "numeric" }, "—");
+};
+
+const formatCompactDateTime = (dateString: string | undefined, locale: string): string => {
+  if (!dateString) return "—";
+  return formatUtcDateTime(dateString, locale, { month: "short", day: "numeric", year: "numeric" }, "—");
 };
 
 /**
@@ -102,6 +106,7 @@ export default function SupplierBookingsClient() {
   const { data: session } = useSession();
   const t = useTranslations("dashboard.supplierBookings");
   const tc = useTranslations("common");
+  const locale = useLocale();
 
   // Filters / paging
   const [search, setSearch] = useState("");
@@ -253,7 +258,7 @@ export default function SupplierBookingsClient() {
           {/* Period — compact */}
           <TableCell>
             <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-              {formatCompactDate(booking.pickupDate)} → {formatCompactDate(booking.returnDate)}
+              {formatCompactDate(booking.pickupDate, locale)} → {formatCompactDate(booking.returnDate, locale)}
             </Typography>
           </TableCell>
 
@@ -305,7 +310,7 @@ export default function SupplierBookingsClient() {
           {/* Created At */}
           <TableCell>
             <Typography variant="body2" sx={{ fontSize: 13, color: "text.secondary" }}>
-              {formatCompactDate(booking.createdAt)}
+              {formatCompactDateTime(booking.createdAt, locale)}
             </Typography>
           </TableCell>
 

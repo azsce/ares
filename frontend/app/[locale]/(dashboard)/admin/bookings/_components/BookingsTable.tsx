@@ -31,6 +31,7 @@ import {
 import type { Booking } from "@/api-clients/bookings/bookings";
 import { toImageUrl } from "@/utils/image-url";
 import { useTranslations } from "next-intl";
+import { formatUtcDate } from "@/utils/dateTime";
 
 interface BookingsTableProps {
   readonly bookings: readonly Booking[];
@@ -43,6 +44,7 @@ interface BookingsTableProps {
   readonly onOpenMenu: (e: React.MouseEvent<HTMLElement>, booking: Booking) => void;
   readonly t: ReturnType<typeof useTranslations>;
   readonly tCommon: ReturnType<typeof useTranslations>;
+  readonly locale: string;
 }
 
 const getStatusConfig = (status?: string, t?: (key: string) => string) => {
@@ -76,11 +78,9 @@ const getPaymentStatusConfig = (status?: string, t?: (key: string) => string) =>
   return { label: t ? t("paymentStatuses.unpaid") : "Unpaid", colorKey: null };
 };
 
-const formatCompactDate = (dateString: string) => {
+const formatCompactDate = (dateString: string, locale: string) => {
   if (!dateString) return "—";
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatUtcDate(dateString, locale, { month: "short", day: "numeric" }, "—");
 };
 
 const getInitials = (name?: string) => {
@@ -103,6 +103,7 @@ export default function BookingsTable({
   onOpenMenu,
   t,
   tCommon,
+  locale,
 }: BookingsTableProps) {
   const theme = useTheme();
 
@@ -227,7 +228,7 @@ export default function BookingsTable({
               {/* Period — compact */}
               <TableCell>
                 <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-                  {formatCompactDate(booking.from)} → {formatCompactDate(booking.to)}
+                  {formatCompactDate(booking.from, locale)} → {formatCompactDate(booking.to, locale)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {booking.totalDays ? t("table.daysCount", { count: booking.totalDays }) : "—"}
