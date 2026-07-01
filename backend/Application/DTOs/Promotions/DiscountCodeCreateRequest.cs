@@ -20,6 +20,6 @@ namespace Backend.Application.DTOs.Promotions
         public bool AllowStacking { get; set; }
         public bool IsAutomatic { get; set; }
         public int Priority { get; set; }
-        public Guid SupplierId { get; set; }
+        public Guid? SupplierId { get; set; }
     }
 }

@@ -44,8 +44,7 @@ namespace Backend.Domain.Entities
         public int Priority { get; set; } = 0;
         public bool IsActive { get; set; } = true;
 
-        [Required]
-        public Guid SupplierId { get; set; }
+        public Guid? SupplierId { get; set; }
 
         [ForeignKey(nameof(SupplierId))]
         public CompanyProfile? Supplier { get; set; }
