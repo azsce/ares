@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Paper, Box, Grid, useTheme } from "@mui/material";
 import { DriverDetails } from "@/api-clients/users/users";
 import { SectionLabel, FieldRow } from "../UserDetailsView";

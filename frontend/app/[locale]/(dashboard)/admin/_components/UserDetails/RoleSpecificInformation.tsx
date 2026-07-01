@@ -1,5 +1,4 @@
-import React from "react";
-import { User, DriverDetails, SupplierDetails } from "@/api-clients/users/users";
+import { DriverDetails, SupplierDetails } from "@/api-clients/users/users";
 import DriverInformationCard from "./DriverInformationCard";
 import SupplierInformationCard from "./SupplierInformationCard";
 import { UserType } from "../UserDetailsView";
