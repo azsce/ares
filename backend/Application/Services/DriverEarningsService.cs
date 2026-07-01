@@ -229,7 +229,7 @@ namespace Backend.Application.Services
                     var amountToDeduct = Math.Min(earning.NetEarning, remainingAmount);
                     earning.Status = DriverEarningStatus.PendingPayout;
                     earning.PayoutId = payout.Id;
-                    
+
                     await _context.DriverPayoutTransactions.AddAsync(new DriverPayoutTransaction
                     {
                         DriverPayoutId = payout.Id,

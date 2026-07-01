@@ -39,7 +39,8 @@ public class BookingServiceTests
 
         // Set up default pricing behavior to calculate based on vehicle rate
         _pricingServiceMock.Setup(x => x.CalculateBookingPricingAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Guid vId, DateTime pickup, DateTime ret, CancellationToken ct) => {
+            .ReturnsAsync((Guid vId, DateTime pickup, DateTime ret, CancellationToken ct) =>
+            {
                 var vehicle = _vehicleRepositoryMock.Object.GetByIdAsync(vId, ct).GetAwaiter().GetResult();
                 var rate = vehicle?.PricePerDay ?? 100m;
                 var days = (ret - pickup).Days;
@@ -81,16 +82,16 @@ public class BookingServiceTests
         var validators = new List<IUserValidator<ApplicationUser>> { validator.Object };
         var pwdValidator = new Mock<IPasswordValidator<ApplicationUser>>();
         var pwdValidators = new List<IPasswordValidator<ApplicationUser>> { pwdValidator.Object };
-        
+
         var userManager = new Mock<UserManager<ApplicationUser>>(
-            store.Object, 
-            options.Object, 
-            hasher.Object, 
-            validators, 
-            pwdValidators, 
-            null!, 
-            null!, 
-            null!, 
+            store.Object,
+            options.Object,
+            hasher.Object,
+            validators,
+            pwdValidators,
+            null!,
+            null!,
+            null!,
             null!);
 
         userManager.Setup(x => x.FindByIdAsync(It.IsAny<string>()))
@@ -216,9 +217,9 @@ public class BookingServiceTests
             PayLater: false
         );
 
-        var vehicle = new Vehicle 
-        { 
-            Id = vehicleId, 
+        var vehicle = new Vehicle
+        {
+            Id = vehicleId,
             UserId = supplierId, // Owned by the same user
             IsActive = true,
             PricePerDay = 50.00m

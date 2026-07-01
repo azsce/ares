@@ -14,11 +14,23 @@ export interface Category {
 export interface CategoryDetails extends Category {
   bookingCount: number;
   revenue: number;
+  activePromotion?: {
+    id: string;
+    name: string;
+    discountPercentage: number;
+    startDate: string;
+    endDate: string;
+    status: string;
+  } | null;
   vehicles: Array<{
     id: string;
     make: string;
     model: string;
     licensePlate: string;
+    pricePerDay?: number;
+    status?: string;
+    availabilityStatus?: string;
+    imageUrl?: string;
   }>;
 }
 

@@ -23,7 +23,7 @@ namespace Backend.Application.DTOs.Promotions
         bool IsAutomatic,
         int Priority,
         bool IsActive,
-        Guid SupplierId,
+        Guid? SupplierId,
         Guid CreatedBy,
         DateTime CreatedAt,
         DateTime UpdatedAt

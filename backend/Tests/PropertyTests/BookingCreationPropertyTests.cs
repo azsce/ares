@@ -45,7 +45,7 @@ public class BookingCreationPropertyTests : IDisposable
         var store = new Mock<IUserStore<ApplicationUser>>();
         var userManagerMock = new Mock<UserManager<ApplicationUser>>(
             store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
-        
+
         userManagerMock.Setup(x => x.FindByIdAsync(It.IsAny<string>()))
             .ReturnsAsync((string id) => new ApplicationUser { Id = Guid.Parse(id) });
         userManagerMock.Setup(x => x.IsInRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
@@ -53,7 +53,8 @@ public class BookingCreationPropertyTests : IDisposable
 
         var pricingServiceMock = new Mock<IPricingService>();
         pricingServiceMock.Setup(x => x.CalculateBookingPricingAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Guid vId, DateTime pickup, DateTime ret, CancellationToken ct) => {
+            .ReturnsAsync((Guid vId, DateTime pickup, DateTime ret, CancellationToken ct) =>
+            {
                 var vehicle = _context.Vehicles.Find(vId);
                 var rate = vehicle?.PricePerDay ?? 100m;
                 var days = (ret - pickup).Days;
@@ -376,7 +377,7 @@ public class BookingCreationPropertyTests : IDisposable
     {
         var customerId = Guid.NewGuid();
         var supplierId = Guid.NewGuid();
-        
+
         _context.Users.Add(new ApplicationUser { Id = customerId, UserName = customerId.ToString(), Email = customerId + "@test.com" });
         _context.Users.Add(new ApplicationUser { Id = supplierId, UserName = supplierId.ToString(), Email = supplierId + "@test.com" });
 

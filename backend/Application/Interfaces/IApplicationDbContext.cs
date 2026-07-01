@@ -35,14 +35,14 @@ public interface IApplicationDbContext
     IQueryable<PrivacySection> PrivacySections { get; }
     IQueryable<Driver> Drivers { get; }
     // Driver Module (Phase 1+) — additive, see DriverProfile entity.
-        DbSet<DriverProfile> DriverProfiles { get; }
-        DbSet<DriverWorkArea> DriverWorkAreas { get; }
-        DbSet<ServiceArea> ServiceAreas { get; }
-        DbSet<DriverReview> DriverReviews { get; }
-        DbSet<DriverEarning> DriverEarnings { get; }
-        DbSet<DriverPayout> DriverPayouts { get; }
-        DbSet<DriverPayoutTransaction> DriverPayoutTransactions { get; }
-        DbSet<DriverPaymentInfo> DriverPaymentInfo { get; }
+    DbSet<DriverProfile> DriverProfiles { get; }
+    DbSet<DriverWorkArea> DriverWorkAreas { get; }
+    DbSet<ServiceArea> ServiceAreas { get; }
+    DbSet<DriverReview> DriverReviews { get; }
+    DbSet<DriverEarning> DriverEarnings { get; }
+    DbSet<DriverPayout> DriverPayouts { get; }
+    DbSet<DriverPayoutTransaction> DriverPayoutTransactions { get; }
+    DbSet<DriverPaymentInfo> DriverPaymentInfo { get; }
     IQueryable<VehicleInspection> VehicleInspections { get; }
     IQueryable<InspectionImage> InspectionImages { get; }
     IQueryable<Inspector> Inspectors { get; }

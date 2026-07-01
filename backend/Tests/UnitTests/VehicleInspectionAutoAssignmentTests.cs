@@ -225,7 +225,7 @@ namespace Backend.Tests.UnitTests
                 Status = BookingStatus.Confirmed
             };
             context.Bookings.Add(activeBooking);
-            
+
             context.VehicleInspections.Add(new VehicleInspection
             {
                 InspectionId = Guid.NewGuid(),

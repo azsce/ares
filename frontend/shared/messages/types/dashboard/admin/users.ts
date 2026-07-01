@@ -293,5 +293,14 @@ export type AdminUsersLabels = {
       readonly unavailable: string;
       readonly reserved: string;
     };
+    readonly supplierInformation: string;
+    readonly commercialRegistration: string;
+    readonly taxNumber: string;
+    readonly vehiclesCount: string;
+    readonly totalBookings: string;
+    readonly driverInformation: string;
+    readonly licenseExpiry: string;
+    readonly assignedBookings: string;
+    readonly completedTrips: string;
   };
 };

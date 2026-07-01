@@ -50,138 +50,138 @@ namespace Backend.Application.Features.VehicleInspections.Commands.AssignInspect
                     throw new ConflictException($"Cannot assign an inspector to a booking in status '{booking.Status}'.");
                 }
 
-            var existingInspections = await _context.VehicleInspections
-                .Where(vi => vi.BookingId == booking.Id)
-                .ToListAsync(cancellationToken);
+                var existingInspections = await _context.VehicleInspections
+                    .Where(vi => vi.BookingId == booking.Id)
+                    .ToListAsync(cancellationToken);
 
-            var existingInspection = existingInspections.FirstOrDefault(vi => string.Equals(vi.InspectionType, request.InspectionType, StringComparison.OrdinalIgnoreCase));
+                var existingInspection = existingInspections.FirstOrDefault(vi => string.Equals(vi.InspectionType, request.InspectionType, StringComparison.OrdinalIgnoreCase));
 
-            // Prevent Auto Assignment from overwriting existing assignments
-            if (!request.IsManual && existingInspection != null && existingInspection.InspectorId != null)
-            {
-                _logger.LogWarning("Skipping Auto Assignment for booking {BookingId} {InspectionType} as inspector is already assigned.", booking.Id, request.InspectionType);
-                return existingInspection.InspectionId;
-            }
+                // Prevent Auto Assignment from overwriting existing assignments
+                if (!request.IsManual && existingInspection != null && existingInspection.InspectorId != null)
+                {
+                    _logger.LogWarning("Skipping Auto Assignment for booking {BookingId} {InspectionType} as inspector is already assigned.", booking.Id, request.InspectionType);
+                    return existingInspection.InspectionId;
+                }
 
-            // Fetch available inspectors in the same region
-            var region = string.Equals(request.InspectionType, "Return", StringComparison.OrdinalIgnoreCase)
-                ? booking.DropoffLocation
-                : booking.PickupLocation;
+                // Fetch available inspectors in the same region
+                var region = string.Equals(request.InspectionType, "Return", StringComparison.OrdinalIgnoreCase)
+                    ? booking.DropoffLocation
+                    : booking.PickupLocation;
 
                 var query = _context.Inspectors.Where(i => i.IsActive && i.IsAvailable);
 
                 if (!string.IsNullOrEmpty(region))
                 {
-                    query = query.Where(i => string.IsNullOrEmpty(i.Region) || 
-                                             i.Region.Contains(region) || 
+                    query = query.Where(i => string.IsNullOrEmpty(i.Region) ||
+                                             i.Region.Contains(region) ||
                                              region.Contains(i.Region));
                 }
 
                 var availableInspectors = await query.ToListAsync(cancellationToken);
 
-            Guid? selectedInspectorUserId = null;
+                Guid? selectedInspectorUserId = null;
 
-            if (availableInspectors.Any())
-            {
-                // Load balancing logic: find the one with minimum pending/in-progress inspections
-                var inspectorUserIds = availableInspectors.Select(i => i.UserId).ToList();
+                if (availableInspectors.Any())
+                {
+                    // Load balancing logic: find the one with minimum pending/in-progress inspections
+                    var inspectorUserIds = availableInspectors.Select(i => i.UserId).ToList();
 
-                var activeCounts = await _context.VehicleInspections
-                    .Include(vi => vi.Booking)
-                    .Where(vi => vi.InspectorId != null && inspectorUserIds.Contains(vi.InspectorId.Value) && 
-                                 vi.Status == InspectionStatus.Pending &&
-                                 vi.Booking != null &&
-                                 vi.Booking.Status != BookingStatus.Cancelled &&
-                                 vi.Booking.Status != BookingStatus.Completed)
-                    .GroupBy(vi => vi.InspectorId)
-                    .Select(g => new { InspectorId = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.InspectorId ?? Guid.Empty, x => x.Count, cancellationToken);
+                    var activeCounts = await _context.VehicleInspections
+                        .Include(vi => vi.Booking)
+                        .Where(vi => vi.InspectorId != null && inspectorUserIds.Contains(vi.InspectorId.Value) &&
+                                     vi.Status == InspectionStatus.Pending &&
+                                     vi.Booking != null &&
+                                     vi.Booking.Status != BookingStatus.Cancelled &&
+                                     vi.Booking.Status != BookingStatus.Completed)
+                        .GroupBy(vi => vi.InspectorId)
+                        .Select(g => new { InspectorId = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.InspectorId ?? Guid.Empty, x => x.Count, cancellationToken);
 
-                var bestInspector = availableInspectors
-                    .Select(i => new
+                    var bestInspector = availableInspectors
+                        .Select(i => new
+                        {
+                            Inspector = i,
+                            ActiveCount = activeCounts.ContainsKey(i.UserId) ? activeCounts[i.UserId] : 0
+                        })
+                        .OrderBy(x => x.ActiveCount)
+                        .ThenBy(x => Guid.NewGuid()) // Tie-breaker
+                        .FirstOrDefault();
+
+                    if (bestInspector != null)
                     {
-                        Inspector = i,
-                        ActiveCount = activeCounts.ContainsKey(i.UserId) ? activeCounts[i.UserId] : 0
-                    })
-                    .OrderBy(x => x.ActiveCount)
-                    .ThenBy(x => Guid.NewGuid()) // Tie-breaker
-                    .FirstOrDefault();
+                        selectedInspectorUserId = bestInspector.Inspector.UserId;
+                        _logger.LogInformation("Inspector Selected: {UserId} for booking {BookingId} {InspectionType}", selectedInspectorUserId, request.BookingId, request.InspectionType);
+                    }
+                }
 
-                if (bestInspector != null)
+                if (selectedInspectorUserId == null)
                 {
-                    selectedInspectorUserId = bestInspector.Inspector.UserId;
-                    _logger.LogInformation("Inspector Selected: {UserId} for booking {BookingId} {InspectionType}", selectedInspectorUserId, request.BookingId, request.InspectionType);
-                }
-            }
+                    _logger.LogWarning("No inspector available for booking {BookingId} in region {Region}.", request.BookingId, region);
+                    try
+                    {
+                        await _mediator.Publish(new NoInspectorAvailableEvent(booking.Id, region, booking.PickupDate ?? DateTime.UtcNow), cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to publish NoInspectorAvailableEvent for booking {BookingId}", booking.Id);
+                    }
 
-            if (selectedInspectorUserId == null)
-            {
-                _logger.LogWarning("No inspector available for booking {BookingId} in region {Region}.", request.BookingId, region);
-                try
-                {
-                    await _mediator.Publish(new NoInspectorAvailableEvent(booking.Id, region, booking.PickupDate ?? DateTime.UtcNow), cancellationToken);
+                    // If this is an auto-assignment, we'll want to bubble up an exception or status so it's counted as a failure for retry logic
+                    if (!request.IsManual)
+                    {
+                        throw new NoAvailableInspectorException("No eligible inspector found for auto-assignment.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to publish NoInspectorAvailableEvent for booking {BookingId}", booking.Id);
-                }
-                
-                // If this is an auto-assignment, we'll want to bubble up an exception or status so it's counted as a failure for retry logic
-                if (!request.IsManual)
-                {
-                    throw new NoAvailableInspectorException("No eligible inspector found for auto-assignment.");
-                }
-            }
 
-            Guid inspectionId;
-            Guid? previousInspectorId = null;
+                Guid inspectionId;
+                Guid? previousInspectorId = null;
 
-            // Manage Inspection
-            if (existingInspection == null)
-            {
-                var newInspection = new VehicleInspection
+                // Manage Inspection
+                if (existingInspection == null)
                 {
-                    InspectionId = Guid.NewGuid(),
-                    BookingId = booking.Id,
-                    VehicleId = booking.VehicleId,
-                    InspectorId = selectedInspectorUserId,
-                    InspectionType = request.InspectionType,
-                    Status = InspectionStatus.Pending,
-                    InspectionDate = request.InspectionType.Equals("Pickup", StringComparison.OrdinalIgnoreCase) 
-                        ? (booking.PickupDate ?? DateTime.UtcNow) 
-                        : (booking.ReturnDate ?? booking.PickupDate?.AddDays(1) ?? DateTime.UtcNow),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _context.AddVehicleInspection(newInspection);
-                inspectionId = newInspection.InspectionId;
-            }
-            else
-            {
-                inspectionId = existingInspection.InspectionId;
-                if (!existingInspection.IsSubmitted)
-                {
-                    previousInspectorId = existingInspection.InspectorId;
-                    existingInspection.InspectorId = selectedInspectorUserId;
-                    existingInspection.Status = InspectionStatus.Pending;
-                    existingInspection.UpdatedAt = DateTime.UtcNow;
+                    var newInspection = new VehicleInspection
+                    {
+                        InspectionId = Guid.NewGuid(),
+                        BookingId = booking.Id,
+                        VehicleId = booking.VehicleId,
+                        InspectorId = selectedInspectorUserId,
+                        InspectionType = request.InspectionType,
+                        Status = InspectionStatus.Pending,
+                        InspectionDate = request.InspectionType.Equals("Pickup", StringComparison.OrdinalIgnoreCase)
+                            ? (booking.PickupDate ?? DateTime.UtcNow)
+                            : (booking.ReturnDate ?? booking.PickupDate?.AddDays(1) ?? DateTime.UtcNow),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.AddVehicleInspection(newInspection);
+                    inspectionId = newInspection.InspectionId;
                 }
-                else if (request.IsManual)
+                else
                 {
-                    throw new ConflictException("Cannot reassign an inspection that is already submitted.");
+                    inspectionId = existingInspection.InspectionId;
+                    if (!existingInspection.IsSubmitted)
+                    {
+                        previousInspectorId = existingInspection.InspectorId;
+                        existingInspection.InspectorId = selectedInspectorUserId;
+                        existingInspection.Status = InspectionStatus.Pending;
+                        existingInspection.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else if (request.IsManual)
+                    {
+                        throw new ConflictException("Cannot reassign an inspection that is already submitted.");
+                    }
                 }
-            }
 
-            // Keep the overall booking inspection status and assigned inspector updated (mostly tracking the latest assignment)
-            if (selectedInspectorUserId != null)
-            {
-                if (string.Equals(request.InspectionType, "Pickup", StringComparison.OrdinalIgnoreCase))
+                // Keep the overall booking inspection status and assigned inspector updated (mostly tracking the latest assignment)
+                if (selectedInspectorUserId != null)
                 {
-                    booking.AssignedInspectorId = selectedInspectorUserId;
+                    if (string.Equals(request.InspectionType, "Pickup", StringComparison.OrdinalIgnoreCase))
+                    {
+                        booking.AssignedInspectorId = selectedInspectorUserId;
+                    }
+                    booking.InspectionStatus = InspectionStatus.Pending;
+                    booking.UpdatedAt = DateTime.UtcNow;
                 }
-                booking.InspectionStatus = InspectionStatus.Pending;
-                booking.UpdatedAt = DateTime.UtcNow;
-            }
 
                 await _context.SaveChangesAsync(cancellationToken);
                 await tx.CommitAsync(cancellationToken);

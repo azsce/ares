@@ -216,11 +216,11 @@ public class BookingService : IBookingService
         if (request.DriverProfileId.HasValue)
         {
             effectiveNeedDriver = true;
-            
+
             // Validate the driver profile
             var driverProfile = await _context.DriverProfiles
                 .FirstOrDefaultAsync(dp => dp.Id == request.DriverProfileId.Value, cancellationToken);
-                
+
             if (driverProfile == null)
             {
                 throw new NotFoundException($"Driver profile with ID {request.DriverProfileId.Value} not found.");
@@ -229,7 +229,7 @@ public class BookingService : IBookingService
             {
                 throw new ConflictException("The selected driver is not active.");
             }
-            
+
             // The existing IsVerified check for Driver is in the Driver table, but driver profiles also have a Status
             if (driverProfile.Status != Backend.Domain.Entities.Enums.DriverProfileStatus.Verified)
             {
@@ -243,16 +243,16 @@ public class BookingService : IBookingService
                     throw new ConflictException("The selected driver is currently unavailable or locked.");
                 }
             }
-            
+
             // Use the repository method to check for overlaps if available, or do it directly
-            bool hasOverlap = await _context.Bookings.AnyAsync(b => 
+            bool hasOverlap = await _context.Bookings.AnyAsync(b =>
                 b.AssignedDriverProfileId == request.DriverProfileId.Value &&
                 b.Status != BookingStatus.Cancelled &&
                 b.Status != BookingStatus.Completed &&
                 b.Status != BookingStatus.Rejected &&
                 b.PickupDate < request.ReturnDate &&
                 b.ReturnDate > request.PickupDate, cancellationToken);
-                
+
             if (hasOverlap)
             {
                 throw new ConflictException("The selected driver has an overlapping booking during this period.");
@@ -297,7 +297,7 @@ public class BookingService : IBookingService
             HoldStartedAt = holdStartedAt,
             HoldExpiresAt = holdExpiresAt
         };
-        
+
         if (_driverPricingService != null && booking.RequiresDriver)
         {
             booking.Vehicle = vehicle; // Attach for calculation
@@ -621,7 +621,7 @@ public class BookingService : IBookingService
                 driverProfile.LockedUntil = null;
                 driverProfile.Availability = DriverAvailability.Available;
                 await _driverProfileRepository.UpdateAsync(driverProfile, cancellationToken);
-                
+
                 if (_notificationService != null)
                 {
                     await _notificationService.CreateNotificationAsync(
@@ -1065,7 +1065,7 @@ public class BookingService : IBookingService
             {
                 throw new ConflictException("The assigned driver is not available for the new dates.");
             }
-            
+
             var driverProfile = await _driverProfileRepository.GetByIdAsync(booking.AssignedDriverProfileId.Value, cancellationToken);
             if (driverProfile != null)
             {

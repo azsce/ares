@@ -62,15 +62,17 @@ public class SupplierServiceTests
         _supplierRepositoryMock.Setup(x => x.GetSuppliersAsync(page, pageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
-        // Setup roles and company profiles for each supplier
+        var userRolesMap = new Dictionary<Guid, List<string>>();
+        var companyProfilesMap = new Dictionary<Guid, CompanyProfile>();
         foreach (var supplier in suppliers.Take(pageSize))
         {
-            _userManagerMock.Setup(x => x.GetRolesAsync(supplier))
-                .ReturnsAsync(new List<string> { "Supplier" });
-
-            _supplierRepositoryMock.Setup(x => x.GetCompanyProfileAsync(supplier.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(CreateTestCompanyProfile(supplier.Id));
+            userRolesMap[supplier.Id] = new List<string> { "Supplier" };
+            companyProfilesMap[supplier.Id] = CreateTestCompanyProfile(supplier.Id);
         }
+        _userRepositoryMock.Setup(x => x.GetUserRolesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userRolesMap);
+        _supplierRepositoryMock.Setup(x => x.GetCompanyProfilesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(companyProfilesMap);
         // Act
         var result = await _supplierService.GetSuppliersAsync(page, pageSize);
 
@@ -114,14 +116,17 @@ public class SupplierServiceTests
         _supplierRepositoryMock.Setup(x => x.GetSuppliersAsync(expectedPage, expectedPageSize, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
+        var userRolesMap = new Dictionary<Guid, List<string>>();
+        var companyProfilesMap = new Dictionary<Guid, CompanyProfile>();
         foreach (var supplier in suppliers)
         {
-            _userManagerMock.Setup(x => x.GetRolesAsync(supplier))
-                .ReturnsAsync(new List<string> { "Supplier" });
-
-            _supplierRepositoryMock.Setup(x => x.GetCompanyProfileAsync(supplier.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(CreateTestCompanyProfile(supplier.Id));
+            userRolesMap[supplier.Id] = new List<string> { "Supplier" };
+            companyProfilesMap[supplier.Id] = CreateTestCompanyProfile(supplier.Id);
         }
+        _userRepositoryMock.Setup(x => x.GetUserRolesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userRolesMap);
+        _supplierRepositoryMock.Setup(x => x.GetCompanyProfilesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(companyProfilesMap);
 
         // Act
         var result = await _supplierService.GetSuppliersAsync(inputPage, inputPageSize);
@@ -175,29 +180,39 @@ public class SupplierServiceTests
         _supplierRepositoryMock.Setup(x => x.GetSuppliersAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
-        // Setup different roles and company profiles for each supplier
-        _userManagerMock.Setup(x => x.GetRolesAsync(suppliers[0]))
-            .ReturnsAsync(new List<string> { "Supplier", "Admin" });
-        _userManagerMock.Setup(x => x.GetRolesAsync(suppliers[1]))
-            .ReturnsAsync(new List<string> { "Supplier" });
+        var userRolesMap = new Dictionary<Guid, List<string>>
+        {
+            { suppliers[0].Id, new List<string> { "Supplier", "Admin" } },
+            { suppliers[1].Id, new List<string> { "Supplier" } }
+        };
+        _userRepositoryMock.Setup(x => x.GetUserRolesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userRolesMap);
 
-        _supplierRepositoryMock.Setup(x => x.GetCompanyProfileAsync(suppliers[0].Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CompanyProfile
+        var companyProfilesMap = new Dictionary<Guid, CompanyProfile>
+        {
             {
-                UserId = suppliers[0].Id,
-                CompanyName = "Test Company 1",
-                CommercialRegistrationNumber = "CR001",
-                TaxId = "TAX001"
-            });
-
-        _supplierRepositoryMock.Setup(x => x.GetCompanyProfileAsync(suppliers[1].Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CompanyProfile
+                suppliers[0].Id,
+                new CompanyProfile
+                {
+                    UserId = suppliers[0].Id,
+                    CompanyName = "Test Company 1",
+                    CommercialRegistrationNumber = "CR001",
+                    TaxId = "TAX001"
+                }
+            },
             {
-                UserId = suppliers[1].Id,
-                CompanyName = "Test Company 2",
-                CommercialRegistrationNumber = null,
-                TaxId = null
-            });
+                suppliers[1].Id,
+                new CompanyProfile
+                {
+                    UserId = suppliers[1].Id,
+                    CompanyName = "Test Company 2",
+                    CommercialRegistrationNumber = null,
+                    TaxId = null
+                }
+            }
+        };
+        _supplierRepositoryMock.Setup(x => x.GetCompanyProfilesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(companyProfilesMap);
 
         // Act
         var result = await _supplierService.GetSuppliersAsync();

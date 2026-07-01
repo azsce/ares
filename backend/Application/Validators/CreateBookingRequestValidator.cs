@@ -145,7 +145,7 @@ public class CreateBookingRequestValidator : AbstractValidator<CreateBookingRequ
 
             if (locationTerms.Count == 0) return false;
 
-            return vehicle.LocationCity != null && 
+            return vehicle.LocationCity != null &&
                    locationTerms.Contains(vehicle.LocationCity.Trim().ToLowerInvariant());
         }
 

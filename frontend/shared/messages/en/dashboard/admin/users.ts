@@ -295,6 +295,15 @@ const users: AdminUsersLabels = {
       unavailable: "Unavailable",
       reserved: "Reserved",
     },
+    supplierInformation: "Supplier Information",
+    commercialRegistration: "Commercial Registration",
+    taxNumber: "Tax Number",
+    vehiclesCount: "Vehicles Count",
+    totalBookings: "Total Bookings",
+    driverInformation: "Driver Information",
+    licenseExpiry: "License Expiry",
+    assignedBookings: "Assigned Bookings",
+    completedTrips: "Completed Trips",
   },
 };
 

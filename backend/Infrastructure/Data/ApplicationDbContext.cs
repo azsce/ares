@@ -87,9 +87,9 @@ namespace Backend.Infrastructure.Data
         IQueryable<TermsSection> IApplicationDbContext.TermsSections => TermsSections;
         IQueryable<AboutSection> IApplicationDbContext.AboutSections => AboutSections;
         IQueryable<PrivacySection> IApplicationDbContext.PrivacySections => PrivacySections;
-    IQueryable<Driver> IApplicationDbContext.Drivers => Drivers;
-    IQueryable<CompanyProfile> IApplicationDbContext.CompanyProfiles => CompanyProfiles;
-    // Driver Module (Phase 1+) — additive, see DriverProfile entity.
+        IQueryable<Driver> IApplicationDbContext.Drivers => Drivers;
+        IQueryable<CompanyProfile> IApplicationDbContext.CompanyProfiles => CompanyProfiles;
+        // Driver Module (Phase 1+) — additive, see DriverProfile entity.
         DbSet<DriverProfile> IApplicationDbContext.DriverProfiles => DriverProfiles;
         DbSet<DriverWorkArea> IApplicationDbContext.DriverWorkAreas => DriverWorkAreas;
         DbSet<ServiceArea> IApplicationDbContext.ServiceAreas => ServiceAreas;

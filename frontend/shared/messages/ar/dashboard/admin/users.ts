@@ -294,6 +294,15 @@ const users: AdminUsersLabels = {
       unavailable: "غير متوفر",
       reserved: "محجوز",
     },
+    supplierInformation: "معلومات المورد",
+    commercialRegistration: "السجل التجاري",
+    taxNumber: "الرقم الضريبي",
+    vehiclesCount: "عدد المركبات",
+    totalBookings: "إجمالي الحجوزات",
+    driverInformation: "معلومات السائق",
+    licenseExpiry: "تاريخ انتهاء الرخصة",
+    assignedBookings: "الحجوزات المعينة",
+    completedTrips: "الرحلات المكتملة",
   },
 };
 

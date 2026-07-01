@@ -74,10 +74,10 @@ namespace Backend.Infrastructure.BackgroundServices
         }
 
         private async Task ProcessPickupAssignmentsAsync(
-            IBookingRepository bookingRepository, 
-            IMediator mediator, 
+            IBookingRepository bookingRepository,
+            IMediator mediator,
             INotificationService notificationService,
-            DateTime targetTime, 
+            DateTime targetTime,
             CancellationToken cancellationToken)
         {
             var pendingBookings = (await bookingRepository.GetBookingsForPickupAutoAssignmentAsync(targetTime, cancellationToken)).ToList();
@@ -129,16 +129,16 @@ namespace Backend.Infrastructure.BackgroundServices
                     }
                 }
             }
-            
+
             _logger.LogInformation("Pickup Job Completion Summary: Processed: {Total}, Successes: {Successes}, Failures: {Failures}",
                 pendingBookings.Count, successCount, failureCount);
         }
 
         private async Task ProcessReturnAssignmentsAsync(
-            IBookingRepository bookingRepository, 
-            IMediator mediator, 
+            IBookingRepository bookingRepository,
+            IMediator mediator,
             INotificationService notificationService,
-            DateTime targetTime, 
+            DateTime targetTime,
             CancellationToken cancellationToken)
         {
             var pendingBookings = (await bookingRepository.GetBookingsForReturnAutoAssignmentAsync(targetTime, cancellationToken)).ToList();
@@ -190,7 +190,7 @@ namespace Backend.Infrastructure.BackgroundServices
                     }
                 }
             }
-            
+
             _logger.LogInformation("Return Job Completion Summary: Processed: {Total}, Successes: {Successes}, Failures: {Failures}",
                 pendingBookings.Count, successCount, failureCount);
         }

@@ -73,12 +73,13 @@ public class UserManagementServiceTests
         var emptyUsers = new List<ApplicationUser>().AsQueryable().BuildMockDbSet();
         _userManagerMock.Setup(x => x.Users).Returns(emptyUsers.Object);
 
-        // Setup roles for each user
+        var userRolesMap = new Dictionary<Guid, List<string>>();
         foreach (var user in users.Take(pageSize))
         {
-            _userManagerMock.Setup(x => x.GetRolesAsync(user))
-                .ReturnsAsync(new List<string> { "Customer" });
+            userRolesMap[user.Id] = new List<string> { "Customer" };
         }
+        _userRepositoryMock.Setup(x => x.GetUserRolesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userRolesMap);
 
         var result = await _userManagementService.GetUsersAsync(page, pageSize);
         // Assert
@@ -130,11 +131,13 @@ public class UserManagementServiceTests
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
+        var userRolesMap = new Dictionary<Guid, List<string>>();
         foreach (var user in users)
         {
-            _userManagerMock.Setup(x => x.GetRolesAsync(user))
-                .ReturnsAsync(new List<string> { "Customer" });
+            userRolesMap[user.Id] = new List<string> { "Customer" };
         }
+        _userRepositoryMock.Setup(x => x.GetUserRolesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userRolesMap);
 
         // Act
         var result = await _userManagementService.GetUsersAsync(inputPage, inputPageSize);
@@ -204,10 +207,13 @@ public class UserManagementServiceTests
             .ReturnsAsync(pagedResult);
 
         // Setup different roles for each user
-        _userManagerMock.Setup(x => x.GetRolesAsync(users[0]))
-            .ReturnsAsync(new List<string> { "Admin", "Customer" });
-        _userManagerMock.Setup(x => x.GetRolesAsync(users[1]))
-            .ReturnsAsync(new List<string> { "Supplier" });
+        var userRolesMap = new Dictionary<Guid, List<string>>
+        {
+            { users[0].Id, new List<string> { "Admin", "Customer" } },
+            { users[1].Id, new List<string> { "Supplier" } }
+        };
+        _userRepositoryMock.Setup(x => x.GetUserRolesAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userRolesMap);
 
         // Act
         var result = await _userManagementService.GetUsersAsync();

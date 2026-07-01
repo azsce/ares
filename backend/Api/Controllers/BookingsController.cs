@@ -69,9 +69,9 @@ public class BookingsController : ControllerBase
         // Server-side validation of customer user role and active status
         var customerUserId = request.CustomerUserId ?? userId;
         var customerUser = await _userManager.FindByIdAsync(customerUserId.ToString());
-        if (customerUser == null || 
-            customerUser.Status != "Active" || 
-            !await _userManager.IsInRoleAsync(customerUser, "Customer") || 
+        if (customerUser == null ||
+            customerUser.Status != "Active" ||
+            !await _userManager.IsInRoleAsync(customerUser, "Customer") ||
             (await _userManager.GetRolesAsync(customerUser)).Any(r => r != "Customer"))
         {
             return BadRequest(new
@@ -639,7 +639,7 @@ public class AdminBookingsController : ControllerBase
         if (limit < 1) limit = 1;
         if (limit > 50) limit = 50;
 
-        var query = _context.Vehicles.Where(v => v.IsActive 
+        var query = _context.Vehicles.Where(v => v.IsActive
             && v.AvailabilityStatus == "Available"
             && v.Status != "Retired"
             && v.Status != "Maintenance"

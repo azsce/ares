@@ -146,10 +146,10 @@ namespace Backend.Tests.UnitTests
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
             var errorObj = badRequestResult.Value;
-            
+
             var successValue = GetPropertyValue(errorObj, "success");
             var messageValue = GetPropertyValue(errorObj, "message");
-            
+
             Assert.NotNull(successValue);
             Assert.NotNull(messageValue);
             Assert.False((bool)successValue);
@@ -193,10 +193,10 @@ namespace Backend.Tests.UnitTests
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
             var errorObj = badRequestResult.Value;
-            
+
             var successValue = GetPropertyValue(errorObj, "success");
             var messageValue = GetPropertyValue(errorObj, "message");
-            
+
             Assert.NotNull(successValue);
             Assert.NotNull(messageValue);
             Assert.False((bool)successValue);
@@ -242,10 +242,10 @@ namespace Backend.Tests.UnitTests
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
             var errorObj = badRequestResult.Value;
-            
+
             var successValue = GetPropertyValue(errorObj, "success");
             var messageValue = GetPropertyValue(errorObj, "message");
-            
+
             Assert.NotNull(successValue);
             Assert.NotNull(messageValue);
             Assert.False((bool)successValue);

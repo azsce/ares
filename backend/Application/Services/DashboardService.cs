@@ -41,8 +41,8 @@ public class DashboardService : IDashboardService
             .ToListAsync(cancellationToken);
 
         var availableVehicles = await _context.Vehicles
-            .CountAsync(v => v.IsActive && 
-                             v.AvailabilityStatus == "Available" && 
+            .CountAsync(v => v.IsActive &&
+                             v.AvailabilityStatus == "Available" &&
                              !activeBookedVehicleIds.Contains(v.Id), cancellationToken);
 
         var pendingInspections = await _context.Bookings
@@ -291,7 +291,7 @@ public class DashboardService : IDashboardService
     public async Task<IReadOnlyList<RevenueDataPointDto>> GetRevenueWeekAsync(Guid? supplierId, CancellationToken cancellationToken = default)
     {
         var startDate = DateTime.UtcNow.Date.AddDays(-6);
-        
+
         var query = _context.Bookings
             .Where(b => b.CreatedAt >= startDate && (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed));
 
@@ -327,7 +327,7 @@ public class DashboardService : IDashboardService
         }
 
         var totalActiveRentals = await query.CountAsync(b => b.Status == BookingStatus.Active, cancellationToken);
-        
+
         // Mock the connected phones based on active rentals for now
         var connectedPhones = (int)Math.Round(totalActiveRentals * 0.9);
 
@@ -404,6 +404,12 @@ public class DashboardService : IDashboardService
             startDate = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             endDate = new DateTime(now.Year, 12, 31, 23, 59, 59, DateTimeKind.Utc);
         }
+        else if (string.Equals(filter, "LastMonth", StringComparison.OrdinalIgnoreCase))
+        {
+            var lastMonthDate = now.AddMonths(-1);
+            startDate = new DateTime(lastMonthDate.Year, lastMonthDate.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            endDate = new DateTime(lastMonthDate.Year, lastMonthDate.Month, DateTime.DaysInMonth(lastMonthDate.Year, lastMonthDate.Month), 23, 59, 59, DateTimeKind.Utc);
+        }
         else // default to ThisMonth
         {
             startDate = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -435,8 +441,8 @@ public class DashboardService : IDashboardService
                 PlatformRevenue = g.Sum(x => (x.Booking.Status == BookingStatus.Confirmed || x.Booking.Status == BookingStatus.Active || x.Booking.Status == BookingStatus.Completed) ? (x.Booking.CommissionAmount ?? 0) : 0),
                 SupplierRevenue = g.Sum(x => (x.Booking.Status == BookingStatus.Confirmed || x.Booking.Status == BookingStatus.Active || x.Booking.Status == BookingStatus.Completed) ? (x.Booking.SupplierAmount ?? x.Booking.TotalPrice ?? 0) : 0),
                 Bookings = g.Sum(x => (x.Booking.Status == BookingStatus.Confirmed || x.Booking.Status == BookingStatus.Active || x.Booking.Status == BookingStatus.Completed) ? (x.Booking.TotalPrice ?? 0) : 0),
-                Refunds = g.Sum(x => x.Booking.Status == BookingStatus.Cancelled && x.Cancellation != null 
-                    ? x.Cancellation.RefundAmount 
+                Refunds = g.Sum(x => x.Booking.Status == BookingStatus.Cancelled && x.Cancellation != null
+                    ? x.Cancellation.RefundAmount
                     : 0)
             })
             .OrderBy(x => x.Date)
@@ -599,7 +605,8 @@ public class DashboardService : IDashboardService
         var totalPaymentsAmount = paymentsInPeriod.Sum(p => p.Amount);
         var paymentMethods = paymentsInPeriod
             .GroupBy(p => p.PaymentMethod?.ToLower() ?? "other")
-            .Select(g => {
+            .Select(g =>
+            {
                 var rawMethod = g.Key;
                 var displayName = rawMethod switch
                 {
@@ -631,14 +638,15 @@ public class DashboardService : IDashboardService
             .Take(5)
             .ToListAsync(cancellationToken);
 
-        var recentPayments = recentPaymentsDb.Select(p => {
-            var customerName = p.Booking?.User != null 
-                ? $"{p.Booking.User.FirstName} {p.Booking.User.LastName}".Trim() 
+        var recentPayments = recentPaymentsDb.Select(p =>
+        {
+            var customerName = p.Booking?.User != null
+                ? $"{p.Booking.User.FirstName} {p.Booking.User.LastName}".Trim()
                 : "Unknown Customer";
-            var vehicleName = p.Booking?.Vehicle != null 
-                ? $"{p.Booking.Vehicle.Make} {p.Booking.Vehicle.Model}" 
+            var vehicleName = p.Booking?.Vehicle != null
+                ? $"{p.Booking.Vehicle.Make} {p.Booking.Vehicle.Model}"
                 : "Unknown Vehicle";
-            var bookingNum = p.Booking?.BookingNumber 
+            var bookingNum = p.Booking?.BookingNumber
                 ?? "#" + p.BookingId.ToString()[..8].ToUpperInvariant();
             return new RecentPaymentDto(
                 BookingNumber: bookingNum,
@@ -702,12 +710,13 @@ public class DashboardService : IDashboardService
             .Where(u => supplierIdsInPeriod.Contains(u.Id))
             .ToListAsync(cancellationToken);
 
-        var supplierEarnings = supplierIdsInPeriod.Select(supplierId => {
+        var supplierEarnings = supplierIdsInPeriod.Select(supplierId =>
+        {
             var supplierUser = users.FirstOrDefault(u => u.Id == supplierId);
             var supplierName = companyProfilesDict.TryGetValue(supplierId, out var cName)
                 ? cName
                 : (supplierUser != null ? $"{supplierUser.FirstName} {supplierUser.LastName}".Trim() : "Unknown Supplier");
-            
+
             if (string.IsNullOrEmpty(supplierName))
             {
                 supplierName = supplierUser?.Email ?? "Unknown Supplier";
@@ -715,7 +724,7 @@ public class DashboardService : IDashboardService
 
             var supplierVehicles = activeVehicles.Count(v => v.UserId == supplierId);
             var supplierBookings = completedBookings.Where(b => b.Vehicle!.UserId == supplierId).ToList();
-            
+
             var revenue = supplierBookings.Sum(b => b.TotalPrice ?? 0m);
             var commission = supplierBookings.Sum(b => b.CommissionAmount ?? (b.TotalPrice ?? 0m) * 0.15m);
             var netAmount = revenue - commission;
