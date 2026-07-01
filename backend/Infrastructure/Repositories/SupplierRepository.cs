@@ -102,4 +102,44 @@ public class SupplierRepository : PaginatedRepository<ApplicationUser>, ISupplie
         await _context.SaveChangesAsync(cancellationToken);
         return existingProfile ?? companyProfile;
     }
+
+    public async Task<Dictionary<Guid, CompanyProfile>> GetCompanyProfilesAsync(
+        IEnumerable<Guid> supplierIds,
+        CancellationToken cancellationToken = default)
+    {
+        var idList = supplierIds.ToList();
+        if (idList.Count == 0) return new Dictionary<Guid, CompanyProfile>();
+
+        return await _context.CompanyProfiles
+            .Where(cp => idList.Contains(cp.UserId))
+            .ToDictionaryAsync(cp => cp.UserId, cancellationToken);
+    }
+
+    public async Task<Dictionary<Guid, int>> GetVehicleCountsAsync(
+        IEnumerable<Guid> supplierIds,
+        CancellationToken cancellationToken = default)
+    {
+        var idList = supplierIds.ToList();
+        if (idList.Count == 0) return new Dictionary<Guid, int>();
+
+        return await _context.Vehicles
+            .Where(v => idList.Contains(v.UserId))
+            .GroupBy(v => v.UserId)
+            .Select(g => new { UserId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.UserId, x => x.Count, cancellationToken);
+    }
+
+    public async Task<Dictionary<Guid, int>> GetBookingCountsAsync(
+        IEnumerable<Guid> supplierIds,
+        CancellationToken cancellationToken = default)
+    {
+        var idList = supplierIds.ToList();
+        if (idList.Count == 0) return new Dictionary<Guid, int>();
+
+        return await _context.Bookings
+            .Where(b => b.Vehicle != null && idList.Contains(b.Vehicle.UserId))
+            .GroupBy(b => b.Vehicle!.UserId)
+            .Select(g => new { UserId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.UserId, x => x.Count, cancellationToken);
+    }
 }

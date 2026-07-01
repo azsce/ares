@@ -16,5 +16,8 @@ public record UserManagementDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     string? DateOfBirth = null,
-    string? AvatarUrl = null
+    string? AvatarUrl = null,
+    string? CompanyName = null,
+    int? VehiclesCount = null,
+    int? TotalBookings = null
 );

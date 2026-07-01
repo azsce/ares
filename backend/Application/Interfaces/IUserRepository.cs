@@ -26,4 +26,11 @@ public interface IUserRepository : IPaginatedRepository<ApplicationUser>
     Task<bool> EmailExistsAsync(
         string email,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets roles for multiple users in a single batched query
+    /// </summary>
+    Task<Dictionary<Guid, List<string>>> GetUserRolesAsync(
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default);
 }

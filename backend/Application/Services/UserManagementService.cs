@@ -22,6 +22,7 @@ public class UserManagementService : IUserManagementService
     private readonly ISupplierRestrictionService _supplierRestrictionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IApplicationDbContext _context;
+    private readonly ISupplierService? _supplierService;
 
     private string? FormatDateOfBirth(DateTime? date) =>
         date.HasValue ? date.Value.ToString("yyyy-MM-dd") : null;
@@ -52,7 +53,8 @@ public class UserManagementService : IUserManagementService
         ILogger<UserManagementService> logger,
         ISupplierRestrictionService supplierRestrictionService,
         IHttpContextAccessor httpContextAccessor,
-        IApplicationDbContext context)
+        IApplicationDbContext context,
+        ISupplierService? supplierService = null)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -61,6 +63,7 @@ public class UserManagementService : IUserManagementService
         _supplierRestrictionService = supplierRestrictionService;
         _httpContextAccessor = httpContextAccessor;
         _context = context;
+        _supplierService = supplierService;
     }
 
     public async Task<UserStatsDto> GetUserStatsAsync(CancellationToken cancellationToken = default)
@@ -184,11 +187,14 @@ public class UserManagementService : IUserManagementService
             orderBy: query => query.OrderBy(u => u.CreatedAt),
             cancellationToken);
 
+        var userIds = pagedUsers.Data.Select(u => u.Id).ToList();
+        var userRolesMap = await _userRepository.GetUserRolesAsync(userIds, cancellationToken);
+
         // Convert to DTOs
         var userDtos = new List<UserManagementDto>();
         foreach (var user in pagedUsers.Data)
         {
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = userRolesMap.GetValueOrDefault(user.Id, new List<string>());
             var userDto = new UserManagementDto(
                 Id: user.Id,
                 Email: user.Email ?? string.Empty,
@@ -198,7 +204,7 @@ public class UserManagementService : IUserManagementService
                 EmailConfirmed: user.EmailConfirmed,
                 PhoneNumberConfirmed: user.PhoneNumberConfirmed,
                 Status: user.Status,
-                Roles: roles.ToList(),
+                Roles: roles,
                 CreatedAt: user.CreatedAt,
                 UpdatedAt: user.UpdatedAt,
                 DateOfBirth: FormatDateOfBirth(user.DateOfBirth),
@@ -206,6 +212,12 @@ public class UserManagementService : IUserManagementService
             );
             userDtos.Add(userDto);
         }
+
+        if (filter != null && !string.IsNullOrWhiteSpace(filter.Role) && filter.Role.Equals("Supplier", StringComparison.OrdinalIgnoreCase) && _supplierService != null)
+        {
+            userDtos = await _supplierService.EnrichSuppliersAsync(userDtos, cancellationToken);
+        }
+
         return new UserManagementListResponse(
             userDtos,
             pagedUsers.Page,
@@ -250,6 +262,12 @@ public class UserManagementService : IUserManagementService
             DateOfBirth: FormatDateOfBirth(user.DateOfBirth),
             AvatarUrl: BuildAvatarUrl(user.ProfileImage)
         );
+
+        if (roles.Contains("Supplier", StringComparer.OrdinalIgnoreCase) && _supplierService != null)
+        {
+            var enrichedList = await _supplierService.EnrichSuppliersAsync(new List<UserManagementDto> { userDto }, cancellationToken);
+            userDto = enrichedList.FirstOrDefault() ?? userDto;
+        }
 
         _logger.LogInformation("Successfully retrieved user {UserId}", userId);
         return userDto;
