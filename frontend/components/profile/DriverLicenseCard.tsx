@@ -8,6 +8,8 @@ import ErrorOutlinedRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import DriveEtaRoundedIcon from "@mui/icons-material/DriveEtaRounded";
 import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
+import { formatUtcDate, formatUtcDateTime } from "@/utils/dateTime";
 
 import {
   getMyDriverLicense,
@@ -30,11 +32,14 @@ interface DriverLicenseCardProps {
 
 type LoadState = "loading" | "ready" | "error";
 
-function formatDate(value: string | null | undefined): string {
+function formatDate(value: string | null | undefined, locale: string): string {
   if (!value) return "";
-  const date = new Date(value);
-  if (isNaN(date.getTime())) return "";
-  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return formatUtcDate(value, locale, { year: "numeric", month: "short", day: "numeric" }, "");
+}
+
+function formatDateTime(value: string | null | undefined, locale: string): string {
+  if (!value) return "";
+  return formatUtcDateTime(value, locale, { year: "numeric", month: "short", day: "numeric" }, "");
 }
 
 function deriveState(license: DriverLicenseDto | null): DriverLicenseVerificationState {
@@ -54,6 +59,7 @@ export default function DriverLicenseCard({
   onSubmitted,
 }: DriverLicenseCardProps) {
   const t = useTranslations("customer.accountProfile");
+  const locale = useLocale();
   const [internalState, setInternalState] = useState<LoadState>("loading");
   const [internalLicense, setInternalLicense] = useState<DriverLicenseDto | null>(null);
   const [internalLoadError, setInternalLoadError] = useState<string>("");
@@ -176,7 +182,7 @@ export default function DriverLicenseCard({
                 />
                 {license?.licenseExpiryDate && (
                   <Typography variant="caption" color="text.secondary">
-                    {t("driverLicense.expires")} {formatDate(license.licenseExpiryDate)}
+                    {t("driverLicense.expires")} {formatDate(license.licenseExpiryDate, locale)}
                   </Typography>
                 )}
               </Box>
@@ -199,7 +205,7 @@ export default function DriverLicenseCard({
                 />
                 {license?.licenseExpiryDate && (
                   <Typography variant="caption" color="text.secondary">
-                    {t("driverLicense.expires")} {formatDate(license.licenseExpiryDate)}
+                    {t("driverLicense.expires")} {formatDate(license.licenseExpiryDate, locale)}
                   </Typography>
                 )}
               </Box>
@@ -208,7 +214,7 @@ export default function DriverLicenseCard({
               </Typography>
               {license?.submittedAt && (
                 <Typography variant="caption" color="text.secondary">
-                  {t("driverLicense.submitted")} {formatDate(license.submittedAt)}
+                  {t("driverLicense.submitted")} {formatDateTime(license.submittedAt, locale)}
                 </Typography>
               )}
             </>
