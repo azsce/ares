@@ -23,6 +23,7 @@ public class UserManagementService : IUserManagementService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IApplicationDbContext _context;
     private readonly ISupplierService? _supplierService;
+    private readonly IDriverService? _driverService;
 
     private string? FormatDateOfBirth(DateTime? date) =>
         date.HasValue ? date.Value.ToString("yyyy-MM-dd") : null;
@@ -54,7 +55,8 @@ public class UserManagementService : IUserManagementService
         ISupplierRestrictionService supplierRestrictionService,
         IHttpContextAccessor httpContextAccessor,
         IApplicationDbContext context,
-        ISupplierService? supplierService = null)
+        ISupplierService? supplierService = null,
+        IDriverService? driverService = null)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -64,6 +66,7 @@ public class UserManagementService : IUserManagementService
         _httpContextAccessor = httpContextAccessor;
         _context = context;
         _supplierService = supplierService;
+        _driverService = driverService;
     }
 
     public async Task<UserStatsDto> GetUserStatsAsync(CancellationToken cancellationToken = default)
@@ -194,7 +197,7 @@ public class UserManagementService : IUserManagementService
         var userDtos = new List<UserManagementDto>();
         foreach (var user in pagedUsers.Data)
         {
-            var roles = userRolesMap.GetValueOrDefault(user.Id, new List<string>());
+            var roles = userRolesMap != null ? userRolesMap.GetValueOrDefault(user.Id, new List<string>()) : new List<string>();
             var userDto = new UserManagementDto(
                 Id: user.Id,
                 Email: user.Email ?? string.Empty,
@@ -216,6 +219,11 @@ public class UserManagementService : IUserManagementService
         if (filter != null && !string.IsNullOrWhiteSpace(filter.Role) && filter.Role.Equals("Supplier", StringComparison.OrdinalIgnoreCase) && _supplierService != null)
         {
             userDtos = await _supplierService.EnrichSuppliersAsync(userDtos, cancellationToken);
+        }
+        
+        if (filter != null && !string.IsNullOrWhiteSpace(filter.Role) && filter.Role.Equals("Driver", StringComparison.OrdinalIgnoreCase) && _driverService != null)
+        {
+            userDtos = await _driverService.EnrichDriversAsync(userDtos, cancellationToken);
         }
 
         return new UserManagementListResponse(
@@ -266,6 +274,12 @@ public class UserManagementService : IUserManagementService
         if (roles.Contains("Supplier", StringComparer.OrdinalIgnoreCase) && _supplierService != null)
         {
             var enrichedList = await _supplierService.EnrichSuppliersAsync(new List<UserManagementDto> { userDto }, cancellationToken);
+            userDto = enrichedList.FirstOrDefault() ?? userDto;
+        }
+        
+        if (roles.Contains("Driver", StringComparer.OrdinalIgnoreCase) && _driverService != null)
+        {
+            var enrichedList = await _driverService.EnrichDriversAsync(new List<UserManagementDto> { userDto }, cancellationToken);
             userDto = enrichedList.FirstOrDefault() ?? userDto;
         }
 

@@ -1,6 +1,7 @@
 using Backend.Application.DTOs.Common;
 using Backend.Application.DTOs.Supplier;
 using Backend.Application.DTOs.Public;
+using Backend.Application.DTOs.UserManagement;
 using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -71,8 +72,12 @@ public class SupplierService : ISupplierService
         var supplierDtos = new List<SupplierManagementDto>();
         foreach (var supplier in pagedSuppliers.Data)
         {
-            var roles = userRolesMap.GetValueOrDefault(supplier.Id, new List<string>());
-            companyProfilesMap.TryGetValue(supplier.Id, out var companyProfile);
+            var roles = userRolesMap != null ? userRolesMap.GetValueOrDefault(supplier.Id, new List<string>()) : new List<string>();
+            CompanyProfile companyProfile = null;
+            if (companyProfilesMap != null)
+            {
+                companyProfilesMap.TryGetValue(supplier.Id, out companyProfile);
+            }
 
             var companyProfileDto = companyProfile != null
                 ? new CompanyProfileDto(
@@ -178,7 +183,11 @@ public class SupplierService : ISupplierService
 
         foreach (var supplier in pagedSuppliers.Data)
         {
-            companyProfilesMap.TryGetValue(supplier.Id, out var companyProfile);
+            CompanyProfile companyProfile = null;
+            if (companyProfilesMap != null)
+            {
+                companyProfilesMap.TryGetValue(supplier.Id, out companyProfile);
+            }
             supplierDtos.Add(new PublicSupplierDto(
                 Id: supplier.Id,
                 CompanyName: companyProfile?.CompanyName ?? $"{supplier.FirstName} {supplier.LastName}".Trim(),
@@ -465,11 +474,19 @@ public class SupplierService : ISupplierService
         var bookingCounts = await _supplierRepository.GetBookingCountsAsync(userIds, cancellationToken);
 
         // Map to enriched DTOs
-        return users.Select(u => u with
+        return users.Select(u =>
         {
-            CompanyName = companyProfiles.TryGetValue(u.Id, out var cp) ? cp.CompanyName : null,
-            VehiclesCount = vehicleCounts.TryGetValue(u.Id, out var vCount) ? vCount : 0,
-            TotalBookings = bookingCounts.TryGetValue(u.Id, out var bCount) ? bCount : 0
+            companyProfiles.TryGetValue(u.Id, out var cp);
+            return u with
+            {
+                SupplierDetails = new SupplierDetailsDto(
+                    CompanyName: cp?.CompanyName,
+                    CommercialRegistration: cp?.CommercialRegistrationNumber,
+                    TaxNumber: cp?.TaxId,
+                    VehiclesCount: vehicleCounts.TryGetValue(u.Id, out var vCount) ? vCount : 0,
+                    TotalBookings: bookingCounts.TryGetValue(u.Id, out var bCount) ? bCount : 0
+                )
+            };
         }).ToList();
     }
 }
