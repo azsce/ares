@@ -58,9 +58,10 @@ interface UserMobileCardProps {
   readonly theme: Theme;
   readonly fetchUsers: () => void;
   readonly onRequestDelete: (u: User) => void;
+  readonly activeTab: string;
 }
 
-function UserMobileCard({ u, theme, fetchUsers, onRequestDelete }: UserMobileCardProps) {
+function UserMobileCard({ u, theme, fetchUsers, onRequestDelete, activeTab }: UserMobileCardProps) {
   const status = (u.status || "").toLowerCase();
   const isActive = status === "active";
 
@@ -125,13 +126,39 @@ function UserMobileCard({ u, theme, fetchUsers, onRequestDelete }: UserMobileCar
         />
       </Stack>
 
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ textTransform: "capitalize", display: "block", mb: 1.5 }}
-      >
-        Role: <strong>{u.roles.join(", ") || "—"}</strong>
-      </Typography>
+      {activeTab === "suppliers" ? (
+        <Stack spacing={0.5} sx={{ mb: 1.5 }}>
+          <Typography variant="caption" color="text.secondary">
+            Company: <strong>{(u.supplierDetails?.companyName as string) || "—"}</strong>
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Vehicles: <strong>{u.supplierDetails?.vehiclesCount ?? 0}</strong>
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Total Bookings: <strong>{u.supplierDetails?.totalBookings ?? 0}</strong>
+          </Typography>
+        </Stack>
+      ) : activeTab === "drivers" ? (
+        <Stack spacing={0.5} sx={{ mb: 1.5 }}>
+          <Typography variant="caption" color="text.secondary">
+            License: <strong>{(u.driverDetails?.licenseNumber as string) || "—"}</strong>
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Completed Trips: <strong>{u.driverDetails?.completedTrips ?? 0}</strong>
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Availability: <strong>{(u.driverDetails?.availability as string) || "—"}</strong>
+          </Typography>
+        </Stack>
+      ) : (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ textTransform: "capitalize", display: "block", mb: 1.5 }}
+        >
+          Role: <strong>{u.roles.join(", ") || "—"}</strong>
+        </Typography>
+      )}
 
       <Stack direction="row" spacing={1}>
         <Tooltip title="View">
@@ -174,6 +201,190 @@ function UserMobileCard({ u, theme, fetchUsers, onRequestDelete }: UserMobileCar
   );
 }
 
+interface UserTableRowProps {
+  readonly u: User;
+  readonly activeTab: string;
+  readonly isActive: boolean;
+  readonly handleStatusToggle: (userId: string) => Promise<void>;
+  readonly requestDelete: (u: User) => void;
+}
+
+function UserTableRow({ u, activeTab, isActive, handleStatusToggle, requestDelete }: UserTableRowProps) {
+  const status = (u.status || "").toLowerCase();
+
+  return (
+    <TableRow
+      hover
+      sx={{
+        transition: "background 0.2s ease",
+        "&:last-child td": { border: 0 },
+        "&:hover": { bgcolor: "action.hover" },
+      }}
+    >
+      <TableCell sx={{ pl: 3, py: 2 }}>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <Avatar
+            src={(u.avatarUrl as string) || undefined}
+            sx={{
+              bgcolor: t => alpha(t.palette.primary.main, 0.08),
+              color: "primary.main",
+              fontWeight: 700,
+              width: 44,
+              height: 44,
+              fontSize: 16,
+            }}
+          >
+            {u.firstName[0]}
+            {u.lastName[0]}
+          </Avatar>
+          <Box>
+            <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+              {u.firstName} {u.lastName}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {u.email}
+            </Typography>
+          </Box>
+        </Stack>
+      </TableCell>
+
+      {activeTab === "suppliers" ? (
+        <>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {(u.supplierDetails?.companyName as string) || "—"}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {(u.supplierDetails?.vehiclesCount as number | null | undefined) ?? 0}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {(u.supplierDetails?.totalBookings as number | null | undefined) ?? 0}
+            </Typography>
+          </TableCell>
+        </>
+      ) : activeTab === "drivers" ? (
+        <>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {(u.driverDetails?.licenseNumber as string) || "—"}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {(u.driverDetails?.completedTrips as number | null | undefined) ?? 0}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {(u.driverDetails?.availability as string) || "—"}
+            </Typography>
+          </TableCell>
+        </>
+      ) : (
+        <>
+          <TableCell sx={{ py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {u.phoneNumber || "—"}
+            </Typography>
+          </TableCell>
+          <TableCell sx={{ py: 2 }}>
+            <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }} useFlexGap>
+              {u.roles.map(r => (
+                <Chip
+                  key={r}
+                  label={r}
+                  size="small"
+                  sx={{
+                    textTransform: "capitalize",
+                    bgcolor: t => alpha(t.palette.info.main, 0.1),
+                    color: "info.main",
+                    fontWeight: 600,
+                    fontSize: 12,
+                    borderRadius: 1.5,
+                  }}
+                />
+              ))}
+              {u.roles.length === 0 && "—"}
+            </Stack>
+          </TableCell>
+        </>
+      )}
+
+      <TableCell sx={{ py: 2 }}>
+        <Chip
+          label={status}
+          size="small"
+          sx={{
+            textTransform: "capitalize",
+            borderRadius: 1.5,
+            bgcolor: isActive
+              ? t => alpha(t.palette.success.main, 0.15)
+              : t => alpha(t.palette.error.main, 0.15),
+            color: isActive ? "success.main" : "error.main",
+            fontWeight: 600,
+            fontSize: 12,
+          }}
+        />
+      </TableCell>
+
+      <TableCell sx={{ py: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          {u.createdAt ? new Date(u.createdAt as string).toLocaleDateString() : "—"}
+        </Typography>
+      </TableCell>
+
+      <TableCell align="right" sx={{ pr: 3, py: 2 }}>
+        <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
+          <Tooltip title="View">
+            <IconButton component={Link} href={`/admin/users/${u.id}`} size="small">
+              <VisibilityOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Edit">
+            <IconButton
+              component={Link}
+              href={`/admin/users/${u.id}/edit`}
+              size="small"
+              sx={{ display: { xs: "none", sm: "inline-flex" } }}
+            >
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={isActive ? "Block User" : "Activate User"}>
+            <IconButton
+              size="small"
+              onClick={() => {
+                void handleStatusToggle(u.id);
+              }}
+              sx={{ color: isActive ? "error.main" : "success.main" }}
+            >
+              {isActive ? <BlockIcon fontSize="small" /> : <CheckCircleIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Delete User">
+            <IconButton
+              size="small"
+              onClick={() => {
+                requestDelete(u);
+              }}
+              sx={{ color: "error.main" }}
+            >
+              <DeleteOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 import type { UserStats } from "@/api-clients/users/users";
 
 interface UsersTabProps {
@@ -200,19 +411,19 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
 
   const [roleFilter, setRoleFilter] = useState(roleMap[activeTab] || "all");
 
-  useEffect(() => {
-    setRoleFilter(roleMap[activeTab] || "all");
-    setPage(1);
-  }, [activeTab]);
-
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(timer);
+    setRoleFilter(roleMap[activeTab] || "all");
+    setPage(1);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setDebouncedSearch(search); }, 300);
+    return () => { clearTimeout(timer); };
   }, [search]);
 
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
@@ -234,7 +445,7 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
         status: statusFilter,
       });
 
-      const normalized: User[] = (data.items || []).map(u => ({
+      const normalized: User[] = data.items.map(u => ({
         ...u,
         status: (u.status || "").toLowerCase(),
         roles: Array.isArray(u.roles)
@@ -246,9 +457,7 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
       setTotalCount(data.totalCount || 0);
       setTotalPages(data.totalPages || 1);
 
-      if (data.stats && onStatsUpdated) {
-        onStatsUpdated(data.stats);
-      }
+      onStatsUpdated(data.stats);
     } catch (err) {
       logger.error("Failed to fetch users", err);
     } finally {
@@ -305,6 +514,15 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
       setDeleting(false);
     }
   }, [deleteTarget, fetchUsers]);
+
+  const handleStatusToggle = useCallback(async (userId: string) => {
+    try {
+      await toggleUserStatus(userId);
+      await fetchUsers();
+    } catch (err) {
+      logger.error("Failed to toggle status", err);
+    }
+  }, [fetchUsers]);
 
   const pageData = users;
 
@@ -412,6 +630,7 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
                       void fetchUsers();
                     }}
                     onRequestDelete={requestDelete}
+                    activeTab={activeTab}
                   />
                 ))
               ) : (
@@ -465,11 +684,27 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
                       },
                     }}
                   >
-                    <TableCell sx={{ pl: 3 }}>User</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>Role</TableCell>
+                    <TableCell sx={{ pl: 3 }}>{activeTab === "suppliers" ? "Supplier" : "User"}</TableCell>
+                    {activeTab === "suppliers" ? (
+                      <>
+                        <TableCell>Company</TableCell>
+                        <TableCell>Vehicles</TableCell>
+                        <TableCell>Total Bookings</TableCell>
+                      </>
+                    ) : activeTab === "drivers" ? (
+                      <>
+                        <TableCell>License</TableCell>
+                        <TableCell>Completed Trips</TableCell>
+                        <TableCell>Availability</TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell>Phone</TableCell>
+                        <TableCell>Role</TableCell>
+                      </>
+                    )}
                     <TableCell>Status</TableCell>
-                    <TableCell>Created</TableCell>
+                    <TableCell>{activeTab === "suppliers" ? "Joined" : "Created"}</TableCell>
                     <TableCell align="right" sx={{ pr: 3 }}>
                       Actions
                     </TableCell>
@@ -481,148 +716,15 @@ export default function UsersTab({ activeTab, onStatsUpdated }: UsersTabProps) {
                     pageData.map(u => {
                       const status = (u.status || "").toLowerCase();
                       const isActive = status === "active";
-
-                      const handleStatusClick = async () => {
-                        try {
-                          await toggleUserStatus(u.id);
-                          await fetchUsers();
-                        } catch (err) {
-                          logger.error("Failed to toggle status", err);
-                        }
-                      };
-
                       return (
-                        <TableRow
+                        <UserTableRow
                           key={u.id}
-                          hover
-                          sx={{
-                            transition: "background 0.2s ease",
-                            "&:last-child td": { border: 0 },
-                            "&:hover": { bgcolor: "action.hover" },
-                          }}
-                        >
-                          <TableCell sx={{ pl: 3, py: 2 }}>
-                            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-                              <Avatar
-                                src={(u.avatarUrl as string) || undefined}
-                                sx={{
-                                  bgcolor: t => alpha(t.palette.primary.main, 0.08),
-                                  color: "primary.main",
-                                  fontWeight: 700,
-                                  width: 44,
-                                  height: 44,
-                                  fontSize: 16,
-                                }}
-                              >
-                                {u.firstName[0]}
-                                {u.lastName[0]}
-                              </Avatar>
-                              <Box>
-                                <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-                                  {u.firstName} {u.lastName}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  {u.email}
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </TableCell>
-
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" color="text.secondary">
-                              {u.phoneNumber || "—"}
-                            </Typography>
-                          </TableCell>
-
-                          <TableCell sx={{ py: 2 }}>
-                            <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }} useFlexGap>
-                              {u.roles.map(r => (
-                                <Chip
-                                  key={r}
-                                  label={r}
-                                  size="small"
-                                  sx={{
-                                    textTransform: "capitalize",
-                                    bgcolor: t => alpha(t.palette.info.main, 0.1),
-                                    color: "info.main",
-                                    fontWeight: 600,
-                                    fontSize: 12,
-                                    borderRadius: 1.5,
-                                  }}
-                                />
-                              ))}
-                              {u.roles.length === 0 && "—"}
-                            </Stack>
-                          </TableCell>
-
-                          <TableCell sx={{ py: 2 }}>
-                            <Chip
-                              label={status}
-                              size="small"
-                              sx={{
-                                textTransform: "capitalize",
-                                borderRadius: 1.5,
-                                bgcolor: isActive
-                                  ? t => alpha(t.palette.success.main, 0.15)
-                                  : t => alpha(t.palette.error.main, 0.15),
-                                color: isActive ? "success.main" : "error.main",
-                                fontWeight: 600,
-                                fontSize: 12,
-                              }}
-                            />
-                          </TableCell>
-
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" color="text.secondary">
-                              {u.createdAt ? new Date(u.createdAt as string).toLocaleDateString() : "—"}
-                            </Typography>
-                          </TableCell>
-
-                          <TableCell align="right" sx={{ pr: 3, py: 2 }}>
-                            <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
-                              <Tooltip title="View">
-                                <IconButton component={Link} href={`/admin/users/${u.id}`} size="small">
-                                  <VisibilityOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  component={Link}
-                                  href={`/admin/users/${u.id}/edit`}
-                                  size="small"
-                                  sx={{ display: { xs: "none", sm: "inline-flex" } }}
-                                >
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-
-                              <Tooltip title={isActive ? "Block User" : "Activate User"}>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    void handleStatusClick();
-                                  }}
-                                  sx={{ color: isActive ? "error.main" : "success.main" }}
-                                >
-                                  {isActive ? <BlockIcon fontSize="small" /> : <CheckCircleIcon fontSize="small" />}
-                                </IconButton>
-                              </Tooltip>
-
-                              <Tooltip title="Delete User">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    requestDelete(u);
-                                  }}
-                                  sx={{ color: "error.main" }}
-                                >
-                                  <DeleteOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
+                          u={u}
+                          activeTab={activeTab}
+                          isActive={isActive}
+                          handleStatusToggle={handleStatusToggle}
+                          requestDelete={requestDelete}
+                        />
                       );
                     })
                   ) : (

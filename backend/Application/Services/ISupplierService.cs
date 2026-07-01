@@ -83,4 +83,11 @@ public interface ISupplierService
     Task<SupplierManagementResponse> DeleteSupplierAsync(
         Guid supplierId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Enriches supplier user records with company profile and aggregate statistics.
+    /// </summary>
+    Task<List<Backend.Application.DTOs.UserManagement.UserManagementDto>> EnrichSuppliersAsync(
+        List<Backend.Application.DTOs.UserManagement.UserManagementDto> users,
+        CancellationToken cancellationToken = default);
 }

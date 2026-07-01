@@ -1,8 +1,11 @@
 using Backend.Application.DTOs.Common;
 using Backend.Application.DTOs.Supplier;
 using Backend.Application.DTOs.Public;
+using Backend.Application.DTOs.UserManagement;
 using Backend.Application.Exceptions;
 using Backend.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using Backend.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -22,6 +25,7 @@ public class SupplierService : ISupplierService
     // Optional + nullable so existing unit tests keep compiling without
     // a notification-service mock. Admin fan-out is best-effort.
     private readonly INotificationService? _notificationService;
+    private readonly IApplicationDbContext? _context;
 
     public SupplierService(
         ISupplierRepository supplierRepository,
@@ -29,7 +33,8 @@ public class SupplierService : ISupplierService
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
         ILogger<SupplierService> logger,
-        INotificationService? notificationService = null)
+        INotificationService? notificationService = null,
+        IApplicationDbContext? context = null)
     {
         _supplierRepository = supplierRepository;
         _userRepository = userRepository;
@@ -37,6 +42,7 @@ public class SupplierService : ISupplierService
         _roleManager = roleManager;
         _logger = logger;
         _notificationService = notificationService;
+        _context = context;
     }
 
     /// <summary>
@@ -58,12 +64,20 @@ public class SupplierService : ISupplierService
         // Get paginated suppliers
         var pagedSuppliers = await _supplierRepository.GetSuppliersAsync(page, pageSize, cancellationToken);
 
+        var supplierIds = pagedSuppliers.Data.Select(s => s.Id).ToList();
+        var userRolesMap = await _userRepository.GetUserRolesAsync(supplierIds, cancellationToken);
+        var companyProfilesMap = await _supplierRepository.GetCompanyProfilesAsync(supplierIds, cancellationToken);
+
         // Convert to DTOs
         var supplierDtos = new List<SupplierManagementDto>();
         foreach (var supplier in pagedSuppliers.Data)
         {
-            var roles = await _userManager.GetRolesAsync(supplier);
-            var companyProfile = await _supplierRepository.GetCompanyProfileAsync(supplier.Id, cancellationToken);
+            var roles = userRolesMap != null ? userRolesMap.GetValueOrDefault(supplier.Id, new List<string>()) : new List<string>();
+            CompanyProfile companyProfile = null;
+            if (companyProfilesMap != null)
+            {
+                companyProfilesMap.TryGetValue(supplier.Id, out companyProfile);
+            }
 
             var companyProfileDto = companyProfile != null
                 ? new CompanyProfileDto(
@@ -81,7 +95,7 @@ public class SupplierService : ISupplierService
                 EmailConfirmed: supplier.EmailConfirmed,
                 PhoneNumberConfirmed: supplier.PhoneNumberConfirmed,
                 Status: supplier.Status,
-                Roles: roles.ToList(),
+                Roles: roles,
                 CreatedAt: supplier.CreatedAt,
                 UpdatedAt: supplier.UpdatedAt,
                 CompanyProfile: companyProfileDto
@@ -162,11 +176,18 @@ public class SupplierService : ISupplierService
         if (pageSize > 20) pageSize = 20;
 
         var pagedSuppliers = await _supplierRepository.GetSuppliersAsync(page, pageSize, cancellationToken);
+        var supplierIds = pagedSuppliers.Data.Select(s => s.Id).ToList();
+        var companyProfilesMap = await _supplierRepository.GetCompanyProfilesAsync(supplierIds, cancellationToken);
+
         var supplierDtos = new List<PublicSupplierDto>();
 
         foreach (var supplier in pagedSuppliers.Data)
         {
-            var companyProfile = await _supplierRepository.GetCompanyProfileAsync(supplier.Id, cancellationToken);
+            CompanyProfile companyProfile = null;
+            if (companyProfilesMap != null)
+            {
+                companyProfilesMap.TryGetValue(supplier.Id, out companyProfile);
+            }
             supplierDtos.Add(new PublicSupplierDto(
                 Id: supplier.Id,
                 CompanyName: companyProfile?.CompanyName ?? $"{supplier.FirstName} {supplier.LastName}".Trim(),
@@ -427,4 +448,45 @@ public class SupplierService : ISupplierService
             SupplierId: supplierId
         );
     }
-}
+
+    /// <summary>
+    /// Enriches supplier user records with company profile and aggregate statistics.
+    /// Uses batching/projection to avoid N+1 query problem.
+    /// </summary>
+    public async Task<List<Backend.Application.DTOs.UserManagement.UserManagementDto>> EnrichSuppliersAsync(
+        List<Backend.Application.DTOs.UserManagement.UserManagementDto> users,
+        CancellationToken cancellationToken = default)
+    {
+        if (users == null || users.Count == 0)
+        {
+            return users ?? new List<Backend.Application.DTOs.UserManagement.UserManagementDto>();
+        }
+
+        var userIds = users.Select(u => u.Id).ToList();
+
+        // 1. Batch query Company Profiles
+        var companyProfiles = await _supplierRepository.GetCompanyProfilesAsync(userIds, cancellationToken);
+
+        // 2. Batch query Vehicles count grouped by UserId
+        var vehicleCounts = await _supplierRepository.GetVehicleCountsAsync(userIds, cancellationToken);
+
+        // 3. Batch query Total Bookings count grouped by UserId (Vehicle's UserId)
+        var bookingCounts = await _supplierRepository.GetBookingCountsAsync(userIds, cancellationToken);
+
+        // Map to enriched DTOs
+        return users.Select(u =>
+        {
+            companyProfiles.TryGetValue(u.Id, out var cp);
+            return u with
+            {
+                SupplierDetails = new SupplierDetailsDto(
+                    CompanyName: cp?.CompanyName,
+                    CommercialRegistration: cp?.CommercialRegistrationNumber,
+                    TaxNumber: cp?.TaxId,
+                    VehiclesCount: vehicleCounts.TryGetValue(u.Id, out var vCount) ? vCount : 0,
+                    TotalBookings: bookingCounts.TryGetValue(u.Id, out var bCount) ? bCount : 0
+                )
+            };
+        }).ToList();
+    }
+}

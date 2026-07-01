@@ -2,6 +2,22 @@ import { getSession } from "next-auth/react";
 import { apiFetchJson } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
+export interface DriverDetails {
+  licenseNumber: string | null;
+  licenseExpiryDate: string | null;
+  availability: string | null;
+  assignedBookings: number;
+  completedTrips: number;
+}
+
+export interface SupplierDetails {
+  companyName: string | null;
+  commercialRegistration: string | null;
+  taxNumber: string | null;
+  vehiclesCount: number;
+  totalBookings: number;
+}
+
 export interface User {
   id: string;
   firstName: string;
@@ -10,6 +26,8 @@ export interface User {
   phoneNumber: string | null;
   status: string;
   roles: string[];
+  driverDetails?: DriverDetails | null;
+  supplierDetails?: SupplierDetails | null;
   [key: string]: unknown;
 }
 

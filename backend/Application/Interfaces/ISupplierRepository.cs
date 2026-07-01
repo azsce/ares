@@ -49,4 +49,25 @@ public interface ISupplierRepository : IPaginatedRepository<ApplicationUser>
     Task<CompanyProfile> UpsertCompanyProfileAsync(
         CompanyProfile companyProfile,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets company profiles for multiple suppliers in a single query
+    /// </summary>
+    Task<Dictionary<Guid, CompanyProfile>> GetCompanyProfilesAsync(
+        IEnumerable<Guid> supplierIds,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets vehicle counts for multiple suppliers in a single query
+    /// </summary>
+    Task<Dictionary<Guid, int>> GetVehicleCountsAsync(
+        IEnumerable<Guid> supplierIds,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets total booking counts for multiple suppliers in a single query
+    /// </summary>
+    Task<Dictionary<Guid, int>> GetBookingCountsAsync(
+        IEnumerable<Guid> supplierIds,
+        CancellationToken cancellationToken = default);
 }

@@ -404,6 +404,12 @@ public class DashboardService : IDashboardService
             startDate = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             endDate = new DateTime(now.Year, 12, 31, 23, 59, 59, DateTimeKind.Utc);
         }
+        else if (string.Equals(filter, "LastMonth", StringComparison.OrdinalIgnoreCase))
+        {
+            var lastMonthDate = now.AddMonths(-1);
+            startDate = new DateTime(lastMonthDate.Year, lastMonthDate.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            endDate = new DateTime(lastMonthDate.Year, lastMonthDate.Month, DateTime.DaysInMonth(lastMonthDate.Year, lastMonthDate.Month), 23, 59, 59, DateTimeKind.Utc);
+        }
         else // default to ThisMonth
         {
             startDate = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);

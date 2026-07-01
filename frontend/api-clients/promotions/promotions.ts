@@ -103,7 +103,7 @@ export async function getDiscountCodes(
   if (params.pageSize) queryParams.append("pageSize", params.pageSize.toString());
 
   const queryString = queryParams.toString();
-  const basePath = "/api/admin/promotions";
+  const basePath = "/api/v1/promotions/discounts";
   const endpoint = queryString ? `${basePath}?${queryString}` : basePath;
 
   return apiFetchJson<PagedResult<DiscountCodeResponse>>(endpoint, {
@@ -116,7 +116,7 @@ export async function createDiscountCode(
   request: DiscountCodeCreateRequest,
   token: string
 ): Promise<DiscountCodeResponse> {
-  return apiFetchJson<DiscountCodeResponse>("/api/admin/promotions", {
+  return apiFetchJson<DiscountCodeResponse>("/api/v1/promotions/discounts", {
     method: "POST",
     accessToken: token,
     body: JSON.stringify(request),
@@ -128,7 +128,7 @@ export async function updateDiscountCode(
   request: DiscountCodeUpdateRequest,
   token: string
 ): Promise<DiscountCodeResponse> {
-  return apiFetchJson<DiscountCodeResponse>(`/api/admin/promotions/${id}`, {
+  return apiFetchJson<DiscountCodeResponse>(`/api/v1/promotions/discounts/${id}`, {
     method: "PUT",
     accessToken: token,
     body: JSON.stringify(request),
@@ -140,7 +140,7 @@ export async function deleteDiscountCode(id: string, permanent: boolean, token: 
   if (permanent) queryParams.append("permanent", "true");
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/admin/promotions/${id}?${queryString}` : `/api/admin/promotions/${id}`;
+  const endpoint = queryString ? `/api/v1/promotions/discounts/${id}?${queryString}` : `/api/v1/promotions/discounts/${id}`;
 
   return apiFetchJson(endpoint, {
     method: "DELETE",
@@ -161,7 +161,7 @@ export async function getDiscountAnalytics(
   if (endDate) queryParams.append("endDate", endDate);
 
   const queryString = queryParams.toString();
-  const basePath = `/api/admin/promotions/${id}/analytics`;
+  const basePath = `/api/v1/promotions/analytics/${id}`;
   const endpoint = queryString ? `${basePath}?${queryString}` : basePath;
 
   return apiFetchJson<DiscountAnalyticsResponse>(endpoint, {
