@@ -39,7 +39,8 @@ import {
 } from "@mui/icons-material";
 import { useRouter } from "@/shared/i18n/routing";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatUtcDate, formatUtcDateTime } from "@/utils/dateTime";
 import {
   useSupplierBookings,
   type SupplierBookingListItemDto,
@@ -49,14 +50,17 @@ import { toImageUrl } from "@/utils/image-url";
 // ── CONSTANTS & HELPERS ─────────────────────────────────────────────────
 type TFunction = (key: string) => string;
 
-const getStatusConfig = (status: string | undefined, t: TFunction, tc: TFunction) => {
+const getStatusConfig = (status: string | undefined, t: TFunction) => {
   const s = status?.toLowerCase() ?? "";
-  if (s === "active" || s === "confirmed" || s === "pickup")
-    return { label: tc("active"), colorKey: "success" as const };
-  if (s === "completed") return { label: t("statusLabels.completed"), colorKey: "info" as const };
-  if (s === "cancelled" || s === "returned") return { label: t("statusLabels.cancelled"), colorKey: "error" as const };
-  if (s === "draft") return { label: t("statusLabels.draft"), colorKey: "warning" as const };
-  return { label: t("statusLabels.paymentPending"), colorKey: "warning" as const };
+  if (s === "active" || s === "pickup")
+    return { label: t("filters.bookingStatusOptions.active"), colorPalette: "active" as const };
+  if (s === "confirmed")
+    return { label: t("filters.bookingStatusOptions.confirmed"), colorPalette: "confirmed" as const };
+  if (s === "completed") return { label: t("statusLabels.completed"), colorPalette: "completed" as const };
+  if (s === "cancelled" || s === "returned")
+    return { label: t("statusLabels.cancelled"), colorPalette: "cancelled" as const };
+  if (s === "draft") return { label: t("statusLabels.draft"), colorPalette: "pending" as const };
+  return { label: t("statusLabels.paymentPending"), colorPalette: "pendingApproval" as const };
 };
 
 const getPaymentStatusLabel = (status: string | undefined | null, t: TFunction): string => {
@@ -69,11 +73,14 @@ const getPaymentStatusLabel = (status: string | undefined | null, t: TFunction):
   return status ?? t("paymentDefault");
 };
 
-const formatCompactDate = (dateString?: string) => {
+const formatCompactDate = (dateString: string | undefined, locale: string): string => {
   if (!dateString) return "—";
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return formatUtcDate(dateString, locale, { month: "short", day: "numeric", year: "numeric" }, "—");
+};
+
+const formatCompactDateTime = (dateString: string | undefined, locale: string): string => {
+  if (!dateString) return "—";
+  return formatUtcDateTime(dateString, locale, { month: "short", day: "numeric", year: "numeric" }, "—");
 };
 
 /**
@@ -99,6 +106,7 @@ export default function SupplierBookingsClient() {
   const { data: session } = useSession();
   const t = useTranslations("dashboard.supplierBookings");
   const tc = useTranslations("common");
+  const locale = useLocale();
 
   // Filters / paging
   const [search, setSearch] = useState("");
@@ -195,8 +203,8 @@ export default function SupplierBookingsClient() {
     }
 
     return bookings.map((booking: SupplierBookingListItemDto) => {
-      const statusConfig = getStatusConfig(booking.bookingStatus, t, tc);
-      const statusColor = theme.palette[statusConfig.colorKey].main;
+      const statusConfig = getStatusConfig(booking.bookingStatus, t);
+      const statusColor = theme.palette.status[statusConfig.colorPalette].main;
       const customerLabel =
         booking.customerName && booking.customerName.trim().length > 0 ? booking.customerName : t("customerDefault");
 
@@ -250,7 +258,7 @@ export default function SupplierBookingsClient() {
           {/* Period — compact */}
           <TableCell>
             <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-              {formatCompactDate(booking.pickupDate)} → {formatCompactDate(booking.returnDate)}
+              {formatCompactDate(booking.pickupDate, locale)} → {formatCompactDate(booking.returnDate, locale)}
             </Typography>
           </TableCell>
 
@@ -302,7 +310,7 @@ export default function SupplierBookingsClient() {
           {/* Created At */}
           <TableCell>
             <Typography variant="body2" sx={{ fontSize: 13, color: "text.secondary" }}>
-              {formatCompactDate(booking.createdAt)}
+              {formatCompactDateTime(booking.createdAt, locale)}
             </Typography>
           </TableCell>
 
