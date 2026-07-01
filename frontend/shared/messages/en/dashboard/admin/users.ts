@@ -304,6 +304,15 @@ const users: AdminUsersLabels = {
     licenseExpiry: "License Expiry",
     assignedBookings: "Assigned Bookings",
     completedTrips: "Completed Trips",
+    customerInformation: "Customer Information",
+    completedBookings: "Completed Bookings",
+    cancelledBookings: "Cancelled Bookings",
+    totalSpent: "Total Spent",
+    lastBookingDate: "Last Booking Date",
+    inspectorInformation: "Inspector Information",
+    employeeCode: "Employee Code",
+    assignedInspections: "Assigned Inspections",
+    completedInspections: "Completed Inspections",
   },
 };
 

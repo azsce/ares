@@ -303,6 +303,15 @@ const users: AdminUsersLabels = {
     licenseExpiry: "تاريخ انتهاء الرخصة",
     assignedBookings: "الحجوزات المعينة",
     completedTrips: "الرحلات المكتملة",
+    customerInformation: "معلومات العميل",
+    completedBookings: "الحجوزات المكتملة",
+    cancelledBookings: "الحجوزات الملغاة",
+    totalSpent: "إجمالي الإنفاق",
+    lastBookingDate: "تاريخ آخر حجز",
+    inspectorInformation: "معلومات المفتش",
+    employeeCode: "كود الموظف",
+    assignedInspections: "الفحوصات المعينة",
+    completedInspections: "الفحوصات المكتملة",
   },
 };
 

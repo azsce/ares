@@ -302,5 +302,14 @@ export type AdminUsersLabels = {
     readonly licenseExpiry: string;
     readonly assignedBookings: string;
     readonly completedTrips: string;
+    readonly customerInformation: string;
+    readonly completedBookings: string;
+    readonly cancelledBookings: string;
+    readonly totalSpent: string;
+    readonly lastBookingDate: string;
+    readonly inspectorInformation: string;
+    readonly employeeCode: string;
+    readonly assignedInspections: string;
+    readonly completedInspections: string;
   };
 };
