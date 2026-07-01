@@ -3,14 +3,14 @@
 ## Overall Progress
 
 - Total Pages: 94
-- Completed Pages: 69
-- Progress: 73%
+- Completed Pages: 73
+- Progress: 78%
 
 ## Messages Structure Progress
 
-- **Types**: 69/94 split (common, auth, errors + 6 auth + 10 customer + 14 admin + 7 driver + 4 inspector + 9 supplier + 16 public/root page types done; 25 remaining)
-- **English**: 69/94 split (common, auth, errors + 6 auth + 10 customer + 14 admin + 7 driver + 4 inspector + 9 supplier + 16 public/root page translations done; 25 remaining)
-- **Arabic**: 69/94 split (common, auth, errors + 6 auth + 10 customer + 14 admin + 7 driver + 4 inspector + 9 supplier + 16 public/root page translations done; 25 remaining)
+- **Types**: 73/94 split (common, auth, errors + 6 auth + 10 customer + 16 admin + 7 driver + 4 inspector + 9 supplier + 16 public/root page types done; 21 remaining)
+- **English**: 73/94 split (common, auth, errors + 6 auth + 10 customer + 16 admin + 7 driver + 4 inspector + 9 supplier + 16 public/root page translations done; 21 remaining)
+- **Arabic**: 73/94 split (common, auth, errors + 6 auth + 10 customer + 16 admin + 7 driver + 4 inspector + 9 supplier + 16 public/root page translations done; 21 remaining)
 
 > See `shared/Messages_README.md` for messages directory conventions.
 
@@ -56,8 +56,8 @@
 - [x] [Edit Country](pages/dashboard/admin/countries/_id/edit.md) — `/(dashboard)/admin/countries/[id]/edit`
 - [x] [Admin Drivers](pages/dashboard/admin/drivers.md) — `/(dashboard)/admin/drivers`
 - [x] [Driver Detail](pages/dashboard/admin/drivers/_id.md) — `/(dashboard)/admin/drivers/[id]`
-- [ ] [Admin Inspectors](pages/dashboard/admin/inspectors.md) — `/(dashboard)/admin/inspectors`
-- [ ] [Inspector Detail](pages/dashboard/admin/inspectors/_id.md) — `/(dashboard)/admin/inspectors/[id]`
+- [x] [Admin Inspectors](pages/dashboard/admin/inspectors.md) — `/(dashboard)/admin/inspectors`
+- [x] [Inspector Detail](pages/dashboard/admin/inspectors/_id.md) — `/(dashboard)/admin/inspectors/[id]`
 - [ ] [Admin Locations](pages/dashboard/admin/locations.md) — `/(dashboard)/admin/locations`
 - [ ] [Create Location](pages/dashboard/admin/locations/create.md) — `/(dashboard)/admin/locations/create`
 - [ ] [Location Detail](pages/dashboard/admin/locations/_id.md) — `/(dashboard)/admin/locations/[id]`

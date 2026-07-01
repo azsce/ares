@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { apiFetchJson, toApiUrl } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
 
@@ -35,7 +34,7 @@ export interface Vehicle {
   [key: string]: unknown;
 }
 
-interface VehicleResponse {
+export interface VehicleResponse {
   data?: Vehicle[];
   totalPages?: number;
   totalCount?: number;
@@ -95,108 +94,26 @@ function mapStatusToBackend(status: VehicleStatusFilter | undefined): string | u
   }
 }
 
-const DEFAULT_PAGE_SIZE = 10;
-const DEBOUNCE_MS = 350;
-
-export function useVehicles(accessToken: string | undefined, filter: AdminVehicleFilter = {}, initialPage = 1) {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(initialPage);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const pageSize = DEFAULT_PAGE_SIZE;
-
-  const [debouncedKeyword, setDebouncedKeyword] = useState(filter.keyword ?? "");
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      setDebouncedKeyword(filter.keyword ?? "");
-    }, DEBOUNCE_MS);
-    return () => {
-      window.clearTimeout(t);
-    };
-  }, [filter.keyword]);
-
-  const nonKeywordFilter = useMemo(
-    () => ({
-      status: filter.status ?? "",
-      supplierId: filter.supplierId ?? "",
-      transmission: filter.transmission ?? "",
-      sortBy: filter.sortBy ?? "newest",
-      categoryId: filter.categoryId ?? "",
-    }),
-    [filter.status, filter.supplierId, filter.transmission, filter.sortBy, filter.categoryId]
-  );
-
-  const firstRun = useRef(true);
-  useEffect(() => {
-    if (firstRun.current) {
-      firstRun.current = false;
-      return;
-    }
-    setPage(1);
-  }, [debouncedKeyword, nonKeywordFilter]);
-
-  const backendBody = useMemo(
-    () => ({
-      suppliers: filter.supplierId ? [filter.supplierId] : null,
-      keyword: debouncedKeyword.trim() ? debouncedKeyword.trim() : null,
-      status: mapStatusToBackend(filter.status) ?? null,
-      transmission: filter.transmission ? filter.transmission.trim() : null,
-      sortBy: filter.sortBy ?? null,
-      categoryId: filter.categoryId ? filter.categoryId : null,
-    }),
-    [debouncedKeyword, filter.status, filter.supplierId, filter.transmission, filter.sortBy, filter.categoryId]
-  );
-
-  const fetchVehicles = useCallback(
-    async (currentPage: number) => {
-      if (!accessToken) return;
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await apiFetchJson<VehicleResponse>(
-          `api/vehicles/search/${String(currentPage)}/${String(pageSize)}`,
-          {
-            method: "POST",
-            accessToken,
-            body: JSON.stringify(backendBody),
-          }
-        );
-        setVehicles(response.data || []);
-        setTotalPages(response.totalPages || 1);
-        setTotalCount(response.totalCount || 0);
-      } catch (err) {
-        logger.error("Failed to fetch vehicles", err);
-        setError("Could not load vehicles. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [accessToken, backendBody, pageSize]
-  );
-
-  useEffect(() => {
-    void fetchVehicles(page);
-  }, [page, fetchVehicles]);
-
-  useEffect(() => {
-    if (!loading && totalPages > 0 && page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [loading, totalPages, page]);
-
-  return {
-    vehicles,
-    loading,
-    error,
-    page,
-    totalPages,
-    totalCount,
-    pageSize,
-    setPage,
-    refresh: () => void fetchVehicles(page),
+export async function getVehiclesApi(
+  accessToken: string,
+  page: number,
+  pageSize: number,
+  filter: AdminVehicleFilter = {}
+): Promise<VehicleResponse> {
+  const backendBody = {
+    suppliers: filter.supplierId ? [filter.supplierId] : null,
+    keyword: filter.keyword?.trim() ? filter.keyword.trim() : null,
+    status: mapStatusToBackend(filter.status) ?? null,
+    transmission: filter.transmission ? filter.transmission.trim() : null,
+    sortBy: filter.sortBy ?? null,
+    categoryId: filter.categoryId ? filter.categoryId : null,
   };
+
+  return apiFetchJson<VehicleResponse>(`api/vehicles/search/${String(page)}/${String(pageSize)}`, {
+    method: "POST",
+    accessToken,
+    body: JSON.stringify(backendBody),
+  });
 }
 
 export interface CarPayload {
@@ -316,32 +233,9 @@ export interface AdminVehicleStats {
   readonly maintenanceVehicles?: number;
 }
 
-export function useAdminVehicleStats(accessToken: string | undefined) {
-  const [stats, setStats] = useState<AdminVehicleStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStats = useCallback(async () => {
-    if (!accessToken) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await apiFetchJson<AdminVehicleStats>("api/vehicles/admin/stats", {
-        method: "GET",
-        accessToken,
-      });
-      setStats(data);
-    } catch (err) {
-      logger.error("Failed to fetch admin vehicle stats", err);
-      setError("Could not load statistics.");
-    } finally {
-      setLoading(false);
-    }
-  }, [accessToken]);
-
-  useEffect(() => {
-    void fetchStats();
-  }, [fetchStats]);
-
-  return { stats, loading, error, refresh: () => void fetchStats() };
+export async function getAdminVehicleStatsApi(accessToken: string): Promise<AdminVehicleStats> {
+  return apiFetchJson<AdminVehicleStats>("api/vehicles/admin/stats", {
+    method: "GET",
+    accessToken,
+  });
 }

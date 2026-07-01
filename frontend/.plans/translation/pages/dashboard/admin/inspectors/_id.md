@@ -9,16 +9,18 @@
 
 - [ ] Not started
 - [ ] In progress
-- [ ] Completed
+- [x] Completed
 
 ## Shared Components
 
-(To be filled during execution)
+- `app/[locale]/(dashboard)/admin/_components/UserDetailsView.tsx`
 
 ## Component Discovery
 
-(To be filled during execution)
+- `app/[locale]/(dashboard)/admin/inspectors/[id]/page.tsx`
+- `app/[locale]/(dashboard)/admin/inspectors/[id]/_components/InspectorDetailsClient.tsx`
 
 ## Translation Tasks
 
-(To be filled during execution)
+- [x] Verify client component `InspectorDetailsClient.tsx` uses next-intl translation hooks
+- [x] Verify that the shared component `UserDetailsView.tsx` translates all properties correctly (using `dashboardAdmin.users` keys)
