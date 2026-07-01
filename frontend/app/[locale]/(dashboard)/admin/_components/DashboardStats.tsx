@@ -11,7 +11,7 @@ import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { useSession } from "next-auth/react";
 import { apiFetchJson } from "@/utils/api-client";
 import { logger } from "@/utils/logger";
-import { useAdminVehicleStats } from "@/api-clients/cars/cars";
+import { useAdminVehicleStats } from "@/api-clients/cars/hooks";
 
 interface DashboardSummary {
   activeBookings: number;

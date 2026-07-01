@@ -2,7 +2,7 @@
 
 import React, { memo } from "react";
 import { useSession } from "next-auth/react";
-import { useAdminVehicleStats } from "@/api-clients/cars/cars";
+import { useAdminVehicleStats } from "@/api-clients/cars/hooks";
 import {
   Card,
   Box,
